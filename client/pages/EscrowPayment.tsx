@@ -8,8 +8,8 @@ export default function EscrowPayment() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Header with back button */}
-      <div className="sticky top-0 bg-card/80 backdrop-blur-glass border-b border-border/50 z-10">
-        <div className="flex items-center gap-3 px-4 py-4">
+      <div className="sticky top-0 bg-background/90 backdrop-blur-glass border-b border-border/50 z-10">
+        <div className="flex items-center gap-3 px-4 py-3">
           <Link to="/deals">
             <ArrowLeft size={24} className="text-foreground" />
           </Link>
@@ -21,7 +21,7 @@ export default function EscrowPayment() {
       </div>
 
       {/* Main content */}
-      <div className="px-4 py-6 space-y-4">
+      <div className="px-4 pt-6 pb-24 space-y-4">
         {/* Secure Payment Card */}
         <div className="glass p-8 rounded-lg border-2 border-primary/30 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/20 rounded-full mb-4">
@@ -97,13 +97,16 @@ export default function EscrowPayment() {
         )}
 
         {/* Action Buttons */}
-        <button className="button-primary mt-2 text-center py-4 text-base font-semibold">
-          Pay with Telegram Wallet
-        </button>
-
-        <button className="button-secondary mt-2 text-center py-4 text-base font-semibold">
-          Back
-        </button>
+        <div className="sticky bottom-[calc(5.5rem+var(--tg-safe-bottom))] -mx-4 mt-6 border-t border-border/50 bg-background/90 backdrop-blur-glass safe-area-bottom">
+          <div className="px-4 py-4 space-y-3">
+            <button className="button-primary text-center py-4 text-base font-semibold">
+              Pay with Telegram Wallet
+            </button>
+            <button className="button-secondary text-center py-4 text-base font-semibold">
+              Back
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

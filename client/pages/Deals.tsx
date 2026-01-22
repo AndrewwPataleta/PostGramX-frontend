@@ -6,22 +6,21 @@ export default function Deals() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Header */}
-      <div className="px-4 py-6">
-        <h1 className="text-2xl font-bold text-foreground mb-1">Deals</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your campaigns
-        </p>
+      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
+        <div className="px-4 py-3">
+          <h1 className="text-base font-semibold text-foreground">Deals</h1>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border px-4 flex gap-6">
+      <div className="border-b border-border px-4 flex gap-6 bg-background/80 backdrop-blur-glass">
         {["active", "pending", "completed"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === tab
-                ? "text-primary border-b-primary"
+                ? "text-primary border-b-primary tg-active-glow"
                 : "text-muted-foreground border-b-transparent"
             }`}
           >

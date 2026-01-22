@@ -78,15 +78,14 @@ export default function Channels() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Header */}
-      <div className="px-4 py-6">
-        <h1 className="text-2xl font-bold text-foreground mb-1">My Channels</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your Telegram channels
-        </p>
+      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
+        <div className="px-4 py-3">
+          <h1 className="text-base font-semibold text-foreground">My Channels</h1>
+        </div>
       </div>
 
       {/* Channels List */}
-      <div className="px-4 pb-32 space-y-3">
+      <div className="px-4 pb-32 pt-4 space-y-3">
         {/* Verified Channels Section */}
         {verifiedChannels.length > 0 && (
           <>
@@ -102,7 +101,7 @@ export default function Channels() {
                 >
                   {/* Header Row */}
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center text-xl flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-secondary/60 flex items-center justify-center text-xl flex-shrink-0">
                       {channel.avatar}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -110,7 +109,7 @@ export default function Channels() {
                         <h3 className="font-semibold text-foreground truncate">
                           {channel.name}
                         </h3>
-                        <div className="inline-flex items-center justify-center bg-primary/20 rounded-full p-0.5 flex-shrink-0">
+                        <div className="inline-flex items-center justify-center bg-primary/15 rounded-full p-0.5 flex-shrink-0 ring-1 ring-primary/30">
                           <Check size={14} className="text-primary" />
                         </div>
                       </div>
@@ -196,7 +195,7 @@ export default function Channels() {
                 >
                   {/* Header Row */}
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-secondary/40 to-secondary/20 flex items-center justify-center text-xl flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-secondary/60 flex items-center justify-center text-xl flex-shrink-0">
                       {channel.avatar}
                     </div>
                     <div className="flex-1 min-w-0">

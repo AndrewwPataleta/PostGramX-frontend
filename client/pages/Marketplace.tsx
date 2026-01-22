@@ -307,17 +307,16 @@ export default function Marketplace() {
   });
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto safe-area-guide">
       {/* Header */}
-      <div className="px-4 py-6">
-        <h1 className="text-2xl font-bold text-foreground mb-1">FlowgramX</h1>
-        <p className="text-sm text-muted-foreground">
-          Discover verified channels for your next campaign
-        </p>
+      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
+        <div className="px-4 py-3">
+          <h1 className="text-base font-semibold text-foreground">Marketplace</h1>
+        </div>
       </div>
 
       {/* Search and Filter */}
-      <div className="px-4 pb-4 flex gap-2">
+      <div className="px-4 pb-4 pt-4 flex gap-2">
         <div className="flex-1 relative">
           <Search
             size={18}
@@ -328,12 +327,12 @@ export default function Marketplace() {
             placeholder="Search channels or @username..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-card border border-border rounded-lg pl-10 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+            className="w-full pl-10 pr-4 py-3"
           />
         </div>
         <button
           onClick={() => setIsFilterModalOpen(true)}
-          className="bg-card border border-border rounded-lg p-3 text-foreground hover:bg-secondary transition-colors flex-shrink-0"
+          className="tg-icon-button flex-shrink-0"
         >
           <svg
             className="w-5 h-5"
@@ -364,7 +363,7 @@ export default function Marketplace() {
           >
             {/* Channel Header */}
             <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center text-lg flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-secondary/60 flex items-center justify-center text-lg flex-shrink-0">
                 {channel.avatar}
               </div>
               <div className="flex-1 min-w-0">
@@ -373,7 +372,7 @@ export default function Marketplace() {
                     {channel.name}
                   </h3>
                   {channel.verified && (
-                    <div className="inline-flex items-center justify-center bg-primary/20 rounded-full p-0.5 flex-shrink-0">
+                    <div className="inline-flex items-center justify-center bg-primary/15 rounded-full p-0.5 flex-shrink-0 ring-1 ring-primary/30">
                       <Check size={14} className="text-primary" />
                     </div>
                   )}
