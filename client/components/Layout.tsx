@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Zap, Store, TrendingUp, User } from "lucide-react";
+import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,6 +9,7 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
+  const bottomNavHeight = 104;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -21,9 +23,9 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto safe-area-top pb-[calc(6.5rem+var(--tg-safe-bottom))]">
-        {children}
-      </main>
+      <SafeAreaLayout bottomNavHeight={bottomNavHeight}>
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </SafeAreaLayout>
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-[var(--tg-safe-bottom)] left-0 right-0 z-50 px-4">
@@ -34,10 +36,10 @@ const Layout = ({ children }: LayoutProps) => {
               <Link
                 key={path}
                 to={path}
-                className={`flex flex-col items-center justify-center py-3 px-3 flex-1 transition-colors ${
+                className={`flex flex-col items-center justify-center py-3 px-3 flex-1 rounded-xl transition-colors focus-visible:outline-none focus-visible:bg-primary/10 ${
                   active
-                    ? "text-primary tg-active-glow"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
                 }`}
               >
                 <Icon size={22} className="mb-1" />

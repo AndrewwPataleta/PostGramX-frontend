@@ -1,6 +1,19 @@
 import { Check, LogOut, Send, Settings } from "lucide-react";
+import { useTelegram } from "@/hooks/use-telegram";
 
 export default function Profile() {
+  const { user } = useTelegram();
+  const fullName = user
+    ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`
+    : "Telegram User";
+  const username = user?.username ? `@${user.username}` : "@unknown";
+  const initials = fullName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Header */}
@@ -15,19 +28,19 @@ export default function Profile() {
         {/* Profile Header Card */}
         <div className="glass p-4 flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xl font-semibold">
-            AJ
+            {initials || "TG"}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-foreground">
-                Alex Johnson
+                {fullName}
               </h2>
               <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2 py-0.5 text-[11px] font-medium">
                 <Check size={12} />
                 Verified
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">@alexjohnson</p>
+            <p className="text-sm text-muted-foreground">{username}</p>
             <p className="text-[11px] text-muted-foreground mt-1">
               Connected via Telegram
             </p>
