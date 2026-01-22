@@ -1,0 +1,149 @@
+/** @import must precede all other statements */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * Telegram-style dark theme
+   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
+   * A different format will require also updating the theme in tailwind.config.ts.
+  */
+  :root {
+    /* Dark mode first (Telegram native) */
+    --background: 213 26% 11%;
+    --foreground: 0 0% 95%;
+
+    --card: 213 27% 16%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 213 27% 16%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Telegram blue - primary accent */
+    --primary: 197 91% 52%;
+    --primary-foreground: 213 26% 11%;
+
+    /* Secondary - lighter surface */
+    --secondary: 213 26% 20%;
+    --secondary-foreground: 0 0% 95%;
+
+    /* Muted - for less important text */
+    --muted: 213 15% 35%;
+    --muted-foreground: 213 10% 70%;
+
+    /* Accent - cyan/blue highlight */
+    --accent: 190 98% 48%;
+    --accent-foreground: 213 26% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 95%;
+
+    /* Borders and inputs */
+    --border: 213 20% 25%;
+    --input: 213 25% 18%;
+    --ring: 197 91% 52%;
+
+    /* Radius - Telegram style rounded cards */
+    --radius: 0.75rem;
+
+    --sidebar-background: 213 26% 11%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 197 91% 52%;
+    --sidebar-primary-foreground: 213 26% 11%;
+    --sidebar-accent: 190 98% 48%;
+    --sidebar-accent-foreground: 213 26% 11%;
+    --sidebar-border: 213 20% 25%;
+    --sidebar-ring: 197 91% 52%;
+  }
+
+  .dark {
+    /* Same as root - dark mode is default */
+    --background: 213 26% 11%;
+    --foreground: 0 0% 95%;
+    --card: 213 27% 16%;
+    --card-foreground: 0 0% 95%;
+    --popover: 213 27% 16%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 197 91% 52%;
+    --primary-foreground: 213 26% 11%;
+    --secondary: 213 26% 20%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 213 15% 35%;
+    --muted-foreground: 213 10% 70%;
+    --accent: 190 98% 48%;
+    --accent-foreground: 213 26% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 213 20% 25%;
+    --input: 213 25% 18%;
+    --ring: 197 91% 52%;
+    --radius: 0.75rem;
+    --sidebar-background: 213 26% 11%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 197 91% 52%;
+    --sidebar-primary-foreground: 213 26% 11%;
+    --sidebar-accent: 190 98% 48%;
+    --sidebar-accent-foreground: 213 26% 11%;
+    --sidebar-border: 213 20% 25%;
+    --sidebar-ring: 197 91% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-background;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  pre,
+  code {
+    overflow-x: auto;
+    white-space: pre;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-card/50 backdrop-blur-glass border border-border/20 rounded-lg;
+  }
+
+  .glass-sm {
+    @apply bg-card/40 backdrop-blur-glass border border-border/10 rounded-md;
+  }
+
+  .button-primary {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 px-4 rounded-lg w-full transition-colors;
+  }
+
+  .button-secondary {
+    @apply bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium py-3 px-4 rounded-lg border border-border transition-colors;
+  }
+
+  .tab-nav {
+    @apply flex gap-1 border-b border-border;
+  }
+
+  .tab-item {
+    @apply px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground border-b-2 border-transparent transition-colors cursor-pointer;
+  }
+
+  .tab-item.active {
+    @apply text-primary border-b-2 border-primary;
+  }
+}
