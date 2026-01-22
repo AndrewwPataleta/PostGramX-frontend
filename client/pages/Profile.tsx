@@ -1,48 +1,69 @@
-import { LogOut, Settings } from "lucide-react";
+import { Check, LogOut, Send, Settings } from "lucide-react";
 
 export default function Profile() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Header */}
-      <div className="px-4 py-6">
-        <h1 className="text-2xl font-bold text-foreground mb-1">Profile</h1>
-        <p className="text-sm text-muted-foreground">Manage your account</p>
+      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
+        <div className="px-4 py-3">
+          <h1 className="text-base font-semibold text-foreground">Profile</h1>
+        </div>
       </div>
 
       {/* Main content */}
-      <div className="px-4 py-6 space-y-4 mb-12">
-        {/* Wallet Card */}
-        <div className="glass p-6 rounded-lg border-2 border-accent/30 mb-4">
-          <p className="text-xs text-muted-foreground mb-4">Wallet Balance</p>
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-1">Locked Funds</p>
-            <p className="text-2xl font-bold text-foreground">0 TON</p>
+      <div className="px-4 py-4 space-y-4 pb-28">
+        {/* Profile Header Card */}
+        <div className="glass p-4 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xl font-semibold">
+            AJ
           </div>
-          <div className="pt-4 border-t border-border/30">
-            <p className="text-sm text-muted-foreground mb-1">Total Earned</p>
-            <p className="text-2xl font-bold text-primary">0 TON</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-foreground">
+                Alex Johnson
+              </h2>
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2 py-0.5 text-[11px] font-medium">
+                <Check size={12} />
+                Verified
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">@alexjohnson</p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Connected via Telegram
+            </p>
           </div>
         </div>
 
-        {/* Main content placeholder */}
-        <div className="glass p-8 rounded-lg text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">👤</span>
-          </div>
-          <h2 className="text-lg font-semibold text-foreground mb-2">
-            Profile Screen
-          </h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            This page will include:
+        {/* Wallet Summary Card */}
+        <div className="glass p-4">
+          <p className="text-xs text-muted-foreground mb-3">
+            Wallet Summary
           </p>
-          <ul className="text-sm text-muted-foreground space-y-2 text-left bg-secondary/30 p-4 rounded-lg mb-6">
-            <li>• Wallet summary card</li>
-            <li>• Total locked funds</li>
-            <li>• Total earned funds</li>
-            <li>• Settings list</li>
-          </ul>
-          <p className="text-xs text-muted-foreground">
-            Continue interacting with the chat to generate this page content.
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-secondary/40 rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">
+                Escrow balance locked
+              </p>
+              <p className="text-lg font-semibold text-foreground mt-1">
+                1.2 TON
+              </p>
+            </div>
+            <div className="bg-secondary/40 rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">
+                Total earnings (TON)
+              </p>
+              <p className="text-lg font-semibold text-primary mt-1">
+                8.4 TON
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* About Section */}
+        <div className="glass p-4">
+          <p className="text-xs text-muted-foreground mb-2">About</p>
+          <p className="text-sm text-foreground">
+            Powered by Telegram Mini Apps.
           </p>
         </div>
 
@@ -56,6 +77,11 @@ export default function Profile() {
             <LogOut size={18} className="text-muted-foreground" />
             <span className="text-foreground font-medium">Logout</span>
           </button>
+        </div>
+
+        <div className="flex items-center justify-center gap-2 pt-6 text-xs text-muted-foreground/70">
+          <Send size={14} className="text-primary/70" />
+          <span className="tracking-wide">Telegram Mini App</span>
         </div>
       </div>
     </div>

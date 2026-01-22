@@ -21,27 +21,27 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto pb-20">
+      <main className="flex-1 overflow-y-auto safe-area-top pb-[calc(6.5rem+var(--tg-safe-bottom))]">
         {children}
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-glass border-t border-border/50 safe-area-inset-bottom">
-        <div className="flex items-center justify-around max-w-2xl mx-auto">
+      <nav className="fixed bottom-[var(--tg-safe-bottom)] left-0 right-0 z-50 px-4">
+        <div className="flex items-center justify-around max-w-2xl mx-auto rounded-2xl bg-card/80 backdrop-blur-glass border border-border/40 shadow-sm">
           {navItems.map(({ path, label, icon: Icon }) => {
             const active = isActive(path);
             return (
               <Link
                 key={path}
                 to={path}
-                className={`flex flex-col items-center justify-center py-4 px-3 flex-1 transition-colors ${
+                className={`flex flex-col items-center justify-center py-3 px-3 flex-1 transition-colors ${
                   active
-                    ? "text-primary"
+                    ? "text-primary tg-active-glow"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Icon size={24} className="mb-1" />
-                <span className="text-xs font-medium">{label}</span>
+                <Icon size={22} className="mb-1" />
+                <span className="text-[11px] font-medium">{label}</span>
               </Link>
             );
           })}
