@@ -12,6 +12,9 @@ export default defineConfig(() => ({
       deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**"],
     },
   },
+  preview: {
+    allowedHosts: "all",
+  },
   build: {
     outDir: "dist/spa",
   },
