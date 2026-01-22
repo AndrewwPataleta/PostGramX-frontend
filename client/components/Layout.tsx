@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Zap, Store, TrendingUp, User } from "lucide-react";
 import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
+import WalletConnectBanner from "@/components/wallet/WalletConnectBanner";
 
 interface LayoutProps {
   children: ReactNode;
@@ -24,7 +25,10 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Main content */}
       <SafeAreaLayout bottomNavHeight={bottomNavHeight}>
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          <WalletConnectBanner />
+          {children}
+        </main>
       </SafeAreaLayout>
 
       {/* Bottom Navigation */}
