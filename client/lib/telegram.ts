@@ -107,8 +107,20 @@ export const setInsetCssVars = (
   root.style.setProperty("--tg-safe-right", `${safe.right}px`);
   root.style.setProperty("--tg-safe-bottom", `${safe.bottom}px`);
   root.style.setProperty("--tg-safe-left", `${safe.left}px`);
-  root.style.setProperty("--tg-content-top", `${content.top}px`);
-  root.style.setProperty("--tg-content-right", `${content.right}px`);
-  root.style.setProperty("--tg-content-bottom", `${content.bottom}px`);
-  root.style.setProperty("--tg-content-left", `${content.left}px`);
+  root.style.setProperty(
+    "--tg-content-safe-area-inset-top",
+    `${content.top}px`
+  );
+  root.style.setProperty(
+    "--tg-content-safe-area-inset-right",
+    `${content.right}px`
+  );
+  root.style.setProperty(
+    "--tg-content-safe-area-inset-bottom",
+    `${content.bottom}px`
+  );
+  root.style.setProperty(
+    "--tg-content-safe-area-inset-left",
+    `${content.left}px`
+  );
 };
