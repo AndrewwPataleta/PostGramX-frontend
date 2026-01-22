@@ -1,26 +1,10 @@
-import { useState } from "react";
-import { Search, Check, Info } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import { FilterModal, FilterState } from "@/components/FilterModal";
 import { ActiveFiltersChips } from "@/components/ActiveFiltersChips";
-import { Sparkline } from "@/components/Sparkline";
-import { Tooltip } from "@/components/Tooltip";
-
-interface ChannelCard {
-  id: string;
-  name: string;
-  username: string;
-  avatar: string;
-  verified: boolean;
-  subscribers: number;
-  averageViews: number;
-  engagement: number;
-  pricePerPost: number;
-  language: string;
-  category: string;
-  viewsTrend: number[];
-  lastUpdated: string;
-}
+import { MarketplaceCard } from "@/components/marketplace/MarketplaceCard";
+import { MarketplaceCardSkeleton } from "@/components/marketplace/MarketplaceCardSkeleton";
+import type { ChannelCard } from "@/types/marketplace";
 
 // Mock data with Telegram-style fields
 const channels: ChannelCard[] = [
@@ -183,6 +167,7 @@ interface ExtendedFilterState extends FilterState {
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<ExtendedFilterState>({
     priceRange: [0, 10],
     subscribersRange: [0, 1000000],
@@ -197,6 +182,14 @@ export default function Marketplace() {
   const handleApplyFilters = (newFilters: any) => {
     setFilters(newFilters);
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleResetFilters = () => {
     setFilters({
@@ -355,87 +348,19 @@ export default function Marketplace() {
 
       {/* Channel Cards */}
       <div className="px-4 py-6 space-y-3">
-        {sortedChannels.map((channel) => (
-          <Link
-            key={channel.id}
-            to={`/channel/${channel.id}`}
-            className="block glass p-4 hover:bg-card/60 transition-colors"
-          >
-            {/* Channel Header */}
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-secondary/60 flex items-center justify-center text-lg flex-shrink-0">
-                {channel.avatar}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-foreground truncate">
-                    {channel.name}
-                  </h3>
-                  {channel.verified && (
-                    <div className="inline-flex items-center justify-center bg-primary/15 rounded-full p-0.5 flex-shrink-0 ring-1 ring-primary/30">
-                      <Check size={14} className="text-primary" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">{channel.username}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="font-semibold text-primary text-sm">
-                  From {channel.pricePerPost} TON
-                </p>
-                <p className="text-xs text-muted-foreground">per post</p>
-              </div>
-            </div>
-
-            {/* Badge Row */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 pb-3 border-b border-border/30">
-              <div className="flex gap-2">
-                {channel.verified && <span className="text-primary">✓ Verified</span>}
-                <span>Updated {channel.lastUpdated} ago</span>
-              </div>
-            </div>
-
-            {/* Metrics Row */}
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              <div className="bg-secondary/30 rounded-lg px-2 py-1.5">
-                <p className="text-xs text-muted-foreground">Subscribers</p>
-                <p className="text-sm font-semibold text-foreground">
-                  {(channel.subscribers / 1000).toFixed(0)}K
-                </p>
-              </div>
-              <div className="bg-secondary/30 rounded-lg px-2 py-1.5">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-muted-foreground">Avg Views</p>
-                  <Tooltip text="Computed from verified post view counts. Last 10 posts.">
-                    <Info size={12} className="text-muted-foreground" />
-                  </Tooltip>
-                </div>
-                <p className="text-sm font-semibold text-foreground">
-                  {(channel.averageViews / 1000).toFixed(0)}K
-                </p>
-              </div>
-              <div className="bg-secondary/30 rounded-lg px-2 py-1.5">
-                <p className="text-xs text-muted-foreground">Engagement</p>
-                <p className="text-sm font-semibold text-accent">
-                  {channel.engagement}%
-                </p>
-              </div>
-            </div>
-
-            {/* Views Sparkline */}
-            <div className="mb-3 h-6 text-primary/60">
-              <Sparkline data={channel.viewsTrend} height={20} />
-            </div>
-
-            {/* View Button */}
-            <button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition-colors text-sm">
-              View Details
-            </button>
-          </Link>
-        ))}
+        {isLoading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <MarketplaceCardSkeleton
+                key={`marketplace-skeleton-${index}`}
+                className="glass p-4"
+              />
+            ))
+          : sortedChannels.map((channel) => (
+              <MarketplaceCard key={channel.id} channel={channel} />
+            ))}
       </div>
 
-      {sortedChannels.length === 0 && (
+      {!isLoading && sortedChannels.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             No channels found matching your filters
