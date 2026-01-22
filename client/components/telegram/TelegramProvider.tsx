@@ -1,0 +1,104 @@
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  DEFAULT_INSETS,
+  ensureWebAppReady,
+  getTelegramUser,
+  getTelegramWebApp,
+  mockTelegramUser,
+  normalizeInsets,
+  setInsetCssVars,
+  TelegramInsets,
+  TelegramUser,
+} from "@/lib/telegram";
+
+interface TelegramContextValue {
+  webAppDetected: boolean;
+  user: TelegramUser | null;
+  safeAreaInset: TelegramInsets;
+  contentSafeAreaInset: TelegramInsets | null;
+}
+
+const TelegramContext = createContext<TelegramContextValue | undefined>(undefined);
+
+let hasWarnedMissingWebApp = false;
+
+export const TelegramProvider = ({ children }: { children: ReactNode }) => {
+  const [webAppDetected, setWebAppDetected] = useState(false);
+  const [user, setUser] = useState<TelegramUser | null>(null);
+  const [safeAreaInset, setSafeAreaInset] = useState<TelegramInsets>(DEFAULT_INSETS);
+  const [contentSafeAreaInset, setContentSafeAreaInset] =
+    useState<TelegramInsets | null>(null);
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (initializedRef.current) {
+      return;
+    }
+    initializedRef.current = true;
+
+    const webApp = getTelegramWebApp();
+    if (!webApp) {
+      setWebAppDetected(false);
+      setUser(mockTelegramUser);
+      setSafeAreaInset(DEFAULT_INSETS);
+      setContentSafeAreaInset(null);
+      setInsetCssVars(DEFAULT_INSETS, DEFAULT_INSETS);
+      if (!hasWarnedMissingWebApp) {
+        console.warn("Telegram WebApp not detected, using mock user");
+        hasWarnedMissingWebApp = true;
+      }
+      return;
+    }
+
+    setWebAppDetected(true);
+    ensureWebAppReady(webApp);
+    setUser(getTelegramUser(webApp));
+
+    const updateInsets = () => {
+      const safeInsets = normalizeInsets(webApp.safeAreaInset);
+      const contentInsets = webApp.contentSafeAreaInset
+        ? normalizeInsets(webApp.contentSafeAreaInset)
+        : null;
+      setSafeAreaInset(safeInsets);
+      setContentSafeAreaInset(contentInsets);
+      setInsetCssVars(safeInsets, contentInsets ?? safeInsets);
+    };
+
+    updateInsets();
+    webApp.onEvent?.("viewportChanged", updateInsets);
+
+    return () => {
+      webApp.offEvent?.("viewportChanged", updateInsets);
+    };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      webAppDetected,
+      user,
+      safeAreaInset,
+      contentSafeAreaInset,
+    }),
+    [webAppDetected, user, safeAreaInset, contentSafeAreaInset]
+  );
+
+  return (
+    <TelegramContext.Provider value={value}>{children}</TelegramContext.Provider>
+  );
+};
+
+export const useTelegramContext = () => {
+  const context = useContext(TelegramContext);
+  if (!context) {
+    throw new Error("useTelegramContext must be used within TelegramProvider");
+  }
+  return context;
+};
