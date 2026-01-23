@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Zap, Store, TrendingUp, User } from "lucide-react";
 import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
 import WalletConnectBanner from "@/components/wallet/WalletConnectBanner";
@@ -10,15 +10,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
   const mainRef = useRef<HTMLDivElement | null>(null);
   const scrollPositionsRef = useRef<Map<string, number>>(new Map());
   const lastPathRef = useRef(location.pathname);
-  const swipeStartXRef = useRef<number | null>(null);
-  const swipeStartYRef = useRef<number | null>(null);
-  const swipeActiveRef = useRef(false);
-  const swipeNavigationLockedRef = useRef(false);
-  const activePointerIdRef = useRef<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const shouldHideBottomNav = location.pathname === "/" && isKeyboardOpen;
   const bottomNavOffset = 8;
@@ -35,10 +29,6 @@ const Layout = ({ children }: LayoutProps) => {
     ],
     []
   );
-
-  useEffect(() => {
-    swipeNavigationLockedRef.current = false;
-  }, [location.pathname]);
 
   useEffect(() => {
     const mainElement = mainRef.current;
@@ -97,109 +87,6 @@ const Layout = ({ children }: LayoutProps) => {
       document.removeEventListener("focusout", handleFocusOut);
     };
   }, [location.pathname]);
-
-  useEffect(() => {
-    const mainElement = mainRef.current;
-    if (!mainElement) {
-      return;
-    }
-
-    const resetSwipeState = () => {
-      swipeStartXRef.current = null;
-      swipeStartYRef.current = null;
-      swipeActiveRef.current = false;
-      activePointerIdRef.current = null;
-    };
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (event.pointerType === "mouse") {
-        return;
-      }
-
-      swipeStartXRef.current = event.clientX;
-      swipeStartYRef.current = event.clientY;
-      swipeActiveRef.current = true;
-      activePointerIdRef.current = event.pointerId;
-      mainElement.setPointerCapture(event.pointerId);
-    };
-
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!swipeActiveRef.current || swipeNavigationLockedRef.current) {
-        return;
-      }
-
-      if (
-        activePointerIdRef.current !== null &&
-        event.pointerId !== activePointerIdRef.current
-      ) {
-        return;
-      }
-
-      const startX = swipeStartXRef.current;
-      const startY = swipeStartYRef.current;
-
-      if (startX === null || startY === null) {
-        return;
-      }
-
-      const deltaX = event.clientX - startX;
-      const deltaY = event.clientY - startY;
-      const absDeltaX = Math.abs(deltaX);
-      const absDeltaY = Math.abs(deltaY);
-
-      if (absDeltaX < 40 || absDeltaY > 30 || absDeltaX < absDeltaY) {
-        return;
-      }
-
-      const currentIndex = navItems.findIndex(
-        (item) => item.path === location.pathname
-      );
-
-      if (currentIndex === -1) {
-        return;
-      }
-
-      const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;
-
-      if (nextIndex < 0 || nextIndex >= navItems.length) {
-        return;
-      }
-
-      swipeNavigationLockedRef.current = true;
-      navigate(navItems[nextIndex].path);
-    };
-
-    const handlePointerUp = (event: PointerEvent) => {
-      if (
-        activePointerIdRef.current !== null &&
-        event.pointerId !== activePointerIdRef.current
-      ) {
-        return;
-      }
-
-      if (activePointerIdRef.current !== null) {
-        mainElement.releasePointerCapture(activePointerIdRef.current);
-      }
-
-      resetSwipeState();
-    };
-
-    mainElement.addEventListener("pointerdown", handlePointerDown, {
-      passive: true,
-    });
-    mainElement.addEventListener("pointermove", handlePointerMove, {
-      passive: true,
-    });
-    mainElement.addEventListener("pointerup", handlePointerUp);
-    mainElement.addEventListener("pointercancel", handlePointerUp);
-
-    return () => {
-      mainElement.removeEventListener("pointerdown", handlePointerDown);
-      mainElement.removeEventListener("pointermove", handlePointerMove);
-      mainElement.removeEventListener("pointerup", handlePointerUp);
-      mainElement.removeEventListener("pointercancel", handlePointerUp);
-    };
-  }, [location.pathname, navItems, navigate]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
