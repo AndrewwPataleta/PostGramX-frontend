@@ -1,17 +1,60 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import DealCard from "@/components/deals/DealCard";
+import { Link, useNavigate } from "react-router-dom";
+import { getDeals } from "@/features/deals/api";
+import type { Deal } from "@/features/deals/types";
+import { getDealCategory, getDealStatusPresentation, getUpdatedLabel } from "@/features/deals/utils";
 
 export default function Deals() {
   const [activeTab, setActiveTab] = useState("active");
   const [isLoading, setIsLoading] = useState(true);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    let isMounted = true;
+    setIsLoading(true);
+    getDeals()
+      .then((data) => {
+        if (!isMounted) {
+          return;
+        }
+        setDeals(data);
+        setError(null);
+      })
+      .catch((err) => {
+        if (!isMounted) {
+          return;
+        }
+        setError(err instanceof Error ? err.message : "Unable to load deals");
+      })
+      .finally(() => {
+        if (!isMounted) {
+          return;
+        }
+        setIsLoading(false);
+      });
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  const dealsByTab = useMemo(() => {
+    return deals.reduce(
+      (acc, deal) => {
+        const tab = getDealCategory(deal);
+        acc[tab].push(deal);
+        return acc;
+      },
+      { active: [] as Deal[], pending: [] as Deal[], completed: [] as Deal[] },
+    );
+  }, [deals]);
+
+  const currentDeals = dealsByTab[activeTab as keyof typeof dealsByTab] ?? [];
+  const showEmptyState = !isLoading && deals.length === 0;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -63,27 +106,48 @@ export default function Deals() {
               </div>
             ))}
           </div>
-        ) : (
+        ) : showEmptyState ? (
           <div className="glass p-8 rounded-lg text-center">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">📊</span>
+              <span className="text-3xl">🪄</span>
             </div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              Deals List Screen
-            </h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              This page will include:
+            <h2 className="text-lg font-semibold text-foreground mb-2">No deals yet</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Start a new collaboration to see deals listed here.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2 text-left bg-secondary/30 p-4 rounded-lg mb-6">
-              <li>• Tabs: Active, Pending, Completed</li>
-              <li>• Deal cards with channel name</li>
-              <li>• Status badges</li>
-              <li>• Price information</li>
-              <li>• Open button for each deal</li>
-            </ul>
-            <p className="text-xs text-muted-foreground">
-              Continue interacting with the chat to generate this page content.
-            </p>
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Browse Marketplace
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {error ? (
+              <div className="glass p-4 text-sm text-destructive">{error}</div>
+            ) : null}
+            {currentDeals.map((deal) => {
+              const presentation = getDealStatusPresentation(deal);
+              return (
+                <DealCard
+                  key={deal.id}
+                  id={deal.id}
+                  name={deal.channel.title}
+                  username={`@${deal.channel.username}`}
+                  verified={deal.channel.isVerified}
+                  avatarUrl={deal.channel.avatarUrl}
+                  status={presentation.label}
+                  statusKey={presentation.statusKey}
+                  icon={presentation.icon}
+                  price={deal.price}
+                  meta={getUpdatedLabel(deal.updatedAt)}
+                  secondary={presentation.secondary}
+                  action={presentation.action}
+                  onSelect={() => navigate(`/deals/${deal.id}`)}
+                />
+              );
+            })}
           </div>
         )}
       </div>

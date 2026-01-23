@@ -75,6 +75,7 @@ const App = () => {
                   <Route path="/channel/:id" element={<ChannelDetails />} />
                   <Route path="/create-deal" element={<CreateDeal />} />
                   <Route path="/deals" element={<Deals />} />
+                  <Route path="/deals/:id" element={<DealDetails />} />
                   <Route path="/deal/:id" element={<DealDetails />} />
                   <Route path="/escrow/:dealId" element={<EscrowPayment />} />
                   <Route path="/funds-locked" element={<FundsLocked />} />

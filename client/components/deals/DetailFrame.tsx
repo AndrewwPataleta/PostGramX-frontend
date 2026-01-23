@@ -4,6 +4,12 @@ import Timeline, { type TimelineItem } from "./Timeline";
 import type { StatusKey } from "./statusStyles";
 
 interface DetailFrameProps {
+  title: string;
+  username: string;
+  verified: boolean;
+  price: string;
+  dealId: string;
+  avatarUrl?: string;
   status: string;
   statusKey: StatusKey;
   icon: string;
@@ -11,9 +17,16 @@ interface DetailFrameProps {
   primary: string;
   secondary: string;
   delivery: string;
+  statusDescription: string;
 }
 
 export default function DetailFrame({
+  title,
+  username,
+  verified,
+  price,
+  dealId,
+  avatarUrl,
   status,
   statusKey,
   icon,
@@ -21,10 +34,22 @@ export default function DetailFrame({
   primary,
   secondary,
   delivery,
+  statusDescription,
 }: DetailFrameProps) {
   return (
     <div className="rounded-[32px] border border-white/10 bg-slate-950/80 p-6 shadow-[0_20px_60px_rgba(8,15,30,0.6)]">
-      <DetailHeader status={status} statusKey={statusKey} icon={icon} title="FlowgramX Daily" />
+      <DetailHeader
+        status={status}
+        statusKey={statusKey}
+        icon={icon}
+        title={title}
+        username={username}
+        verified={verified}
+        price={price}
+        dealId={dealId}
+        avatarUrl={avatarUrl}
+        statusDescription={statusDescription}
+      />
 
       <div className="mt-5 space-y-4">
         <Timeline items={timelineItems} />
