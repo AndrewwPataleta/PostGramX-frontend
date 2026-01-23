@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { FilterModal, FilterState } from "@/components/FilterModal";
 import { ActiveFiltersChips } from "@/components/ActiveFiltersChips";
@@ -168,6 +168,8 @@ export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const headerRef = useRef<HTMLDivElement | null>(null);
   const [filters, setFilters] = useState<ExtendedFilterState>({
     priceRange: [0, 10],
     subscribersRange: [0, 1000000],
@@ -189,6 +191,28 @@ export default function Marketplace() {
     }, 2000);
 
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) {
+      return;
+    }
+
+    const updateHeaderHeight = () => {
+      setHeaderHeight(header.offsetHeight);
+    };
+
+    updateHeaderHeight();
+
+    const observer = new ResizeObserver(() => updateHeaderHeight());
+    observer.observe(header);
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateHeaderHeight);
+    };
   }, []);
 
   const handleResetFilters = () => {
@@ -301,74 +325,82 @@ export default function Marketplace() {
 
   return (
     <div className="w-full max-w-2xl mx-auto safe-area-guide">
-      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
-        {/* Header */}
-        <div className="px-4 py-3">
-          <h1 className="text-base font-semibold text-foreground">Marketplace</h1>
-        </div>
+      <div
+        ref={headerRef}
+        className="fixed left-0 right-0 z-30 bg-background/90 backdrop-blur-glass border-b border-border/50"
+        style={{ top: "var(--tg-content-safe-area-inset-top)" }}
+      >
+        <div className="mx-auto w-full max-w-2xl">
+          {/* Header */}
+          <div className="px-4 py-3">
+            <h1 className="text-base font-semibold text-foreground">Marketplace</h1>
+          </div>
 
-        {/* Search and Filter */}
-        <div className="border-t border-border/50">
-          <div className="px-4 pb-4 pt-4 flex gap-2">
-            <div className="flex-1 relative">
-              <Search
-                size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              />
-              <input
-                type="text"
-                placeholder="Search channels or @username..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3"
-              />
-            </div>
-            <button
-              onClick={() => setIsFilterModalOpen(true)}
-              className="tg-icon-button flex-shrink-0"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+          {/* Search and Filter */}
+          <div className="border-t border-border/50">
+            <div className="px-4 pb-4 pt-4 flex gap-2">
+              <div className="flex-1 relative">
+                <Search
+                  size={18}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 />
-              </svg>
-            </button>
+                <input
+                  type="text"
+                  placeholder="Search channels or @username..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3"
+                />
+              </div>
+              <button
+                onClick={() => setIsFilterModalOpen(true)}
+                className="tg-icon-button flex-shrink-0"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Active Filters */}
-      <ActiveFiltersChips filters={filters as any} onRemoveFilter={handleRemoveFilter} />
+      <div style={{ paddingTop: headerHeight }}>
+        {/* Active Filters */}
+        <ActiveFiltersChips filters={filters as any} onRemoveFilter={handleRemoveFilter} />
 
-      {/* Channel Cards */}
-      <div className="px-4 py-6 space-y-3">
-        {isLoading
-          ? Array.from({ length: 6 }).map((_, index) => (
-              <MarketplaceCardSkeleton
-                key={`marketplace-skeleton-${index}`}
-                className="glass p-4"
-              />
-            ))
-          : sortedChannels.map((channel) => (
-              <MarketplaceCard key={channel.id} channel={channel} />
-            ))}
-      </div>
-
-      {!isLoading && sortedChannels.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            No channels found matching your filters
-          </p>
+        {/* Channel Cards */}
+        <div className="px-4 py-6 space-y-3">
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <MarketplaceCardSkeleton
+                  key={`marketplace-skeleton-${index}`}
+                  className="glass p-4"
+                />
+              ))
+            : sortedChannels.map((channel) => (
+                <MarketplaceCard key={channel.id} channel={channel} />
+              ))}
         </div>
-      )}
+
+        {!isLoading && sortedChannels.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">
+              No channels found matching your filters
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Filter Modal */}
       <FilterModal
