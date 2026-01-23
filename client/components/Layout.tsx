@@ -16,6 +16,7 @@ const Layout = ({ children }: LayoutProps) => {
   const swipeStartYRef = useRef<number | null>(null);
   const swipeActiveRef = useRef(false);
   const swipeNavigationLockedRef = useRef(false);
+  const activePointerIdRef = useRef<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const shouldHideBottomNav = location.pathname === "/" && isKeyboardOpen;
   const bottomNavOffset = 8;
@@ -80,6 +81,13 @@ const Layout = ({ children }: LayoutProps) => {
       return;
     }
 
+    const resetSwipeState = () => {
+      swipeStartXRef.current = null;
+      swipeStartYRef.current = null;
+      swipeActiveRef.current = false;
+      activePointerIdRef.current = null;
+    };
+
     const handlePointerDown = (event: PointerEvent) => {
       if (event.pointerType === "mouse") {
         return;
@@ -88,10 +96,19 @@ const Layout = ({ children }: LayoutProps) => {
       swipeStartXRef.current = event.clientX;
       swipeStartYRef.current = event.clientY;
       swipeActiveRef.current = true;
+      activePointerIdRef.current = event.pointerId;
+      mainElement.setPointerCapture(event.pointerId);
     };
 
     const handlePointerMove = (event: PointerEvent) => {
       if (!swipeActiveRef.current || swipeNavigationLockedRef.current) {
+        return;
+      }
+
+      if (
+        activePointerIdRef.current !== null &&
+        event.pointerId !== activePointerIdRef.current
+      ) {
         return;
       }
 
@@ -129,10 +146,19 @@ const Layout = ({ children }: LayoutProps) => {
       navigate(navItems[nextIndex].path);
     };
 
-    const handlePointerUp = () => {
-      swipeStartXRef.current = null;
-      swipeStartYRef.current = null;
-      swipeActiveRef.current = false;
+    const handlePointerUp = (event: PointerEvent) => {
+      if (
+        activePointerIdRef.current !== null &&
+        event.pointerId !== activePointerIdRef.current
+      ) {
+        return;
+      }
+
+      if (activePointerIdRef.current !== null) {
+        mainElement.releasePointerCapture(activePointerIdRef.current);
+      }
+
+      resetSwipeState();
     };
 
     mainElement.addEventListener("pointerdown", handlePointerDown, {
@@ -156,7 +182,7 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Main content */}
       <SafeAreaLayout bottomNavHeight={bottomNavHeight}>
-        <main className="flex-1 overflow-y-auto" ref={mainRef}>
+        <main className="flex-1 overflow-y-auto touch-pan-y" ref={mainRef}>
           <WalletConnectBanner />
           {children}
         </main>
