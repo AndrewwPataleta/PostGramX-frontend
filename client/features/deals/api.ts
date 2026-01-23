@@ -1,7 +1,7 @@
 import { mockDeals } from "./mockDeals";
 import type { Deal } from "./types";
 
-const USE_MOCK_DEALS = import.meta.env.VITE_USE_MOCK_DEALS === "true";
+const USE_MOCK_DEALS = true
 
 const delay = async (minMs = 300, maxMs = 600) => {
   const duration = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
