@@ -104,19 +104,19 @@ export default function DealDetails() {
             <Timeline items={timelineItems} />
 
             <InfoCard title="Escrow">
-              <p className="flex items-center justify-between text-sm text-white">
+              <p className="flex items-center justify-between text-sm text-slate-100">
                 <span>{deal.escrow?.status ?? "Pending"}</span>
                 <span className="font-semibold">{deal.escrow?.amount ?? deal.price}</span>
               </p>
               <p>{deal.escrow ? "Funds are secured in escrow." : "Escrow will activate after approval."}</p>
-              <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 text-[11px] text-slate-400">
+              <div className="rounded-xl border border-white/10 bg-slate-900/70 p-3 text-[11px] text-slate-400">
                 <p>Network: {deal.escrow?.network ?? "TON"}</p>
                 <p>{getUpdatedLabel(deal.updatedAt)}</p>
               </div>
             </InfoCard>
 
             <InfoCard title="Creative">
-              <p className="text-sm text-white">
+              <p className="text-sm text-slate-100">
                 {deal.creative?.approvedAt
                   ? "Approved"
                   : deal.creative?.submittedAt
@@ -136,14 +136,14 @@ export default function DealDetails() {
             </InfoCard>
 
             <InfoCard title="Schedule">
-              <p className="text-sm text-white">{formatScheduleDate(deal.schedule?.scheduledAt)}</p>
+              <p className="text-sm text-slate-100">{formatScheduleDate(deal.schedule?.scheduledAt)}</p>
               <button className="rounded-full border border-white/10 px-3 py-2 text-xs text-slate-200">
                 {deal.role === "OWNER" ? "Select time" : "View schedule"}
               </button>
             </InfoCard>
 
             <InfoCard title="Delivery">
-              <p className="text-sm text-white">{presentation.delivery}</p>
+              <p className="text-sm text-slate-100">{presentation.delivery}</p>
               {deal.post?.viewUrl ? (
                 <a
                   href={deal.post.viewUrl}
@@ -160,7 +160,7 @@ export default function DealDetails() {
               </div>
             </InfoCard>
 
-            <div className="sticky bottom-4 mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3">
+            <div className="sticky bottom-4 mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3">
               <button className="flex-1 rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950">
                 {presentation.primaryAction}
               </button>

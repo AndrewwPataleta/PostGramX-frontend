@@ -27,7 +27,7 @@ export default function DetailHeader({
   statusDescription,
 }: DetailHeaderProps) {
   return (
-    <div className="rounded-[32px] border border-white/10 bg-slate-950/80 p-6 shadow-[0_20px_60px_rgba(8,15,30,0.6)]">
+    <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-[0_12px_35px_rgba(15,23,42,0.45)]">
       <div className="flex items-center gap-3">
         <div className="h-12 w-12 rounded-full bg-gradient-to-br from-cyan-400/40 via-sky-500/40 to-blue-600/40 p-[1px]">
           <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-slate-950 text-lg font-semibold text-white">
