@@ -23,8 +23,14 @@ export interface TelegramWebApp {
   HapticFeedback?: TelegramHapticFeedback;
   safeAreaInset?: Partial<TelegramInsets>;
   contentSafeAreaInset?: Partial<TelegramInsets>;
-  onEvent?: (event: "viewportChanged", handler: () => void) => void;
-  offEvent?: (event: "viewportChanged", handler: () => void) => void;
+  onEvent?: (
+    event: "viewportChanged" | "safeAreaChanged" | "contentSafeAreaChanged",
+    handler: () => void
+  ) => void;
+  offEvent?: (
+    event: "viewportChanged" | "safeAreaChanged" | "contentSafeAreaChanged",
+    handler: () => void
+  ) => void;
   ready?: () => void;
   expand?: () => void;
   disableVerticalSwipes?: () => void;
