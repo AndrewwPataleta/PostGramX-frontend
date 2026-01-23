@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Sparkline } from "@/components/Sparkline";
@@ -74,6 +74,8 @@ export default function Channels() {
   const [activeTab, setActiveTab] = useState<"verified" | "pending">(
     "verified"
   );
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const headerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -81,6 +83,28 @@ export default function Channels() {
     }, 1600);
 
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) {
+      return;
+    }
+
+    const updateHeaderHeight = () => {
+      setHeaderHeight(header.offsetHeight);
+    };
+
+    updateHeaderHeight();
+
+    const observer = new ResizeObserver(() => updateHeaderHeight());
+    observer.observe(header);
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateHeaderHeight);
+    };
   }, []);
 
   const verifiedChannels = myChannels.filter(
@@ -94,35 +118,43 @@ export default function Channels() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
-        <div className="px-4 py-3">
-          <h1 className="text-base font-semibold text-foreground">My Channels</h1>
+      <div
+        ref={headerRef}
+        className="fixed left-0 right-0 z-30 bg-background/90 backdrop-blur-glass border-b border-border/50"
+        style={{ top: "var(--tg-content-safe-area-inset-top)" }}
+      >
+        <div className="mx-auto w-full max-w-2xl">
+          {/* Header */}
+          <div className="px-4 py-3">
+            <h1 className="text-base font-semibold text-foreground">My Channels</h1>
+          </div>
+
+          {/* Tabs */}
+          <div className="border-t border-border/50">
+            <div className="px-4 flex gap-6 bg-background/80 backdrop-blur-glass">
+              {[
+                { id: "verified", label: `Verified (${verifiedChannels.length})` },
+                { id: "pending", label: `Pending (${pendingChannels.length})` },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as "verified" | "pending")}
+                  className={`py-3 font-medium text-sm border-b-2 transition-colors ${
+                    activeTab === tab.id
+                      ? "text-primary border-b-primary"
+                      : "text-muted-foreground border-b-transparent"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="px-4 flex gap-6 bg-background/80 backdrop-blur-glass border-b border-border/50 sticky top-[52px] z-10">
-        {[
-          { id: "verified", label: `Verified (${verifiedChannels.length})` },
-          { id: "pending", label: `Pending (${pendingChannels.length})` },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as "verified" | "pending")}
-            className={`py-3 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === tab.id
-                ? "text-primary border-b-primary"
-                : "text-muted-foreground border-b-transparent"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {/* Channels List */}
-      <div className="px-4 pb-32 pt-4 space-y-3">
+      <div style={{ paddingTop: headerHeight }} className="px-4 pb-32 pt-4 space-y-3">
         {isLoading ? (
           <div className="space-y-3">
             {(activeTab === "verified" ? Array.from({ length: 2 }) : Array.from({ length: 1 })).map(
