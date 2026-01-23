@@ -45,11 +45,18 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background text-white">
       <div className="flex flex-col items-center gap-6 px-6 text-center">
         <div className="relative flex h-40 w-40 items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-slate-700 via-black to-slate-900 blur-2xl opacity-80 animate-pulse" />
-          <div className="absolute inset-4 rounded-full border border-slate-500/40 animate-spin" />
-          <div className="absolute inset-10 rounded-full bg-black shadow-[0_0_30px_rgba(0,0,0,0.9)]" />
-          <div className="absolute inset-0 rounded-full border border-slate-400/20 animate-[spin_6s_linear_infinite]" />
-          <div className="absolute -inset-6 rounded-full border border-slate-600/10 animate-[spin_10s_linear_infinite_reverse]" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-500/80 via-blue-500/80 to-indigo-600/80 blur-2xl opacity-90 animate-pulse" />
+          <div className="absolute inset-0 rounded-full border border-sky-200/40 animate-[spin_8s_linear_infinite]" />
+          <div className="absolute inset-6 rounded-full border border-cyan-200/30 animate-[spin_6s_linear_infinite_reverse]" />
+          <div className="absolute inset-0 animate-[spin_10s_linear_infinite]">
+            <div className="absolute left-1/2 top-0 h-3 w-3 -translate-x-1/2 rounded-full bg-sky-200 shadow-[0_0_12px_rgba(56,189,248,0.9)]" />
+          </div>
+          <div className="absolute inset-0 animate-[spin_12s_linear_infinite_reverse]">
+            <div className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-indigo-200 shadow-[0_0_10px_rgba(129,140,248,0.8)]" />
+          </div>
+          <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 shadow-[0_0_30px_rgba(56,189,248,0.6)]">
+            <span className="text-xl font-semibold tracking-[0.2em] text-white">TON</span>
+          </div>
         </div>
 
         <div key={step.title} className="space-y-2 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
