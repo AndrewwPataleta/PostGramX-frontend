@@ -38,6 +38,15 @@ export const FilterModal = ({
   onReset,
 }: FilterModalProps) => {
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
+  const formatNumber = (value: number, maxDigits = 1) =>
+    new Intl.NumberFormat("en", {
+      maximumFractionDigits: maxDigits,
+    }).format(value);
+  const formatCompact = (value: number) =>
+    new Intl.NumberFormat("en", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
   const [expandedSections, setExpandedSections] = useState({
     pricing: true,
     audience: true,
@@ -47,6 +56,35 @@ export const FilterModal = ({
     availability: false,
     verification: false,
   });
+
+  const pricePresets: Array<{ label: string; range: [number, number] }> = [
+    { label: "Any", range: [0, 10] },
+    { label: "0-1 TON", range: [0, 1] },
+    { label: "1-5 TON", range: [1, 5] },
+    { label: "5-10 TON", range: [5, 10] },
+  ];
+
+  const subscribersPresets: Array<{ label: string; range: [number, number] }> = [
+    { label: "Any", range: [0, 1000000] },
+    { label: "0-10K", range: [0, 10000] },
+    { label: "10-100K", range: [10000, 100000] },
+    { label: "100K-1M", range: [100000, 1000000] },
+  ];
+
+  const viewsPresets: Array<{ label: string; range: [number, number] }> = [
+    { label: "Any", range: [0, 1000000] },
+    { label: "0-10K", range: [0, 10000] },
+    { label: "10-100K", range: [10000, 100000] },
+    { label: "100K-1M", range: [100000, 1000000] },
+  ];
+
+  const engagementPresets: Array<{ label: string; range: [number, number] }> = [
+    { label: "Any", range: [0, 100] },
+    { label: "0-5%", range: [0, 5] },
+    { label: "5-10%", range: [5, 10] },
+    { label: "10-25%", range: [10, 25] },
+    { label: "25%+", range: [25, 100] },
+  ];
 
   useEffect(() => {
     setLocalFilters(filters);
@@ -155,9 +193,9 @@ export const FilterModal = ({
       />
 
       {/* Bottom Sheet Modal */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card rounded-t-2xl z-50 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-10 duration-300">
+      <div className="fixed inset-x-0 bottom-0 top-0 bg-card rounded-t-2xl z-50 animate-in slide-in-from-bottom-10 duration-300 flex flex-col h-[100dvh] sm:h-auto sm:top-auto sm:max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="sticky top-0 bg-card border-b border-border/50 px-4 py-4 flex items-center justify-between rounded-t-2xl">
+        <div className="bg-card border-b border-border/50 px-4 py-4 flex items-center justify-between rounded-t-2xl shrink-0">
           <h2 className="text-lg font-semibold text-foreground">Filters</h2>
           <button
             onClick={onClose}
@@ -168,7 +206,7 @@ export const FilterModal = ({
         </div>
 
         {/* Content */}
-        <div className="px-4 py-4 space-y-4">
+        <div className="px-4 py-4 space-y-4 flex-1 overflow-y-auto">
           {/* Pricing Section */}
           <div className="space-y-3">
             <button
@@ -185,14 +223,35 @@ export const FilterModal = ({
             </button>
             {expandedSections.pricing && (
               <div className="px-3 space-y-3 pb-3">
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {pricePresets.map((preset) => (
+                    <button
+                      key={preset.label}
+                      onClick={() =>
+                        setLocalFilters((prev) => ({
+                          ...prev,
+                          priceRange: preset.range,
+                        }))
+                      }
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        localFilters.priceRange[0] === preset.range[0] &&
+                        localFilters.priceRange[1] === preset.range[1]
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-foreground hover:bg-secondary/80"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <input
                     type="number"
                     value={localFilters.priceRange[0]}
                     onChange={(e) =>
                       handlePriceChange(0, parseFloat(e.target.value) || 0)
                     }
-                    className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     placeholder="Min"
                   />
                   <input
@@ -201,35 +260,13 @@ export const FilterModal = ({
                     onChange={(e) =>
                       handlePriceChange(1, parseFloat(e.target.value) || 10)
                     }
-                    className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     placeholder="Max"
                   />
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={localFilters.priceRange[0]}
-                  onChange={(e) =>
-                    handlePriceChange(0, parseFloat(e.target.value))
-                  }
-                  className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={localFilters.priceRange[1]}
-                  onChange={(e) =>
-                    handlePriceChange(1, parseFloat(e.target.value))
-                  }
-                  className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                />
                 <p className="text-xs text-muted-foreground">
-                  {localFilters.priceRange[0].toFixed(1)} -{" "}
-                  {localFilters.priceRange[1].toFixed(1)} TON
+                  {formatNumber(localFilters.priceRange[0])} -{" "}
+                  {formatNumber(localFilters.priceRange[1])} TON
                 </p>
               </div>
             )}
@@ -256,14 +293,35 @@ export const FilterModal = ({
                   <p className="text-xs font-medium text-muted-foreground mb-2">
                     Subscribers
                   </p>
-                  <div className="flex gap-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {subscribersPresets.map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() =>
+                          setLocalFilters((prev) => ({
+                            ...prev,
+                            subscribersRange: preset.range,
+                          }))
+                        }
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                          localFilters.subscribersRange[0] === preset.range[0] &&
+                          localFilters.subscribersRange[1] === preset.range[1]
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-foreground hover:bg-secondary/80"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-2 mb-2 sm:flex-row">
                     <input
                       type="number"
                       value={localFilters.subscribersRange[0]}
                       onChange={(e) =>
                         handleSubscribersChange(0, parseInt(e.target.value) || 0)
                       }
-                      className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                       placeholder="Min"
                     />
                     <input
@@ -272,24 +330,13 @@ export const FilterModal = ({
                       onChange={(e) =>
                         handleSubscribersChange(1, parseInt(e.target.value) || 1000000)
                       }
-                      className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                       placeholder="Max"
                     />
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1000000"
-                    step="10000"
-                    value={localFilters.subscribersRange[0]}
-                    onChange={(e) =>
-                      handleSubscribersChange(0, parseInt(e.target.value))
-                    }
-                    className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                  />
                   <p className="text-xs text-muted-foreground mt-1">
-                    {(localFilters.subscribersRange[0] / 1000).toFixed(0)}K -{" "}
-                    {(localFilters.subscribersRange[1] / 1000).toFixed(0)}K
+                    {formatCompact(localFilters.subscribersRange[0])} -{" "}
+                    {formatCompact(localFilters.subscribersRange[1])}
                   </p>
                 </div>
 
@@ -298,14 +345,35 @@ export const FilterModal = ({
                   <p className="text-xs font-medium text-muted-foreground mb-2">
                     Average Views
                   </p>
-                  <div className="flex gap-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {viewsPresets.map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() =>
+                          setLocalFilters((prev) => ({
+                            ...prev,
+                            viewsRange: preset.range,
+                          }))
+                        }
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                          localFilters.viewsRange[0] === preset.range[0] &&
+                          localFilters.viewsRange[1] === preset.range[1]
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-foreground hover:bg-secondary/80"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-2 mb-2 sm:flex-row">
                     <input
                       type="number"
                       value={localFilters.viewsRange[0]}
                       onChange={(e) =>
                         handleViewsChange(0, parseInt(e.target.value) || 0)
                       }
-                      className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                       placeholder="Min"
                     />
                     <input
@@ -314,24 +382,13 @@ export const FilterModal = ({
                       onChange={(e) =>
                         handleViewsChange(1, parseInt(e.target.value) || 1000000)
                       }
-                      className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                       placeholder="Max"
                     />
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1000000"
-                    step="10000"
-                    value={localFilters.viewsRange[0]}
-                    onChange={(e) =>
-                      handleViewsChange(0, parseInt(e.target.value))
-                    }
-                    className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                  />
                   <p className="text-xs text-muted-foreground mt-1">
-                    {(localFilters.viewsRange[0] / 1000).toFixed(0)}K -{" "}
-                    {(localFilters.viewsRange[1] / 1000).toFixed(0)}K
+                    {formatCompact(localFilters.viewsRange[0])} -{" "}
+                    {formatCompact(localFilters.viewsRange[1])}
                   </p>
                 </div>
               </div>
@@ -354,7 +411,28 @@ export const FilterModal = ({
             </button>
             {expandedSections.engagement && (
               <div className="px-3 space-y-3 pb-3">
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {engagementPresets.map((preset) => (
+                    <button
+                      key={preset.label}
+                      onClick={() =>
+                        setLocalFilters((prev) => ({
+                          ...prev,
+                          engagementRange: preset.range,
+                        }))
+                      }
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        localFilters.engagementRange?.[0] === preset.range[0] &&
+                        localFilters.engagementRange?.[1] === preset.range[1]
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-foreground hover:bg-secondary/80"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <input
                     type="number"
                     value={localFilters.engagementRange?.[0] ?? 0}
@@ -363,7 +441,7 @@ export const FilterModal = ({
                     }
                     min="0"
                     max="100"
-                    className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     placeholder="Min %"
                   />
                   <input
@@ -374,32 +452,10 @@ export const FilterModal = ({
                     }
                     min="0"
                     max="100"
-                    className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     placeholder="Max %"
                   />
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={localFilters.engagementRange?.[0] ?? 0}
-                  onChange={(e) =>
-                    handleEngagementChange(0, parseInt(e.target.value))
-                  }
-                  className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={localFilters.engagementRange?.[1] ?? 100}
-                  onChange={(e) =>
-                    handleEngagementChange(1, parseInt(e.target.value))
-                  }
-                  className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                />
                 <p className="text-xs text-muted-foreground">
                   {(localFilters.engagementRange?.[0] ?? 0).toFixed(0)}% -{" "}
                   {(localFilters.engagementRange?.[1] ?? 100).toFixed(0)}%
