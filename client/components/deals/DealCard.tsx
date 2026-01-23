@@ -6,6 +6,7 @@ export interface DealCardData {
   name: string;
   username: string;
   verified: boolean;
+  avatarUrl?: string;
   status: string;
   statusKey: StatusKey;
   icon: string;
@@ -13,12 +14,14 @@ export interface DealCardData {
   meta: string;
   secondary: string;
   action: string;
+  onSelect?: () => void;
 }
 
 export default function DealCard({
   name,
   username,
   verified,
+  avatarUrl,
   status,
   statusKey,
   icon,
@@ -27,14 +30,35 @@ export default function DealCard({
   meta,
   secondary,
   action,
+  onSelect,
 }: DealCardData) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-[0_12px_35px_rgba(15,23,42,0.45)]">
+    <div
+      className={`rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-[0_12px_35px_rgba(15,23,42,0.45)] ${
+        onSelect ? "cursor-pointer transition hover:border-sky-500/40" : ""
+      }`}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (!onSelect) {
+          return;
+        }
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-11 w-11 rounded-full bg-gradient-to-br from-cyan-400/40 via-sky-500/40 to-blue-600/40 p-[1px]">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-950 text-lg font-semibold text-white">
-              {name.slice(0, 1)}
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-slate-950 text-lg font-semibold text-white">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+              ) : (
+                name.slice(0, 1)
+              )}
             </div>
           </div>
           <div>
@@ -70,10 +94,18 @@ export default function DealCard({
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <button className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-[0_8px_18px_rgba(14,165,233,0.4)]">
+        <button
+          type="button"
+          className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-[0_8px_18px_rgba(14,165,233,0.4)]"
+          onClick={(event) => event.stopPropagation()}
+        >
           {action}
         </button>
-        <button className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200">
+        <button
+          type="button"
+          className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200"
+          onClick={(event) => event.stopPropagation()}
+        >
           Details
         </button>
       </div>

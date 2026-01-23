@@ -16,6 +16,11 @@ export default function Index() {
 
         <div className="grid gap-8 lg:grid-cols-2">
           <DetailFrame
+            title="TON Launchpad"
+            username="tonlaunchpad"
+            verified
+            price="40 TON"
+            dealId="DL-1002"
             status="Payment Required"
             statusKey="paymentRequired"
             icon="💳"
@@ -23,8 +28,14 @@ export default function Index() {
             primary="Pay Now"
             secondary="Open Chat Bot"
             delivery="Awaiting post"
+            statusDescription="Secure escrow locks funds once payment is confirmed."
           />
           <DetailFrame
+            title="Crypto Atlas"
+            username="cryptoatlas"
+            verified
+            price="48 TON"
+            dealId="DL-1006"
             status="Post Live — Verifying"
             statusKey="verifying"
             icon="👁️"
@@ -32,6 +43,7 @@ export default function Index() {
             primary="View Post"
             secondary="Message via Bot"
             delivery="Post Live"
+            statusDescription="Post is live while verification checks engagement and integrity."
           />
         </div>
       </div>
