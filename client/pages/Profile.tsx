@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Check, Send } from "lucide-react";
+import { Crown, Send } from "lucide-react";
 import { useTonAddress, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useTelegram } from "@/hooks/use-telegram";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Profile() {
@@ -14,6 +15,7 @@ export default function Profile() {
     ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`
     : "Telegram User";
   const username = user?.username ? `@${user.username}` : "@unknown";
+  const isPremium = Boolean(user?.is_premium);
   const initials = fullName
     .split(" ")
     .filter(Boolean)
@@ -96,17 +98,26 @@ export default function Profile() {
 
             {/* Profile Header Card */}
             <div className="glass p-4 flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xl font-semibold">
-                {initials || "TG"}
-              </div>
+              <Avatar className="h-14 w-14">
+                <AvatarImage src={user?.photo_url} alt={fullName} />
+                <AvatarFallback className="bg-primary/15 text-primary text-xl font-semibold">
+                  {initials || "TG"}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold text-foreground">
                     {fullName}
                   </h2>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2 py-0.5 text-[11px] font-medium">
-                    <Check size={12} />
-                    Verified
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                      isPremium
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <Crown size={12} />
+                    {isPremium ? "Premium" : "Standard"}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">{username}</p>
