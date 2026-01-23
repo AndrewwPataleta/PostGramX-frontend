@@ -12,7 +12,8 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const shouldHideBottomNav = location.pathname === "/" && isKeyboardOpen;
-  const bottomNavHeight = shouldHideBottomNav ? 0 : 104;
+  const bottomNavOffset = 8;
+  const bottomNavHeight = shouldHideBottomNav ? 0 : 104 + bottomNavOffset;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -72,7 +73,7 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Bottom Navigation */}
       <nav
-        className={`fixed bottom-[var(--tg-content-safe-area-inset-bottom)] left-0 right-0 z-50 px-4 ${
+        className={`fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+8px)] left-0 right-0 z-50 px-4 ${
           shouldHideBottomNav ? "hidden" : ""
         }`}
       >

@@ -301,47 +301,47 @@ export default function Marketplace() {
 
   return (
     <div className="w-full max-w-2xl mx-auto safe-area-guide">
-      {/* Header */}
       <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
+        {/* Header */}
         <div className="px-4 py-3">
           <h1 className="text-base font-semibold text-foreground">Marketplace</h1>
         </div>
-      </div>
 
-      {/* Search and Filter */}
-      <div className="sticky top-[52px] z-10 border-b border-border/50 bg-background/90 backdrop-blur-glass">
-        <div className="px-4 pb-4 pt-4 flex gap-2">
-          <div className="flex-1 relative">
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              type="text"
-              placeholder="Search channels or @username..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3"
-            />
-          </div>
-          <button
-            onClick={() => setIsFilterModalOpen(true)}
-            className="tg-icon-button flex-shrink-0"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+        {/* Search and Filter */}
+        <div className="border-t border-border/50">
+          <div className="px-4 pb-4 pt-4 flex gap-2">
+            <div className="flex-1 relative">
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-            </svg>
-          </button>
+              <input
+                type="text"
+                placeholder="Search channels or @username..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3"
+              />
+            </div>
+            <button
+              onClick={() => setIsFilterModalOpen(true)}
+              className="tg-icon-button flex-shrink-0"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
