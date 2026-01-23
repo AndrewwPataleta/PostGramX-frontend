@@ -6,16 +6,16 @@ interface SplashScreenProps {
 
 const steps = [
   {
-    title: "Загружаем данные пользователя",
-    subtitle: "Синхронизируем профиль и настройки",
+    title: "Loading your data",
+    subtitle: "Syncing your profile and preferences",
   },
   {
-    title: "Инициализируем иконки",
-    subtitle: "Подготавливаем интерфейс к запуску",
+    title: "Initializing visuals",
+    subtitle: "Preparing the interface for launch",
   },
   {
-    title: "Запускаем торговый модуль",
-    subtitle: "Почти готово к старту",
+    title: "Starting core modules",
+    subtitle: "Final checks before takeoff",
   },
 ];
 
@@ -42,7 +42,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const step = steps[activeStep];
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black text-white">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background text-white">
       <div className="flex flex-col items-center gap-6 px-6 text-center">
         <div className="relative flex h-40 w-40 items-center justify-center">
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-slate-700 via-black to-slate-900 blur-2xl opacity-80 animate-pulse" />
@@ -57,9 +57,13 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           <p className="text-sm text-white/70">{step.subtitle}</p>
         </div>
 
+        <div className="h-1 w-52 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full w-1/2 bg-gradient-to-r from-transparent via-white/70 to-transparent animate-[shimmer_2s_linear_infinite]" />
+        </div>
+
         <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/50">
           <span className="h-2 w-2 rounded-full bg-white/70 animate-pulse" />
-          <span>Погружаемся</span>
+          <span>Entering</span>
           <span className="h-2 w-2 rounded-full bg-white/70 animate-pulse" />
         </div>
       </div>
