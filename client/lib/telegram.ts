@@ -19,6 +19,7 @@ export interface TelegramWebApp {
   initDataUnsafe?: {
     user?: TelegramUser;
   };
+  HapticFeedback?: TelegramHapticFeedback;
   safeAreaInset?: Partial<TelegramInsets>;
   contentSafeAreaInset?: Partial<TelegramInsets>;
   onEvent?: (event: "viewportChanged", handler: () => void) => void;
@@ -27,6 +28,14 @@ export interface TelegramWebApp {
   expand?: () => void;
   disableVerticalSwipes?: () => void;
   enableVerticalSwipes?: () => void;
+}
+
+export interface TelegramHapticFeedback {
+  impactOccurred?: (
+    style: "light" | "medium" | "heavy" | "rigid" | "soft"
+  ) => void;
+  notificationOccurred?: (type: "error" | "success" | "warning") => void;
+  selectionChanged?: () => void;
 }
 
 export const DEFAULT_INSETS: TelegramInsets = {
