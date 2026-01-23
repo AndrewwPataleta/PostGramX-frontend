@@ -1,5 +1,4 @@
 import "./global.css";
-import "@tonconnect/ui-react/tonconnect-ui-react.css";
 
 import { Toaster } from "@/components/ui/toaster";
 import { createRoot } from "react-dom/client";
