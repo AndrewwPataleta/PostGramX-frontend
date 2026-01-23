@@ -13,10 +13,13 @@ const SafeAreaLayout = ({
   className,
 }: SafeAreaLayoutProps) => {
   const style: CSSProperties = {
-    paddingTop: "var(--tg-content-safe-area-inset-top)",
-    paddingBottom: `calc(var(--tg-content-safe-area-inset-bottom) + ${bottomNavHeight}px)`,
-    paddingLeft: "var(--tg-content-safe-area-inset-left)",
-    paddingRight: "var(--tg-content-safe-area-inset-right)",
+    paddingTop:
+      "max(var(--tg-safe-top), var(--tg-content-safe-area-inset-top))",
+    paddingBottom: `calc(max(var(--tg-safe-bottom), var(--tg-content-safe-area-inset-bottom)) + ${bottomNavHeight}px)`,
+    paddingLeft:
+      "max(var(--tg-safe-left), var(--tg-content-safe-area-inset-left))",
+    paddingRight:
+      "max(var(--tg-safe-right), var(--tg-content-safe-area-inset-right))",
   };
 
   return (
