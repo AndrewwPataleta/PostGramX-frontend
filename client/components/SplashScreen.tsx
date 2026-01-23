@@ -55,7 +55,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
             <div className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-indigo-200 shadow-[0_0_10px_rgba(129,140,248,0.8)]" />
           </div>
           <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 shadow-[0_0_30px_rgba(56,189,248,0.6)]">
-            <span className="text-xl font-semibold tracking-[0.2em] text-white">TON</span>
+            <span className="text-xl font-semibold tracking-[0.2em] text-white">PatStudio</span>
           </div>
         </div>
 
