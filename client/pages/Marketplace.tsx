@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { FilterModal, FilterState } from "@/components/FilterModal";
 import { ActiveFiltersChips } from "@/components/ActiveFiltersChips";
 import { MarketplaceCard } from "@/components/marketplace/MarketplaceCard";
@@ -166,6 +166,7 @@ interface ExtendedFilterState extends FilterState {
 
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -345,12 +346,24 @@ export default function Marketplace() {
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 />
                 <input
-                  type="text"
+                  ref={searchInputRef}type="text"
                   placeholder="Search channels or @username..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3"
-                />
+                  className="w-full pl-10 pr-10 py-3"
+                />{searchQuery.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchInputRef.current?.blur();
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              ) : null}
               </div>
               <button
                 onClick={() => setIsFilterModalOpen(true)}
