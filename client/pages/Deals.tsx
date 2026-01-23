@@ -30,7 +30,7 @@ export default function Deals() {
             onClick={() => setActiveTab(tab)}
             className={`py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === tab
-                ? "text-primary border-b-primary tg-active-glow"
+                ? "text-primary border-b-primary"
                 : "text-muted-foreground border-b-transparent"
             }`}
           >

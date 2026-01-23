@@ -112,7 +112,7 @@ export default function Channels() {
             onClick={() => setActiveTab(tab.id as "verified" | "pending")}
             className={`py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === tab.id
-                ? "text-primary border-b-primary tg-active-glow"
+                ? "text-primary border-b-primary"
                 : "text-muted-foreground border-b-transparent"
             }`}
           >
