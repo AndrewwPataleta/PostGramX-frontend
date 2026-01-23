@@ -12,6 +12,8 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const mainRef = useRef<HTMLDivElement | null>(null);
+  const scrollPositionsRef = useRef<Map<string, number>>(new Map());
+  const lastPathRef = useRef(location.pathname);
   const swipeStartXRef = useRef<number | null>(null);
   const swipeStartYRef = useRef<number | null>(null);
   const swipeActiveRef = useRef(false);
@@ -36,6 +38,27 @@ const Layout = ({ children }: LayoutProps) => {
 
   useEffect(() => {
     swipeNavigationLockedRef.current = false;
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const mainElement = mainRef.current;
+    if (!mainElement) {
+      return;
+    }
+
+    const previousPath = lastPathRef.current;
+    if (previousPath !== location.pathname) {
+      scrollPositionsRef.current.set(previousPath, mainElement.scrollTop);
+    }
+
+    const savedScrollTop =
+      scrollPositionsRef.current.get(location.pathname) ?? 0;
+
+    requestAnimationFrame(() => {
+      mainElement.scrollTo({ top: savedScrollTop, behavior: "auto" });
+    });
+
+    lastPathRef.current = location.pathname;
   }, [location.pathname]);
 
   useEffect(() => {
