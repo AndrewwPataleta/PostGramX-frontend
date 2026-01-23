@@ -196,6 +196,12 @@
   }
 }
 
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @layer utilities {
   .safe-area-top {
     padding-top: var(--tg-safe-top);
