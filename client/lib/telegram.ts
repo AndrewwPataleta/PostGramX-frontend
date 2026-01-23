@@ -25,6 +25,8 @@ export interface TelegramWebApp {
   offEvent?: (event: "viewportChanged", handler: () => void) => void;
   ready?: () => void;
   expand?: () => void;
+  disableVerticalSwipes?: () => void;
+  enableVerticalSwipes?: () => void;
 }
 
 export const DEFAULT_INSETS: TelegramInsets = {
