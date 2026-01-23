@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import { Check, LogOut, Send, Settings } from "lucide-react";
+import { Check, Send } from "lucide-react";
+import { useTonAddress, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useTelegram } from "@/hooks/use-telegram";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Profile() {
   const { user } = useTelegram();
+  const wallet = useTonWallet();
+  const walletAddress = useTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
   const [isLoading, setIsLoading] = useState(true);
   const fullName = user
     ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`
@@ -72,6 +76,24 @@ export default function Profile() {
           </>
         ) : (
           <>
+            {wallet ? (
+              <div className="glass p-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="space-y-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">Connected wallet</p>
+                  <p className="text-sm font-medium text-foreground break-all">
+                    {walletAddress}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => tonConnectUI.disconnect()}
+                  className="px-3 py-1.5 rounded-full border border-border/60 text-xs font-semibold text-foreground hover:bg-card/60 transition-colors"
+                >
+                  Disconnect
+                </button>
+              </div>
+            ) : null}
+
             {/* Profile Header Card */}
             <div className="glass p-4 flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xl font-semibold">
@@ -127,21 +149,11 @@ export default function Profile() {
               </p>
             </div>
 
-            {/* Settings Section */}
-            <div className="mt-6 space-y-2">
-              <button className="w-full glass p-4 rounded-lg flex items-center gap-3 hover:bg-card/60 transition-colors text-left">
-                <Settings size={18} className="text-muted-foreground" />
-                <span className="text-foreground font-medium">Settings</span>
-              </button>
-              <button className="w-full glass p-4 rounded-lg flex items-center gap-3 hover:bg-card/60 transition-colors text-left">
-                <LogOut size={18} className="text-muted-foreground" />
-                <span className="text-foreground font-medium">Logout</span>
-              </button>
-            </div>
-
             <div className="flex items-center justify-center gap-2 pt-6 text-xs text-muted-foreground/70">
               <Send size={14} className="text-primary/70" />
-              <span className="tracking-wide">Telegram Mini App</span>
+              <span className="tracking-wide">
+                Created by PatStudio with love for Builder · Contest is live
+              </span>
             </div>
           </>
         )}
