@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Zap, Store, TrendingUp, User } from "lucide-react";
 import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
@@ -10,7 +10,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
-  const bottomNavHeight = 104;
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const shouldHideBottomNav = location.pathname === "/" && isKeyboardOpen;
+  const bottomNavHeight = shouldHideBottomNav ? 0 : 104;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -20,6 +22,43 @@ const Layout = ({ children }: LayoutProps) => {
     { path: "/channels", label: "Channels", icon: Zap },
     { path: "/profile", label: "Profile", icon: User },
   ];
+
+  useEffect(() => {
+    if (location.pathname !== "/") {
+      setIsKeyboardOpen(false);
+      return;
+    }
+
+    const handleFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        setIsKeyboardOpen(true);
+      }
+    };
+
+    const handleFocusOut = (event: FocusEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        setIsKeyboardOpen(false);
+      }
+    };
+
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+
+    return () => {
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+    };
+  }, [location.pathname]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -32,7 +71,11 @@ const Layout = ({ children }: LayoutProps) => {
       </SafeAreaLayout>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-[var(--tg-content-safe-area-inset-bottom)] left-0 right-0 z-50 px-4">
+      <nav
+        className={`fixed bottom-[var(--tg-content-safe-area-inset-bottom)] left-0 right-0 z-50 px-4 ${
+          shouldHideBottomNav ? "hidden" : ""
+        }`}
+      >
         <div className="flex items-center justify-around max-w-2xl mx-auto rounded-2xl bg-card/80 backdrop-blur-glass border border-border/40 shadow-sm">
           {navItems.map(({ path, label, icon: Icon }) => {
             const active = isActive(path);

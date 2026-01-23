@@ -1,6 +1,5 @@
 import { Check, Info } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Sparkline } from "@/components/Sparkline";
 import { Tooltip } from "@/components/Tooltip";
 import type { ChannelCard } from "@/types/marketplace";
 
@@ -40,14 +39,6 @@ export function MarketplaceCard({ channel }: MarketplaceCardProps) {
         </div>
       </div>
 
-      {/* Badge Row */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 pb-3 border-b border-border/30">
-        <div className="flex gap-2">
-          {channel.verified && <span className="text-primary">✓ Verified</span>}
-          <span>Updated {channel.lastUpdated} ago</span>
-        </div>
-      </div>
-
       {/* Metrics Row */}
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="bg-secondary/30 rounded-lg px-2 py-1.5">
@@ -73,11 +64,6 @@ export function MarketplaceCard({ channel }: MarketplaceCardProps) {
             {channel.engagement}%
           </p>
         </div>
-      </div>
-
-      {/* Views Sparkline */}
-      <div className="mb-3 h-6 text-primary/60">
-        <Sparkline data={channel.viewsTrend} height={20} />
       </div>
 
       {/* View Button */}
