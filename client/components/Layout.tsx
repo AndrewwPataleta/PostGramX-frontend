@@ -47,7 +47,7 @@ const Layout = ({ children }: LayoutProps) => {
                 }`}
               >
                 <Icon size={22} />
-                <span className="text-[11px] font-medium leading-none whitespace-nowrap truncate max-w-full">
+                <span className="text-[10px] font-medium leading-none whitespace-nowrap truncate max-w-full">
                   {label}
                 </span>
               </Link>
