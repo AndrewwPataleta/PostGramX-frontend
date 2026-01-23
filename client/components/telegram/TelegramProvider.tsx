@@ -76,10 +76,14 @@ export const TelegramProvider = ({ children }: { children: ReactNode }) => {
 
     updateInsets();
     webApp.onEvent?.("viewportChanged", updateInsets);
+    webApp.onEvent?.("safeAreaChanged", updateInsets);
+    webApp.onEvent?.("contentSafeAreaChanged", updateInsets);
 
     return () => {
       webApp.enableVerticalSwipes?.();
       webApp.offEvent?.("viewportChanged", updateInsets);
+      webApp.offEvent?.("safeAreaChanged", updateInsets);
+      webApp.offEvent?.("contentSafeAreaChanged", updateInsets);
     };
   }, []);
 
