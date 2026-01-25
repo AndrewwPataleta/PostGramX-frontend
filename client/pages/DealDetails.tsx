@@ -188,19 +188,21 @@ export default function DealDetails() {
           </div>
         ) : (
           <>
-            <DetailHeader
-              status={presentation.label}
-              tone={presentation.tone}
-              title={deal.channel.title}
-              username={deal.channel.username}
-              verified={deal.channel.isVerified}
-              price={`${deal.priceTon} TON`}
-              dealId={deal.id}
-              avatarUrl={deal.channel.avatarUrl}
-              statusDescription={presentation.description}
-            />
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
+              <DetailHeader
+                status={presentation.label}
+                tone={presentation.tone}
+                title={deal.channel.title}
+                username={deal.channel.username}
+                verified={deal.channel.isVerified}
+                price={`${deal.priceTon} TON`}
+                dealId={deal.id}
+                avatarUrl={deal.channel.avatarUrl}
+                statusDescription={presentation.description}
+              />
 
-            <Timeline items={timelineItems} />
+              <Timeline items={timelineItems} />
+            </div>
 
             <InfoCard title="Escrow">
               <div className="flex items-center justify-between text-sm text-foreground">
