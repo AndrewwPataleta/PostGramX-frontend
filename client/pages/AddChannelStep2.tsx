@@ -1,116 +1,53 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Shield } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import FlowLayout from "@/components/add-channel/FlowLayout";
 
 export default function AddChannelStep2() {
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Header with back button */}
-      <div className="sticky top-0 bg-card/80 backdrop-blur-glass border-b border-border/50 z-10">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Link to="/add-channel-step1">
-            <ArrowLeft size={24} className="text-foreground" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-foreground">Grant Bot Access</h1>
-            <p className="text-xs text-muted-foreground">Step 2 of 3</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="px-4 py-6 space-y-6">
-        {/* Icon */}
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Shield size={32} className="text-primary" />
-          </div>
-        </div>
-
-        {/* Title */}
-        <div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            Grant Bot Access
-          </h2>
-          <p className="text-muted-foreground">
-            Add our bot as admin to verify your channel
-          </p>
-        </div>
-
-        {/* Instructions Card */}
-        <div className="glass p-6 space-y-4">
-          <h3 className="font-semibold text-foreground text-sm mb-4">
-            Follow these steps:
-          </h3>
-
-          {/* Step 1 */}
-          <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">1</span>
-            </div>
-            <div>
-              <p className="font-medium text-foreground mb-1">Open channel settings</p>
-              <p className="text-sm text-muted-foreground">
-                Go to your channel → Manage → Administrators
-              </p>
-            </div>
-          </div>
-
-          {/* Step 2 */}
-          <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">2</span>
-            </div>
-            <div>
-              <p className="font-medium text-foreground mb-1">Add @FlowgramXBot</p>
-              <p className="text-sm text-muted-foreground">
-                Search for and add our verification bot
-              </p>
-            </div>
-          </div>
-
-          {/* Step 3 */}
-          <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">3</span>
-            </div>
-            <div>
-              <p className="font-medium text-foreground mb-1">
-                Enable "Post Messages"
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Grant permission to post on your behalf
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Info Box */}
-        <div className="glass p-4 bg-primary/5 border border-primary/20 space-y-2">
-          <p className="text-xs font-medium text-primary flex items-start gap-2">
-            <span className="text-sm mt-0.5">ℹ️</span>
-            <span>
-              The bot will only post verified ads that you approve. No spam or
-              promotional content.
-            </span>
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
+    <FlowLayout
+      title="Confirm Channel"
+      backTo="/add-channel-step1"
+      footerPaddingClassName="pb-[calc(140px+var(--tg-content-safe-area-inset-bottom))]"
+      footer={
+        <div className="space-y-2">
           <Link
             to="/add-channel-step3"
-            className="button-primary block text-center w-full py-4 text-base font-semibold"
+            className="button-primary block text-center text-base font-semibold"
           >
-            Verify Channel
+            Continue
           </Link>
           <Link
             to="/add-channel-step1"
-            className="button-secondary block text-center w-full py-4 text-base font-semibold"
+            className="button-secondary block text-center text-base font-semibold"
           >
-            Back
+            Change channel
           </Link>
         </div>
+      }
+    >
+      <div className="glass p-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary/60 text-lg">
+            📣
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-foreground">FlowgramX Updates</p>
+            <p className="text-xs text-muted-foreground">@flowgramx_updates</p>
+          </div>
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+          <span className="rounded-full border border-border/60 bg-secondary/30 px-3 py-1">
+            Public Channel
+          </span>
+          <span className="rounded-full border border-border/60 bg-secondary/30 px-3 py-1">
+            84.2K subscribers
+          </span>
+        </div>
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+          You must be an admin to continue.
+        </p>
       </div>
-    </div>
+    </FlowLayout>
   );
 }
