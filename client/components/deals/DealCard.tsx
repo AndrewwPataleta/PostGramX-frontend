@@ -29,8 +29,8 @@ export default function DealCard({
 }: DealCardProps) {
   return (
     <div
-      className={`rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm transition-colors ${
-        onSelect ? "cursor-pointer hover:border-primary/40" : ""
+      className={`glass p-4 transition-colors ${
+        onSelect ? "cursor-pointer hover:bg-card/60" : ""
       }`}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
