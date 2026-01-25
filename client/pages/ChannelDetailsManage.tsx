@@ -1,47 +1,51 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Settings, BarChart3, Edit, Power } from "lucide-react";
 import { Sparkline } from "@/components/Sparkline";
-
-interface ManagedChannel {
-  id: string;
-  name: string;
-  username: string;
-  avatar: string;
-  verified: boolean;
-  subscribers: number;
-  averageViews: number;
-  engagement: number;
-  postsPerWeek: number;
-  earnings: number;
-  activeDeals: number;
-  lastVerified: string;
-  viewsTrend: number[];
-}
-
-// Mock data
-const channelData: Record<string, ManagedChannel> = {
-  "1": {
-    id: "1",
-    name: "My Crypto Channel",
-    username: "@mycryptocha",
-    avatar: "📰",
-    verified: true,
-    subscribers: 45000,
-    averageViews: 18000,
-    engagement: 40,
-    postsPerWeek: 3.5,
-    earnings: 230,
-    activeDeals: 1,
-    lastVerified: "2h",
-    viewsTrend: [17000, 17800, 18200, 18500, 18100, 18900, 18500, 18200, 18800, 18000],
-  },
-};
+import { managedChannelData } from "@/features/channels/managedChannels";
+import type { Listing } from "@/features/listings/types";
+import {
+  disableListing,
+  getListingsByChannel,
+  isMockListingsEnabled,
+  subscribeToMockListings,
+} from "@/features/listings/mockStore";
 
 export default function ChannelDetailsManage() {
   const { id } = useParams<{ id: string }>();
-  const channel = id ? channelData[id] : null;
+  const channel = id ? managedChannelData[id] : null;
   const [activeTab, setActiveTab] = useState("overview");
+  const [listings, setListings] = useState<Listing[]>([]);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+    const loadListings = () => {
+      setListings(getListingsByChannel(id));
+    };
+    loadListings();
+    return subscribeToMockListings(loadListings);
+  }, [id]);
+
+  const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
+
+  const activeListings = useMemo(
+    () => listings.filter((listing) => listing.isActive),
+    [listings],
+  );
+  const inactiveListings = useMemo(
+    () => listings.filter((listing) => !listing.isActive),
+    [listings],
+  );
+
+  const formatAvailability = (listing: Listing) => {
+    const from = new Date(listing.availabilityFrom);
+    const to = new Date(listing.availabilityTo);
+    const diffMs = to.getTime() - from.getTime();
+    const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    return `Available next ${diffDays} day${diffDays === 1 ? "" : "s"}`;
+  };
 
   if (!channel) {
     return (
@@ -181,36 +185,89 @@ export default function ChannelDetailsManage() {
         {/* LISTINGS TAB */}
         {activeTab === "listings" && (
           <>
-            {channel.activeDeals > 0 ? (
+            {mockModeEnabled ? (
+              <div className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary w-fit">
+                Mock mode enabled
+              </div>
+            ) : null}
+
+            {activeListings.length > 0 || inactiveListings.length > 0 ? (
               <div className="space-y-3">
-                <div className="glass p-4 space-y-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-foreground">Active Offer</h3>
-                    <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-medium">
-                      Active
-                    </span>
-                  </div>
-                  <div className="bg-secondary/30 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Price per post</span>
-                      <span className="font-semibold text-foreground">2.5 TON</span>
+                {activeListings.map((listing) => (
+                  <div key={listing.id} className="glass p-4 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-foreground">Active Offer</h3>
+                      <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-medium">
+                        Active
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Status</span>
-                      <span className="text-sm font-medium text-primary">Available</span>
+                    <div className="bg-secondary/30 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Price per post</span>
+                        <span className="font-semibold text-foreground">
+                          {listing.priceTon} TON
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Availability</span>
+                        <span className="text-sm font-medium text-primary">
+                          {formatAvailability(listing)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link
+                        to={`/channel-manage/${channel.id}/listings/${listing.id}/edit`}
+                        className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg border border-border transition-colors text-sm"
+                      >
+                        <Edit size={16} />
+                        Edit
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => disableListing(listing.id)}
+                        className="flex-1 flex items-center justify-center gap-2 bg-destructive/20 hover:bg-destructive/30 text-destructive font-medium py-2 rounded-lg transition-colors text-sm"
+                      >
+                        <Power size={16} />
+                        Disable
+                      </button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg border border-border transition-colors text-sm">
-                      <Edit size={16} />
-                      Edit
-                    </button>
-                    <button className="flex-1 flex items-center justify-center gap-2 bg-destructive/20 hover:bg-destructive/30 text-destructive font-medium py-2 rounded-lg transition-colors text-sm">
-                      <Power size={16} />
-                      Disable
-                    </button>
+                ))}
+
+                {inactiveListings.map((listing) => (
+                  <div key={listing.id} className="glass p-4 space-y-3 border border-border/60">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-foreground">Disabled Offer</h3>
+                      <span className="bg-muted/30 text-muted-foreground px-2 py-1 rounded text-xs font-medium">
+                        Disabled
+                      </span>
+                    </div>
+                    <div className="bg-secondary/30 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Price per post</span>
+                        <span className="font-semibold text-foreground">
+                          {listing.priceTon} TON
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Availability</span>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {formatAvailability(listing)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link
+                        to={`/channel-manage/${channel.id}/listings/${listing.id}/edit`}
+                        className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg border border-border transition-colors text-sm"
+                      >
+                        <Edit size={16} />
+                        Edit
+                      </Link>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -224,9 +281,12 @@ export default function ChannelDetailsManage() {
               </div>
             )}
 
-            <button className="w-full button-primary py-3 text-base font-semibold">
-              Create New Listing
-            </button>
+            <Link
+              to={`/channel-manage/${channel.id}/listings/new`}
+              className="w-full button-primary py-3 text-base font-semibold text-center"
+            >
+              Create Listing
+            </Link>
           </>
         )}
 

@@ -1,3 +1,5 @@
+import type { Listing } from "@/features/listings/types";
+
 export interface MarketplaceChannel {
   id: string;
   title: string;
@@ -10,4 +12,5 @@ export interface MarketplaceChannel {
   language: string;
   priceTon: number;
   description: string;
+  listing?: Listing;
 }

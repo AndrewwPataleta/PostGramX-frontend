@@ -2,6 +2,19 @@ import type { MarketplaceChannel } from "./types";
 
 export const mockChannels: MarketplaceChannel[] = [
   {
+    id: "1",
+    title: "My Crypto Channel",
+    username: "mycryptocha",
+    avatarUrl: "📰",
+    verified: true,
+    subscribers: 45_000,
+    averageViews: 18_000,
+    engagementRate: 40,
+    language: "EN",
+    priceTon: 2.5,
+    description: "Verified creator channel ready for sponsor placements and crypto-native offers.",
+  },
+  {
     id: "ch-flow-1",
     title: "TON Launchpad",
     username: "tonlaunchpad",
