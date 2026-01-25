@@ -34,8 +34,8 @@ export default function DealCard({
 }: DealCardData) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-[0_12px_35px_rgba(15,23,42,0.45)] ${
-        onSelect ? "cursor-pointer transition hover:border-sky-500/40" : ""
+      className={`glass p-4 transition-colors hover:bg-card/60 ${
+        onSelect ? "cursor-pointer" : ""
       }`}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
@@ -52,8 +52,8 @@ export default function DealCard({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-full bg-gradient-to-br from-cyan-400/40 via-sky-500/40 to-blue-600/40 p-[1px]">
-            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-slate-950 text-lg font-semibold text-white">
+          <div className="h-11 w-11 rounded-full bg-secondary/60 p-[1px]">
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-card text-lg font-semibold text-foreground">
               {avatarUrl ? (
                 <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
               ) : (
@@ -62,18 +62,18 @@ export default function DealCard({
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <span>{name}</span>
               {verified && (
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-[10px] text-white">
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
                   ✓
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400">{username}</p>
+            <p className="text-xs text-muted-foreground">{username}</p>
           </div>
         </div>
-        <button className="text-slate-500">›</button>
+        <button className="text-muted-foreground">›</button>
       </div>
 
       <div className="mt-3">
@@ -81,14 +81,14 @@ export default function DealCard({
       </div>
 
       <div className="mt-3 flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2 text-white">
+        <div className="flex items-center gap-2 text-foreground">
           <span className="text-base font-semibold">{price}</span>
           {statusKey === "fundsLocked" && <span className="text-sm">🔒</span>}
         </div>
-        <div className="text-xs text-slate-500">{id}</div>
+        <div className="text-xs text-muted-foreground">{id}</div>
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+      <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>{secondary}</span>
         <span>{meta}</span>
       </div>
@@ -96,14 +96,14 @@ export default function DealCard({
       <div className="mt-4 flex items-center justify-between">
         <button
           type="button"
-          className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-[0_8px_18px_rgba(14,165,233,0.4)]"
+          className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[0_8px_18px_hsl(var(--primary)/0.35)]"
           onClick={(event) => event.stopPropagation()}
         >
           {action}
         </button>
         <button
           type="button"
-          className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200"
+          className="rounded-full border border-border/40 px-4 py-2 text-sm text-foreground"
           onClick={(event) => event.stopPropagation()}
         >
           Details
