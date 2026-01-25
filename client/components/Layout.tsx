@@ -20,6 +20,10 @@ const Layout = ({ children }: LayoutProps) => {
     !isMainNavRoute || (location.pathname === "/marketplace" && isKeyboardOpen);
   const bottomNavOffset = 8;
   const bottomNavHeight = shouldHideBottomNav ? 0 : 104 + bottomNavOffset;
+  const showWalletBanner = useMemo(
+    () => ["/", "/deals", "/channels"].includes(location.pathname),
+    [location.pathname]
+  );
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -95,7 +99,7 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="flex min-h-screen flex-col bg-background">
       <SafeAreaLayout bottomNavHeight={bottomNavHeight}>
         <main className="flex-1 overflow-y-auto touch-pan-y" ref={mainRef}>
-          <WalletConnectBanner />
+          {showWalletBanner ? <WalletConnectBanner /> : null}
           {children}
         </main>
       </SafeAreaLayout>
