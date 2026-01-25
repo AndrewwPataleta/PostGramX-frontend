@@ -38,21 +38,23 @@ export default function DetailFrame({
 }: DetailFrameProps) {
   return (
     <div className="rounded-[32px] border border-white/10 bg-slate-950/80 p-6 shadow-[0_20px_60px_rgba(8,15,30,0.6)]">
-      <DetailHeader
-        status={status}
-        statusKey={statusKey}
-        icon={icon}
-        title={title}
-        username={username}
-        verified={verified}
-        price={price}
-        dealId={dealId}
-        avatarUrl={avatarUrl}
-        statusDescription={statusDescription}
-      />
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
+        <DetailHeader
+          status={status}
+          statusKey={statusKey}
+          icon={icon}
+          title={title}
+          username={username}
+          verified={verified}
+          price={price}
+          dealId={dealId}
+          avatarUrl={avatarUrl}
+          statusDescription={statusDescription}
+        />
+        <Timeline items={timelineItems} />
+      </div>
 
       <div className="mt-5 space-y-4">
-        <Timeline items={timelineItems} />
 
         <InfoCard title="Escrow">
           <p className="flex items-center justify-between text-sm text-white">
