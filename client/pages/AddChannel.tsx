@@ -43,11 +43,11 @@ export default function AddChannel() {
   const stepLabel = steps[activeStep];
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
+    <div className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-12">
         <div className="flex w-full flex-col items-center gap-6">
           <div className="w-full max-w-sm rounded-[32px] border border-white/10 bg-slate-900/80 shadow-2xl">
-            <div className="flex min-h-[720px] flex-col px-5 pb-6 pt-6 safe-area-top safe-area-bottom">
+            <div className="flex min-h-[640px] flex-col px-4 pb-5 pt-5 safe-area-top safe-area-bottom">
               <div className="text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
                   {activeStep + 1} · {stepLabel}
@@ -58,7 +58,7 @@ export default function AddChannel() {
               </div>
 
               {activeStep === 0 && (
-                <>
+                <div className="flex flex-1 flex-col">
                   <div className="space-y-2">
                     <h2 className="text-xl font-semibold">Connect your channel</h2>
                     <p className="text-sm text-slate-400">
@@ -66,7 +66,7 @@ export default function AddChannel() {
                     </p>
                   </div>
 
-                  <div className="mt-6 space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-sm">
+                  <div className="mt-5 space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-sm">
                     <label className="text-sm font-medium text-slate-200">
                       Channel username or link
                     </label>
@@ -80,13 +80,15 @@ export default function AddChannel() {
                     </p>
                   </div>
 
-                  <button className="button-primary mt-6 py-4 text-base font-semibold">
-                    Continue
-                  </button>
-                  <button className="mt-3 text-sm font-medium text-sky-400">
-                    What permissions are required?
-                  </button>
-                </>
+                  <div className="mt-auto space-y-3 pt-5">
+                    <button className="button-primary py-3 text-sm font-semibold">
+                      Continue
+                    </button>
+                    <button className="text-xs font-medium text-sky-400">
+                      What permissions are required?
+                    </button>
+                  </div>
+                </div>
               )}
 
               {activeStep === 1 && (
@@ -136,11 +138,11 @@ export default function AddChannel() {
                     </div>
                   </div>
 
-                  <div className="mt-auto space-y-3 pt-6">
-                    <button className="button-primary py-4 text-base font-semibold">
+                  <div className="mt-auto space-y-3 pt-5">
+                    <button className="button-primary py-3 text-sm font-semibold">
                       Continue verification
                     </button>
-                    <button className="button-secondary py-4 text-base font-semibold">
+                    <button className="button-secondary py-3 text-sm font-semibold">
                       Change channel
                     </button>
                   </div>
@@ -203,11 +205,11 @@ export default function AddChannel() {
                     </p>
                   </div>
 
-                  <div className="mt-auto space-y-3 pt-6">
-                    <button className="button-primary py-4 text-base font-semibold">
+                  <div className="mt-auto space-y-3 pt-5">
+                    <button className="button-primary py-3 text-sm font-semibold">
                       I added the bot
                     </button>
-                    <button className="button-secondary py-4 text-base font-semibold">
+                    <button className="button-secondary py-3 text-sm font-semibold">
                       Open Telegram Settings
                     </button>
                   </div>
@@ -280,11 +282,11 @@ export default function AddChannel() {
                     Admin rights are re-checked automatically before payouts and posting.
                   </p>
 
-                  <div className="mt-auto space-y-3 pt-6">
-                    <button className="button-primary py-4 text-base font-semibold">
+                  <div className="mt-auto space-y-3 pt-5">
+                    <button className="button-primary py-3 text-sm font-semibold">
                       Create listing
                     </button>
-                    <button className="button-secondary py-4 text-base font-semibold">
+                    <button className="button-secondary py-3 text-sm font-semibold">
                       View channel
                     </button>
                   </div>
@@ -314,11 +316,11 @@ export default function AddChannel() {
                     </ul>
                   </div>
 
-                  <div className="mt-auto space-y-3 pt-6">
-                    <button className="button-primary py-4 text-base font-semibold">
+                  <div className="mt-auto space-y-3 pt-5">
+                    <button className="button-primary py-3 text-sm font-semibold">
                       Retry verification
                     </button>
-                    <button className="button-secondary py-4 text-base font-semibold">
+                    <button className="button-secondary py-3 text-sm font-semibold">
                       View instructions
                     </button>
                   </div>
@@ -372,11 +374,11 @@ export default function AddChannel() {
                     Admin rights are re-checked automatically before payouts and posting.
                   </div>
 
-                  <div className="mt-auto space-y-3 pt-6">
-                    <button className="button-primary py-4 text-base font-semibold">
+                  <div className="mt-auto space-y-3 pt-5">
+                    <button className="button-primary py-3 text-sm font-semibold">
                       Continue
                     </button>
-                    <button className="button-secondary py-4 text-base font-semibold">Skip</button>
+                    <button className="button-secondary py-3 text-sm font-semibold">Skip</button>
                   </div>
                 </>
               )}
