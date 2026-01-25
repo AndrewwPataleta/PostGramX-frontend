@@ -1,28 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
-const steps = [
-  {
-    title: "Loading your data",
-    subtitle: "Syncing your profile and preferences",
-  },
-  {
-    title: "Initializing visuals",
-    subtitle: "Preparing the interface for launch",
-  },
-  {
-    title: "Starting core modules",
-    subtitle: "Final checks before takeoff",
-  },
-];
-
 const STEP_DURATION_MS = 1500;
 
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
+  const { t } = useLanguage();
   const [activeStep, setActiveStep] = useState(0);
+
+  const steps = useMemo(
+    () => [
+      {
+        title: t("splash.loadingTitle"),
+        subtitle: t("splash.loadingSubtitle"),
+      },
+      {
+        title: t("splash.visualsTitle"),
+        subtitle: t("splash.visualsSubtitle"),
+      },
+      {
+        title: t("splash.modulesTitle"),
+        subtitle: t("splash.modulesSubtitle"),
+      },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -37,7 +42,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       window.clearInterval(intervalId);
       window.clearTimeout(timeoutId);
     };
-  }, [onComplete]);
+  }, [onComplete, steps.length]);
 
   const step = steps[activeStep];
 
@@ -65,7 +70,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         </div>
 
         <div className="text-xs uppercase tracking-[0.3em] text-white/50">
-          Entering
+          {t("splash.entering")}
         </div>
       </div>
     </div>

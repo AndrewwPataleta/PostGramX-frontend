@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Zap, Store, TrendingUp, User } from "lucide-react";
 import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
 import WalletConnectBanner from "@/components/wallet/WalletConnectBanner";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ const Layout = ({ children }: LayoutProps) => {
   const scrollPositionsRef = useRef<Map<string, number>>(new Map());
   const lastPathRef = useRef(location.pathname);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const { t } = useLanguage();
   const mainNavPaths = ["/marketplace", "/deals", "/channels", "/profile"];
   const isMainNavRoute = mainNavPaths.includes(location.pathname);
   const shouldHideBottomNav =
@@ -30,12 +32,12 @@ const Layout = ({ children }: LayoutProps) => {
 
   const navItems = useMemo(
     () => [
-      { path: "/marketplace", label: "Marketplace", icon: Store },
-      { path: "/deals", label: "Deals", icon: TrendingUp },
-      { path: "/channels", label: "Channels", icon: Zap },
-      { path: "/profile", label: "Profile", icon: User },
+      { path: "/marketplace", label: t("nav.marketplace"), icon: Store },
+      { path: "/deals", label: t("nav.deals"), icon: TrendingUp },
+      { path: "/channels", label: t("nav.channels"), icon: Zap },
+      { path: "/profile", label: t("nav.profile"), icon: User },
     ],
-    [],
+    [t],
   );
 
   useEffect(() => {

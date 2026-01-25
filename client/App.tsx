@@ -10,6 +10,7 @@ import { useEffect, useRef } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { TelegramProvider, useTelegramContext } from "@/components/telegram/TelegramProvider";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
 import Layout from "./components/Layout";
 import Marketplace from "./pages/Marketplace";
 import ChannelDetails from "./pages/ChannelDetails";
@@ -61,38 +62,40 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TonConnectUIProvider manifestUrl={manifestUrl}>
         <TelegramProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            {showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}
-            <BrowserRouter>
-              <NavigationHaptics />
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/marketplace" replace />} />
-                  <Route path="/marketplace" element={<Marketplace />} />
-                  <Route path="/marketplace/channels/:channelId" element={<ChannelDetails />} />
-                  <Route
-                    path="/marketplace/channels/:channelId/request"
-                    element={<CreateDeal />}
-                  />
-                  <Route path="/deals" element={<Deals />} />
-                  <Route path="/deals/:dealId" element={<DealDetails />} />
-                  <Route path="/escrow/:dealId" element={<EscrowPayment />} />
-                  <Route path="/funds-locked" element={<FundsLocked />} />
-                  <Route path="/channels" element={<Channels />} />
-                  <Route path="/channel-manage/:id" element={<ChannelDetailsManage />} />
-                  <Route path="/add-channel" element={<AddChannel />} />
-                  <Route path="/add-channel-step1" element={<AddChannelStep1 />} />
-                  <Route path="/add-channel-step2" element={<AddChannelStep2 />} />
-                  <Route path="/add-channel-step3" element={<AddChannelStep3 />} />
-                  <Route path="/profile" element={<Profile />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Layout>
-            </BrowserRouter>
-          </TooltipProvider>
+          <LanguageProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              {showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}
+              <BrowserRouter>
+                <NavigationHaptics />
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/marketplace" replace />} />
+                    <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/marketplace/channels/:channelId" element={<ChannelDetails />} />
+                    <Route
+                      path="/marketplace/channels/:channelId/request"
+                      element={<CreateDeal />}
+                    />
+                    <Route path="/deals" element={<Deals />} />
+                    <Route path="/deals/:dealId" element={<DealDetails />} />
+                    <Route path="/escrow/:dealId" element={<EscrowPayment />} />
+                    <Route path="/funds-locked" element={<FundsLocked />} />
+                    <Route path="/channels" element={<Channels />} />
+                    <Route path="/channel-manage/:id" element={<ChannelDetailsManage />} />
+                    <Route path="/add-channel" element={<AddChannel />} />
+                    <Route path="/add-channel-step1" element={<AddChannelStep1 />} />
+                    <Route path="/add-channel-step2" element={<AddChannelStep2 />} />
+                    <Route path="/add-channel-step3" element={<AddChannelStep3 />} />
+                    <Route path="/profile" element={<Profile />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </BrowserRouter>
+            </TooltipProvider>
+          </LanguageProvider>
         </TelegramProvider>
       </TonConnectUIProvider>
     </QueryClientProvider>
