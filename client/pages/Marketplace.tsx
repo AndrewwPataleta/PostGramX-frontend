@@ -1,19 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import ChannelCard from "@/components/marketplace/ChannelCard";
-import BottomSheet from "@/components/BottomSheet";
+import { ActiveFiltersChips } from "@/components/ActiveFiltersChips";
+import { FilterModal, type FilterState } from "@/components/FilterModal";
 import { getChannels } from "@/features/marketplace/api";
 import type { MarketplaceChannel } from "@/features/marketplace/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const languageFilters = ["EN", "RU", "ES"];
+const defaultFilters: FilterState = {
+  priceRange: [0, 10],
+  subscribersRange: [0, 1_000_000],
+  viewsRange: [0, 1_000_000],
+  engagementRange: [0, 100],
+  languages: [],
+  categories: [],
+  verifiedOnly: false,
+  dateRange: ["", ""],
+};
 
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [channels, setChannels] = useState<MarketplaceChannel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,12 +76,62 @@ export default function Marketplace() {
       const matchesQuery =
         channel.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         channel.username.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesPrice =
+        channel.priceTon >= filters.priceRange[0] && channel.priceTon <= filters.priceRange[1];
+      const matchesSubscribers =
+        channel.subscribers >= filters.subscribersRange[0] &&
+        channel.subscribers <= filters.subscribersRange[1];
+      const matchesViews =
+        channel.averageViews >= filters.viewsRange[0] &&
+        channel.averageViews <= filters.viewsRange[1];
+      const engagementRange = filters.engagementRange ?? [0, 100];
+      const matchesEngagement =
+        channel.engagementRate >= engagementRange[0] &&
+        channel.engagementRate <= engagementRange[1];
       const matchesLanguage =
-        selectedLanguages.length === 0 || selectedLanguages.includes(channel.language);
+        filters.languages.length === 0 || filters.languages.includes(channel.language);
+      const matchesVerified = !filters.verifiedOnly || channel.verified;
 
-      return matchesQuery && matchesLanguage;
+      return (
+        matchesQuery &&
+        matchesPrice &&
+        matchesSubscribers &&
+        matchesViews &&
+        matchesEngagement &&
+        matchesLanguage &&
+        matchesVerified
+      );
     });
-  }, [channels, searchQuery, selectedLanguages]);
+  }, [channels, filters, searchQuery]);
+
+  const handleRemoveFilter = (filterType: string, value?: string) => {
+    setFilters((prev) => {
+      switch (filterType) {
+        case "priceRange":
+          return { ...prev, priceRange: defaultFilters.priceRange };
+        case "subscribersRange":
+          return { ...prev, subscribersRange: defaultFilters.subscribersRange };
+        case "viewsRange":
+          return { ...prev, viewsRange: defaultFilters.viewsRange };
+        case "engagementRange":
+          return { ...prev, engagementRange: defaultFilters.engagementRange };
+        case "verifiedOnly":
+          return { ...prev, verifiedOnly: false };
+        case "languages":
+          return {
+            ...prev,
+            languages: prev.languages.filter((lang) => lang !== value),
+          };
+        case "categories":
+          return {
+            ...prev,
+            categories: prev.categories.filter((cat) => cat !== value),
+          };
+        default:
+          return prev;
+      }
+    });
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -88,8 +148,9 @@ export default function Marketplace() {
             <button
               type="button"
               onClick={() => setIsFilterOpen(true)}
-              className="rounded-full bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
+              className="inline-flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
             >
+              <SlidersHorizontal size={14} />
               Filters
             </button>
           </div>
@@ -103,6 +164,7 @@ export default function Marketplace() {
             />
           </div>
         </div>
+        <ActiveFiltersChips filters={filters} onRemoveFilter={handleRemoveFilter} />
       </div>
 
       <div style={{ paddingTop: headerHeight }} className="px-4 py-6 space-y-3">
@@ -129,46 +191,13 @@ export default function Marketplace() {
         ) : null}
       </div>
 
-      <BottomSheet open={isFilterOpen} onOpenChange={setIsFilterOpen} title="Filters">
-        <div className="space-y-4">
-          <div>
-            <p className="text-xs font-semibold text-foreground">Language</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {languageFilters.map((language) => {
-                const active = selectedLanguages.includes(language);
-                return (
-                  <button
-                    key={language}
-                    type="button"
-                    onClick={() => {
-                      setSelectedLanguages((prev) =>
-                        prev.includes(language)
-                          ? prev.filter((value) => value !== language)
-                          : [...prev, language],
-                      );
-                    }}
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      active
-                        ? "bg-primary/20 text-primary"
-                        : "bg-secondary/60 text-muted-foreground"
-                    }`}
-                  >
-                    {language}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <button
-            type="button"
-            className="w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-            onClick={() => setIsFilterOpen(false)}
-          >
-            Apply Filters
-          </button>
-        </div>
-        <div className="pointer-events-none absolute inset-x-0 -bottom-4 h-4 bg-gradient-to-b from-background/90 to-transparent backdrop-blur-sm" />
-      </BottomSheet>
+      <FilterModal
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        filters={filters}
+        onApply={(nextFilters) => setFilters(nextFilters)}
+        onReset={() => setFilters(defaultFilters)}
+      />
     </div>
   );
 }
