@@ -16,10 +16,11 @@ import {
   USE_MOCK_DEALS,
 } from "@/features/deals/api";
 import type { Deal } from "@/features/deals/types";
-import { buildTonTransferLink } from "@/features/deals/payment";
+import { buildTonConnectTransaction, buildTonTransferLink } from "@/features/deals/payment";
 import { formatCountdown, formatRelativeTime, formatScheduleDate } from "@/features/deals/time";
 import { getDealPresentation, getTimelineItems } from "@/features/deals/status";
 import { toast } from "sonner";
+import { useTonConnectModal, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 
 export default function DealDetails() {
   const { dealId } = useParams<{ dealId: string }>();
@@ -29,6 +30,9 @@ export default function DealDetails() {
   const [error, setError] = useState<string | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [showManualTransfer, setShowManualTransfer] = useState(false);
+  const wallet = useTonWallet();
+  const [tonConnectUI] = useTonConnectUI();
+  const { open: openWalletModal } = useTonConnectModal();
 
   const loadDeal = async () => {
     if (!dealId) {
@@ -89,17 +93,44 @@ export default function DealDetails() {
     }
   };
 
-  const handleSimulatePayment = async () => {
+  const handlePayViaTelegram = async () => {
     if (!deal) {
       return;
     }
+
+    const address = deal.escrow?.depositAddress;
+    if (!address) {
+      toast.error("Payment address is missing");
+      return;
+    }
+
+    const amountTon = deal.escrow?.amountTon ?? deal.priceTon;
+    if (!Number.isFinite(amountTon) || amountTon <= 0) {
+      toast.error("Payment amount is invalid");
+      return;
+    }
+
+    if (!wallet) {
+      openWalletModal();
+      toast.info("Connect a TON wallet to continue");
+      return;
+    }
+
     setIsActionLoading(true);
     try {
-      const updated = await simulatePayment(deal.id);
-      setDeal(updated);
-      toast.success("Payment status updated");
+      await tonConnectUI.sendTransaction(
+        buildTonConnectTransaction({ address, amountTon })
+      );
+
+      if (USE_MOCK_DEALS) {
+        const updated = await simulatePayment(deal.id);
+        setDeal(updated);
+        toast.success("Payment confirmed");
+      } else {
+        toast.success("Transaction sent. Awaiting confirmation.");
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Unable to simulate payment");
+      toast.error(err instanceof Error ? err.message : "Unable to process payment");
     } finally {
       setIsActionLoading(false);
     }
@@ -214,6 +245,14 @@ export default function DealDetails() {
               </p>
               {deal.escrow?.status === "AWAITING_PAYMENT" ? (
                 <div className="mt-4 space-y-3">
+                  <button
+                    type="button"
+                    onClick={handlePayViaTelegram}
+                    disabled={isActionLoading}
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-70"
+                  >
+                    Pay via Telegram Wallet
+                  </button>
                   <a
                     href={
                       deal.escrow.depositAddress
@@ -224,9 +263,9 @@ export default function DealDetails() {
                           })
                         : undefined
                     }
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                    className="inline-flex w-full items-center justify-center rounded-xl border border-border/60 px-4 py-2 text-xs font-semibold text-foreground"
                   >
-                    Pay via Telegram Wallet
+                    Open TON transfer link
                   </a>
                   <button
                     type="button"
@@ -254,14 +293,9 @@ export default function DealDetails() {
                     </div>
                   ) : null}
                   {USE_MOCK_DEALS ? (
-                    <button
-                      type="button"
-                      onClick={handleSimulatePayment}
-                      disabled={isActionLoading}
-                      className="w-full rounded-xl bg-secondary px-4 py-2 text-xs font-semibold text-foreground"
-                    >
-                      Simulate Payment
-                    </button>
+                    <p className="text-xs text-muted-foreground">
+                      Mock payments confirm after the wallet approval flow.
+                    </p>
                   ) : null}
                 </div>
               ) : null}

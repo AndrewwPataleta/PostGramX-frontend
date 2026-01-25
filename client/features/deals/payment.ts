@@ -15,3 +15,21 @@ export const buildTonTransferLink = (params: {
   const query = search.toString();
   return `ton://transfer/${address}${query ? `?${query}` : ""}`;
 };
+
+export const buildTonConnectTransaction = (params: {
+  address: string;
+  amountTon: number;
+}) => {
+  const { address, amountTon } = params;
+  const amountNano = Math.round(amountTon * 1e9);
+
+  return {
+    validUntil: Math.floor(Date.now() / 1000) + 60,
+    messages: [
+      {
+        address,
+        amount: amountNano.toString(),
+      },
+    ],
+  };
+};
