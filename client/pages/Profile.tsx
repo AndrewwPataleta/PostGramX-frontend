@@ -11,9 +11,12 @@ import {
 } from "lucide-react";
 import { useTelegram } from "@/hooks/use-telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { buildTonConnectTransaction, buildTonTransferLink } from "@/features/deals/payment";
 import { useState } from "react";
+import { useTonConnectModal, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
+import { toast } from "sonner";
 
-const transactions = [
+const initialTransactions = [
   {
     type: "Deposit",
     amount: "+50 TON",
@@ -53,11 +56,25 @@ const statusStyles: Record<string, string> = {
   Failed: "bg-rose-500/15 text-rose-300",
 };
 
+const topUpAddress = "EQABc7p8sT1h8Q8p2x9K4Qx9nX9z1q8Qx0Qx9nX9z1q8Qx0Qx";
+const topUpMemo = "PGX-TOPUP";
+const topUpChips = [10, 25, 50];
+
 export default function Profile() {
   const { user } = useTelegram();
   const [activeSection, setActiveSection] = useState<
     "history" | "topup" | "withdraw" | "escrow"
   >("history");
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const [availableBalance, setAvailableBalance] = useState(124.5);
+  const [topUpAmount, setTopUpAmount] = useState(50);
+  const [topUpStatus, setTopUpStatus] = useState<"idle" | "pending" | "confirmed">(
+    "idle"
+  );
+  const [isTopUpLoading, setIsTopUpLoading] = useState(false);
+  const wallet = useTonWallet();
+  const [tonConnectUI] = useTonConnectUI();
+  const { open: openWalletModal } = useTonConnectModal();
   const fullName = user
     ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`
     : "FlowgramX User";
@@ -68,6 +85,56 @@ export default function Profile() {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
+
+  const handleTopUp = async () => {
+    if (!Number.isFinite(topUpAmount) || topUpAmount <= 0) {
+      toast.error("Select a valid top up amount");
+      return;
+    }
+
+    if (!wallet) {
+      openWalletModal();
+      toast.info("Connect a TON wallet to continue");
+      return;
+    }
+
+    setIsTopUpLoading(true);
+    setTopUpStatus("pending");
+    try {
+      await tonConnectUI.sendTransaction(
+        buildTonConnectTransaction({ address: topUpAddress, amountTon: topUpAmount })
+      );
+
+      setAvailableBalance((prev) => Number((prev + topUpAmount).toFixed(2)));
+      const now = new Date();
+      const timeLabel = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      setTransactions((prev) => [
+        {
+          type: "Deposit",
+          amount: `+${topUpAmount} TON`,
+          status: "Confirmed",
+          time: `Today · ${timeLabel}`,
+        },
+        ...prev,
+      ]);
+      setTopUpStatus("confirmed");
+      toast.success("Mock top up confirmed");
+    } catch (err) {
+      setTopUpStatus("idle");
+      toast.error(err instanceof Error ? err.message : "Unable to process top up");
+    } finally {
+      setIsTopUpLoading(false);
+    }
+  };
+
+  const topUpTransferLink = buildTonTransferLink({
+    address: topUpAddress,
+    amountTon: topUpAmount,
+    memo: topUpMemo,
+  });
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -108,7 +175,7 @@ export default function Profile() {
                   <p className="text-xs text-muted-foreground">Balance</p>
                   <div className="space-y-2">
                     <p className="text-2xl font-semibold text-foreground">
-                      Available: 124.50 TON
+                      Available: {availableBalance.toFixed(2)} TON
                     </p>
                     <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                       <span>Locked in Escrow: 35 TON</span>
@@ -252,28 +319,34 @@ export default function Profile() {
 
               {activeSection === "topup" && (
                 <>
-                  <div className="glass p-4 space-y-3">
-                    <p className="text-xs text-muted-foreground">Top Up Balance</p>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">TON amount</p>
-                        <p className="text-2xl font-semibold text-foreground">
-                          50.00 TON
-                        </p>
-                      </div>
-                      <Wallet size={20} className="text-primary/80" />
+                <div className="glass p-4 space-y-3">
+                  <p className="text-xs text-muted-foreground">Top Up Balance</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">TON amount</p>
+                      <p className="text-2xl font-semibold text-foreground">
+                        {topUpAmount.toFixed(2)} TON
+                      </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {["+10 TON", "+25 TON", "+50 TON"].map((chip) => (
-                        <span
-                          key={chip}
-                          className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary"
-                        >
-                          {chip}
-                        </span>
-                      ))}
-                    </div>
+                    <Wallet size={20} className="text-primary/80" />
                   </div>
+                  <div className="flex flex-wrap gap-2">
+                    {topUpChips.map((amount) => (
+                      <button
+                        key={amount}
+                        type="button"
+                        onClick={() => setTopUpAmount(amount)}
+                        className={`rounded-full border px-3 py-1 text-xs transition ${
+                          topUpAmount === amount
+                            ? "border-primary/60 bg-primary/20 text-primary"
+                            : "border-primary/40 bg-primary/10 text-primary/80"
+                        }`}
+                      >
+                        +{amount} TON
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                   <div className="glass p-4 space-y-2">
                     <p className="text-xs text-muted-foreground">Payment Method</p>
@@ -292,25 +365,38 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  <button type="button" className="button-primary rounded-2xl py-4">
-                    Proceed to Payment
+                  <button
+                    type="button"
+                    className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
+                    onClick={handleTopUp}
+                    disabled={isTopUpLoading}
+                  >
+                    {isTopUpLoading ? "Processing..." : "Proceed to Payment"}
                   </button>
 
                   <div className="glass p-4 space-y-2">
                     <p className="text-xs text-muted-foreground">Payment Instructions</p>
                     <div className="space-y-1 text-sm text-foreground">
-                      <p>ton://transfer/EQAB...9nX</p>
+                      <p>{topUpTransferLink}</p>
                       <p className="text-xs text-muted-foreground">
-                        Address: EQABc7p8sT...Qx9nX
+                        Address: {topUpAddress}
                       </p>
-                      <p className="text-xs text-muted-foreground">Memo: 9F02-BX</p>
+                      <p className="text-xs text-muted-foreground">Memo: {topUpMemo}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-primary">
-                    <Clock size={14} />
-                    Waiting for payment confirmation...
-                  </div>
+                  {topUpStatus === "pending" ? (
+                    <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-primary">
+                      <Clock size={14} />
+                      Waiting for payment confirmation...
+                    </div>
+                  ) : null}
+                  {topUpStatus === "confirmed" ? (
+                    <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
+                      <CheckCircle2 size={14} />
+                      Top up confirmed — balance updated.
+                    </div>
+                  ) : null}
                 </>
               )}
 
