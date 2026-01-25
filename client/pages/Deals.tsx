@@ -85,7 +85,9 @@ export default function Deals() {
       <div
         ref={headerRef}
         className="fixed left-0 right-0 z-30 bg-background/90 backdrop-blur-glass border-b border-border/50"
-        style={{ top: "var(--tg-content-safe-area-inset-top)" }}
+        style={{
+          top: "calc(var(--tg-content-safe-area-inset-top) + var(--wallet-banner-height, 0px))",
+        }}
       >
         <div className="mx-auto w-full max-w-2xl">
           {/* Header */}
