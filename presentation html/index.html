@@ -121,6 +121,22 @@
         animation: float 6s ease-in-out infinite;
       }
 
+      @keyframes flow-pulse {
+        0%,
+        100% {
+          opacity: 0.4;
+          transform: scale(0.9);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+      }
+
+      .animate-flow-pulse {
+        animation: flow-pulse 2.4s ease-in-out infinite;
+      }
+
       .reveal {
         opacity: 0;
         transform: translateY(24px);
@@ -391,6 +407,101 @@
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="flow" class="border-t border-border/40 bg-background">
+        <div class="mx-auto w-full max-w-6xl px-6 py-16">
+          <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between reveal">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.3em] text-primary">
+                Обучение
+              </p>
+              <h2 class="text-3xl font-semibold">Как проходит сделка шаг за шагом</h2>
+            </div>
+            <p class="max-w-lg text-sm text-muted-foreground">
+              Визуальный поток помогает пользователю быстро понять, где он находится, что уже
+              подтверждено, и какие действия нужно выполнить дальше.
+            </p>
+          </div>
+          <div class="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div class="rounded-3xl border border-border/40 bg-card/60 p-6 reveal">
+              <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                  <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground">
+                    01
+                    <span class="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-accent animate-flow-pulse"></span>
+                  </div>
+                  <div>
+                    <p class="text-lg font-semibold">Создание сделки</p>
+                    <p class="mt-2 text-sm text-muted-foreground">
+                      Покупатель инициирует сделку в чате, указывает товар и сумму. Бот фиксирует
+                      данные и отправляет инструкции.
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-4">
+                  <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-sm font-semibold text-secondary-foreground">
+                    02
+                    <span class="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-primary/70 animate-flow-pulse"></span>
+                  </div>
+                  <div>
+                    <p class="text-lg font-semibold">Оплата и подтверждение</p>
+                    <p class="mt-2 text-sm text-muted-foreground">
+                      Деньги блокируются в escrow. Бот подсвечивает статус и напоминает о следующем
+                      шаге, пока продавец не отправит товар.
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-4">
+                  <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card text-sm font-semibold text-foreground border border-border/40">
+                    03
+                    <span class="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-primary/40 animate-flow-pulse"></span>
+                  </div>
+                  <div>
+                    <p class="text-lg font-semibold">Выдача и финал</p>
+                    <p class="mt-2 text-sm text-muted-foreground">
+                      Покупатель подтверждает получение, система автоматически переводит выплату
+                      продавцу и архивирует историю.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-3xl border border-border/40 bg-background/60 p-6 reveal">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Прогресс обучения</span>
+                  <span>Шаг 2 из 3</span>
+                </div>
+                <div class="h-2 w-full rounded-full bg-border/40">
+                  <div class="h-2 w-2/3 rounded-full bg-primary animate-flow-pulse"></div>
+                </div>
+                <div class="rounded-2xl border border-border/40 bg-card/60 p-4">
+                  <p class="text-sm font-semibold">Подсказка бота</p>
+                  <p class="mt-2 text-sm text-muted-foreground">
+                    Продавец подтвердил отправку. Откройте чат и нажмите «Получено», чтобы завершить
+                    сделку.
+                  </p>
+                </div>
+                <div class="rounded-2xl border border-border/40 bg-card/60 p-4">
+                  <p class="text-sm font-semibold">Автоматические напоминания</p>
+                  <p class="mt-2 text-sm text-muted-foreground">
+                    Анимация статуса помогает быстро ориентироваться в процессе и снижает
+                    количество ошибок.
+                  </p>
+                </div>
+                <a
+                  class="block w-full rounded-2xl border border-border/40 bg-card/60 py-3 text-center text-sm font-semibold"
+                  href="https://t.me/postgramx_bot"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Посмотреть обучение в боте
+                </a>
               </div>
             </div>
           </div>
