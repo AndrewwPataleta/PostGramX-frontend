@@ -4,17 +4,19 @@ import { useTonAddress, useTonConnectUI, useTonWallet } from "@tonconnect/ui-rea
 import { useTelegram } from "@/hooks/use-telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export default function Profile() {
   const { user } = useTelegram();
+  const { language, setLanguage, t } = useLanguage();
   const wallet = useTonWallet();
   const walletAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   const [isLoading, setIsLoading] = useState(true);
   const fullName = user
     ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`
-    : "Telegram User";
-  const username = user?.username ? `@${user.username}` : "@unknown";
+    : t("profile.displayNameFallback");
+  const username = user?.username ? `@${user.username}` : t("profile.usernameFallback");
   const isPremium = Boolean(user?.is_premium);
   const initials = fullName
     .split(" ")
@@ -36,7 +38,9 @@ export default function Profile() {
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
         <div className="px-4 py-3">
-          <h1 className="text-base font-semibold text-foreground">Profile</h1>
+          <h1 className="text-base font-semibold text-foreground">
+            {t("profile.title")}
+          </h1>
         </div>
       </div>
 
@@ -81,7 +85,9 @@ export default function Profile() {
             {wallet ? (
               <div className="glass p-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="space-y-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">Connected wallet</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("profile.connectedWallet")}
+                  </p>
                   <p className="text-sm font-medium text-foreground break-all">
                     {walletAddress}
                   </p>
@@ -91,7 +97,7 @@ export default function Profile() {
                   onClick={() => tonConnectUI.disconnect()}
                   className="px-3 py-1.5 rounded-full border border-border/60 text-xs font-semibold text-foreground hover:bg-card/60 transition-colors"
                 >
-                  Disconnect
+                  {t("profile.disconnect")}
                 </button>
               </div>
             ) : null}
@@ -117,25 +123,60 @@ export default function Profile() {
                     }`}
                   >
                     <Crown size={12} />
-                    {isPremium ? "Premium" : "Standard"}
+                    {isPremium ? t("profile.premium") : t("profile.standard")}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">{username}</p>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Connected via Telegram
+                  {t("profile.connectedViaTelegram")}
                 </p>
+              </div>
+            </div>
+
+            <div className="glass p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{t("profile.language")}</p>
+                  <p className="text-sm text-foreground">
+                    {t("profile.languageDescription")}
+                  </p>
+                </div>
+                <div className="flex rounded-full border border-border/60 bg-background/40 p-1 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("en")}
+                    className={`px-3 py-1 rounded-full transition-colors ${
+                      language === "en"
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t("profile.languageOptionEnglish")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("ru")}
+                    className={`px-3 py-1 rounded-full transition-colors ${
+                      language === "ru"
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t("profile.languageOptionRussian")}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Wallet Summary Card */}
             <div className="glass p-4">
               <p className="text-xs text-muted-foreground mb-3">
-                Wallet Summary
+                {t("profile.walletSummary")}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-secondary/40 rounded-lg p-3">
                   <p className="text-xs text-muted-foreground">
-                    Escrow balance locked
+                    {t("profile.escrowBalanceLocked")}
                   </p>
                   <p className="text-lg font-semibold text-foreground mt-1">
                     1.2 TON
@@ -143,7 +184,7 @@ export default function Profile() {
                 </div>
                 <div className="bg-secondary/40 rounded-lg p-3">
                   <p className="text-xs text-muted-foreground">
-                    Total earnings (TON)
+                    {t("profile.totalEarnings")}
                   </p>
                   <p className="text-lg font-semibold text-primary mt-1">
                     8.4 TON
@@ -154,16 +195,18 @@ export default function Profile() {
 
             {/* About Section */}
             <div className="glass p-4">
-              <p className="text-xs text-muted-foreground mb-2">About</p>
+              <p className="text-xs text-muted-foreground mb-2">
+                {t("profile.about")}
+              </p>
               <p className="text-sm text-foreground">
-                Powered by Telegram Mini Apps.
+                {t("profile.poweredByTelegram")}
               </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 pt-6 text-xs text-muted-foreground/70">
               <Send size={14} className="text-primary/70" />
               <span className="tracking-wide">
-                Created by PatStudio with love for Builder · Contest is live
+                {t("profile.createdBy")}
               </span>
             </div>
           </>
