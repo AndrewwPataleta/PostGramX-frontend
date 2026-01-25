@@ -13,14 +13,13 @@ import {
   simulatePost,
   simulateVerifyFail,
   simulateVerifyPass,
+  USE_MOCK_DEALS,
 } from "@/features/deals/api";
 import type { Deal } from "@/features/deals/types";
 import { buildTonTransferLink } from "@/features/deals/payment";
 import { formatCountdown, formatRelativeTime, formatScheduleDate } from "@/features/deals/time";
 import { getDealPresentation, getTimelineItems } from "@/features/deals/status";
 import { toast } from "sonner";
-
-const USE_MOCK_DEALS = import.meta.env.VITE_USE_MOCK_DEALS === "true";
 
 export default function DealDetails() {
   const { dealId } = useParams<{ dealId: string }>();
