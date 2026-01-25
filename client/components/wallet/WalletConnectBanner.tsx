@@ -39,7 +39,10 @@ const WalletConnectBanner = () => {
   }
 
   return (
-    <div ref={bannerRef} className="px-4 pt-4">
+    <div
+      ref={bannerRef}
+      className="sticky top-0 z-40 bg-background/80 px-4 pt-4 backdrop-blur-glass"
+    >
       <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card/80 px-4 py-3 shadow-sm backdrop-blur-glass">
         <div className="space-y-1">
           <p className="text-sm font-semibold text-foreground">Подключите кошелек</p>

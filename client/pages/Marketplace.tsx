@@ -328,7 +328,7 @@ export default function Marketplace() {
     <div className="w-full max-w-2xl mx-auto safe-area-guide">
       <div
         ref={headerRef}
-        className="fixed left-0 right-0 z-30 bg-background/90 backdrop-blur-glass border-b border-border/50"
+        className="fixed left-0 right-0 z-30 border-b border-border/50 bg-background/90 backdrop-blur-glass relative"
         style={{
           top: "calc(var(--tg-content-safe-area-inset-top) + var(--wallet-banner-height, 0px))",
         }}
@@ -388,6 +388,7 @@ export default function Marketplace() {
             </div>
           </div>
         </div>
+        <div className="pointer-events-none absolute inset-x-0 -bottom-4 h-4 bg-gradient-to-b from-background/90 to-transparent backdrop-blur-sm" />
       </div>
 
       <div style={{ paddingTop: headerHeight }}>
