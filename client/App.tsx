@@ -19,6 +19,10 @@ import CreateDeal from "./pages/CreateDeal";
 import Deals from "./pages/Deals";
 import Channels from "./pages/Channels";
 import ChannelDetailsManage from "./pages/ChannelDetailsManage";
+import CreateListing from "./pages/CreateListing";
+import ListingPreview from "./pages/ListingPreview";
+import ListingSuccess from "./pages/ListingSuccess";
+import EditListing from "./pages/EditListing";
 import Profile from "./pages/Profile";
 import AddChannel from "./pages/AddChannel";
 import AddChannelStep1 from "./pages/AddChannelStep1";
@@ -128,6 +132,38 @@ const App = () => {
                       element={
                         <RequireAuth>
                           <ChannelDetailsManage />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/channel-manage/:id/listings/new"
+                      element={
+                        <RequireAuth>
+                          <CreateListing />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/channel-manage/:id/listings/preview"
+                      element={
+                        <RequireAuth>
+                          <ListingPreview />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/channel-manage/:id/listings/success"
+                      element={
+                        <RequireAuth>
+                          <ListingSuccess />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/channel-manage/:id/listings/:listingId/edit"
+                      element={
+                        <RequireAuth>
+                          <EditListing />
                         </RequireAuth>
                       }
                     />

@@ -1,5 +1,10 @@
 import { mockChannels } from "./mockChannels";
 import type { MarketplaceChannel } from "./types";
+import {
+  getActiveListingForChannel,
+  isMockListingsEnabled,
+  subscribeToMockListings,
+} from "@/features/listings/mockStore";
 
 const USE_MOCK_MARKETPLACE = import.meta.env.VITE_USE_MOCK_MARKETPLACE !== "false";
 
@@ -15,7 +20,14 @@ if (USE_MOCK_MARKETPLACE) {
 export const getChannels = async (): Promise<MarketplaceChannel[]> => {
   if (USE_MOCK_MARKETPLACE) {
     await delay();
-    return mockChannels;
+    return mockChannels.map((channel) => {
+      const listing = isMockListingsEnabled
+        ? getActiveListingForChannel(channel.id)
+        : undefined;
+      return listing
+        ? { ...channel, priceTon: listing.priceTon, listing }
+        : channel;
+    });
   }
 
   try {
@@ -27,7 +39,14 @@ export const getChannels = async (): Promise<MarketplaceChannel[]> => {
   } catch (error) {
     console.warn("Falling back to mock marketplace channels.", error);
     await delay(200, 400);
-    return mockChannels;
+    return mockChannels.map((channel) => {
+      const listing = isMockListingsEnabled
+        ? getActiveListingForChannel(channel.id)
+        : undefined;
+      return listing
+        ? { ...channel, priceTon: listing.priceTon, listing }
+        : channel;
+    });
   }
 };
 
@@ -38,7 +57,8 @@ export const getChannel = async (id: string): Promise<MarketplaceChannel> => {
     if (!channel) {
       throw new Error("Channel not found");
     }
-    return channel;
+    const listing = isMockListingsEnabled ? getActiveListingForChannel(channel.id) : undefined;
+    return listing ? { ...channel, priceTon: listing.priceTon, listing } : channel;
   }
 
   try {
@@ -54,6 +74,15 @@ export const getChannel = async (id: string): Promise<MarketplaceChannel> => {
     if (!channel) {
       throw new Error("Channel not found");
     }
-    return channel;
+    const listing = isMockListingsEnabled ? getActiveListingForChannel(channel.id) : undefined;
+    return listing ? { ...channel, priceTon: listing.priceTon, listing } : channel;
   }
+};
+
+export const onMockListingsUpdate = (callback: () => void) => {
+  if (!isMockListingsEnabled) {
+    return () => undefined;
+  }
+
+  return subscribeToMockListings(callback);
 };

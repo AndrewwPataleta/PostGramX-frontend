@@ -3,12 +3,12 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import ChannelCard from "@/components/marketplace/ChannelCard";
 import { ActiveFiltersChips } from "@/components/ActiveFiltersChips";
 import { FilterModal, type FilterState } from "@/components/FilterModal";
-import { getChannels } from "@/features/marketplace/api";
+import { getChannels, onMockListingsUpdate } from "@/features/marketplace/api";
 import type { MarketplaceChannel } from "@/features/marketplace/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const defaultFilters: FilterState = {
-  priceRange: [0, 10],
+  priceRange: [0, 100],
   subscribersRange: [0, 1_000_000],
   viewsRange: [0, 1_000_000],
   engagementRange: [0, 100],
@@ -30,22 +30,29 @@ export default function Marketplace() {
   useEffect(() => {
     let mounted = true;
     setIsLoading(true);
-    getChannels()
-      .then((data) => {
-        if (!mounted) {
-          return;
-        }
-        setChannels(data);
-      })
-      .finally(() => {
-        if (!mounted) {
-          return;
-        }
-        setIsLoading(false);
-      });
+    const loadChannels = () => {
+      setIsLoading(true);
+      getChannels()
+        .then((data) => {
+          if (!mounted) {
+            return;
+          }
+          setChannels(data);
+        })
+        .finally(() => {
+          if (!mounted) {
+            return;
+          }
+          setIsLoading(false);
+        });
+    };
+
+    loadChannels();
+    const unsubscribe = onMockListingsUpdate(() => loadChannels());
 
     return () => {
       mounted = false;
+      unsubscribe();
     };
   }, []);
 
