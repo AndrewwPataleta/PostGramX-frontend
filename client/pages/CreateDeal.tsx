@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { format } from "date-fns";
 import { createDeal } from "@/features/deals/api";
 import { getChannel } from "@/features/marketplace/api";
 import type { MarketplaceChannel } from "@/features/marketplace/types";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function CreateDeal() {
   const { channelId } = useParams<{ channelId: string }>();
   const navigate = useNavigate();
   const [channel, setChannel] = useState<MarketplaceChannel | null>(null);
   const [briefText, setBriefText] = useState("");
+  const [preferredDate, setPreferredDate] = useState<Date | undefined>();
   const [preferredTime, setPreferredTime] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,10 +64,23 @@ export default function CreateDeal() {
 
     setIsSubmitting(true);
     try {
+      const scheduleIso = (() => {
+        if (!preferredDate || !preferredTime) {
+          return null;
+        }
+        const [hours, minutes] = preferredTime.split(":").map(Number);
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+          return null;
+        }
+        const scheduledAt = new Date(preferredDate);
+        scheduledAt.setHours(hours, minutes, 0, 0);
+        return scheduledAt.toISOString();
+      })();
+
       const deal = await createDeal({
         channelId,
         briefText: briefText.trim(),
-        requestedScheduleAt: preferredTime ? new Date(preferredTime).toISOString() : null,
+        requestedScheduleAt: scheduleIso,
         ctaUrl: ctaUrl.trim() || null,
       });
       toast.success("Request sent");
@@ -118,8 +137,31 @@ export default function CreateDeal() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-foreground">Preferred posting time</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2 text-sm font-normal",
+                        !preferredDate && "text-muted-foreground",
+                      )}
+                    >
+                      {preferredDate ? format(preferredDate, "PPP") : "Select a date"}
+                      <CalendarIcon className="h-4 w-4 opacity-60" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={preferredDate}
+                      onSelect={setPreferredDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 <input
-                  type="datetime-local"
+                  type="time"
                   value={preferredTime}
                   onChange={(event) => setPreferredTime(event.target.value)}
                   className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-foreground"
