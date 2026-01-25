@@ -35,7 +35,7 @@ export const translations = {
     "splash.entering": "Entering",
   },
   ru: {
-    "nav.marketplace": "Маркетплейс",
+    "nav.marketplace": "Маркет",
     "nav.deals": "Сделки",
     "nav.channels": "Каналы",
     "nav.profile": "Профиль",
