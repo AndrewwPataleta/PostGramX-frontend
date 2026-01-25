@@ -133,7 +133,7 @@ export default function Channels() {
 
           {/* Tabs */}
           <div className="border-t border-border/50">
-            <div className="px-4 flex gap-6 bg-background/80 backdrop-blur-glass">
+            <div className="px-4 flex gap-6 bg-background/90 backdrop-blur-glass">
               {[
                 { id: "verified", label: `Verified (${verifiedChannels.length})` },
                 { id: "pending", label: `Pending (${pendingChannels.length})` },

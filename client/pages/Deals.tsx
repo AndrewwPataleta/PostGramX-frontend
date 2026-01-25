@@ -95,7 +95,7 @@ export default function Deals() {
             <h1 className="text-base font-semibold text-foreground">Deals</h1>
           </div>
           <div className="border-t border-border/50">
-            <div className="px-4 flex gap-6 bg-background/80 backdrop-blur-glass">
+            <div className="px-4 flex gap-6 bg-background/90 backdrop-blur-glass">
               {(["active", "pending", "completed"] as const).map((tab) => (
                 <button
                   key={tab}
