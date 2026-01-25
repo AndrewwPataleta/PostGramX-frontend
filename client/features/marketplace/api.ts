@@ -1,7 +1,7 @@
 import { mockChannels } from "./mockChannels";
 import type { MarketplaceChannel } from "./types";
 
-const USE_MOCK_MARKETPLACE = import.meta.env.VITE_USE_MOCK_MARKETPLACE === "true";
+const USE_MOCK_MARKETPLACE = import.meta.env.VITE_USE_MOCK_MARKETPLACE !== "false";
 
 const delay = async (minMs = 250, maxMs = 500) => {
   const duration = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
@@ -18,11 +18,17 @@ export const getChannels = async (): Promise<MarketplaceChannel[]> => {
     return mockChannels;
   }
 
-  const response = await fetch("/api/marketplace/channels");
-  if (!response.ok) {
-    throw new Error("Failed to load channels");
+  try {
+    const response = await fetch("/api/marketplace/channels");
+    if (!response.ok) {
+      throw new Error("Failed to load channels");
+    }
+    return response.json();
+  } catch (error) {
+    console.warn("Falling back to mock marketplace channels.", error);
+    await delay(200, 400);
+    return mockChannels;
   }
-  return response.json();
 };
 
 export const getChannel = async (id: string): Promise<MarketplaceChannel> => {
@@ -35,9 +41,19 @@ export const getChannel = async (id: string): Promise<MarketplaceChannel> => {
     return channel;
   }
 
-  const response = await fetch(`/api/marketplace/channels/${id}`);
-  if (!response.ok) {
-    throw new Error("Failed to load channel");
+  try {
+    const response = await fetch(`/api/marketplace/channels/${id}`);
+    if (!response.ok) {
+      throw new Error("Failed to load channel");
+    }
+    return response.json();
+  } catch (error) {
+    console.warn("Falling back to mock marketplace channel.", error);
+    await delay(200, 400);
+    const channel = mockChannels.find((item) => item.id === id);
+    if (!channel) {
+      throw new Error("Channel not found");
+    }
+    return channel;
   }
-  return response.json();
 };

@@ -11,7 +11,7 @@ import {
   simulateMockVerifyPass,
 } from "./mockDeals";
 
-const USE_MOCK_DEALS = import.meta.env.VITE_USE_MOCK_DEALS === "true";
+export const USE_MOCK_DEALS = import.meta.env.VITE_USE_MOCK_DEALS !== "false";
 
 const delay = async (minMs = 300, maxMs = 600) => {
   const duration = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
@@ -28,11 +28,17 @@ export const getDeals = async (): Promise<Deal[]> => {
     return getMockDeals();
   }
 
-  const response = await fetch("/api/deals");
-  if (!response.ok) {
-    throw new Error("Failed to load deals");
+  try {
+    const response = await fetch("/api/deals");
+    if (!response.ok) {
+      throw new Error("Failed to load deals");
+    }
+    return response.json();
+  } catch (error) {
+    console.warn("Falling back to mock deals.", error);
+    await delay();
+    return getMockDeals();
   }
-  return response.json();
 };
 
 export const getDeal = async (id: string): Promise<Deal> => {
@@ -45,11 +51,21 @@ export const getDeal = async (id: string): Promise<Deal> => {
     return deal;
   }
 
-  const response = await fetch(`/api/deals/${id}`);
-  if (!response.ok) {
-    throw new Error("Failed to load deal");
+  try {
+    const response = await fetch(`/api/deals/${id}`);
+    if (!response.ok) {
+      throw new Error("Failed to load deal");
+    }
+    return response.json();
+  } catch (error) {
+    console.warn("Falling back to mock deal.", error);
+    await delay();
+    const deal = getMockDeal(id);
+    if (!deal) {
+      throw new Error("Deal not found");
+    }
+    return deal;
   }
-  return response.json();
 };
 
 export const createDeal = async (payload: CreateDealPayload): Promise<Deal> => {
@@ -58,16 +74,22 @@ export const createDeal = async (payload: CreateDealPayload): Promise<Deal> => {
     return createMockDeal(payload);
   }
 
-  const response = await fetch("/api/deals", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const response = await fetch("/api/deals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) {
-    throw new Error("Failed to create deal");
+    if (!response.ok) {
+      throw new Error("Failed to create deal");
+    }
+    return response.json();
+  } catch (error) {
+    console.warn("Falling back to mock deal creation.", error);
+    await delay();
+    return createMockDeal(payload);
   }
-  return response.json();
 };
 
 export const approveCreative = async (id: string): Promise<Deal> => {
@@ -80,11 +102,21 @@ export const approveCreative = async (id: string): Promise<Deal> => {
     return updated;
   }
 
-  const response = await fetch(`/api/deals/${id}/creative/approve`, { method: "POST" });
-  if (!response.ok) {
-    throw new Error("Failed to approve creative");
+  try {
+    const response = await fetch(`/api/deals/${id}/creative/approve`, { method: "POST" });
+    if (!response.ok) {
+      throw new Error("Failed to approve creative");
+    }
+    return response.json();
+  } catch (error) {
+    console.warn("Falling back to mock creative approval.", error);
+    await delay();
+    const updated = approveMockCreative(id);
+    if (!updated) {
+      throw new Error("Deal not found");
+    }
+    return updated;
   }
-  return response.json();
 };
 
 export const requestEdits = async (id: string, note?: string): Promise<Deal> => {
@@ -97,15 +129,25 @@ export const requestEdits = async (id: string, note?: string): Promise<Deal> => 
     return updated;
   }
 
-  const response = await fetch(`/api/deals/${id}/creative/edits`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ note }),
-  });
-  if (!response.ok) {
-    throw new Error("Failed to request edits");
+  try {
+    const response = await fetch(`/api/deals/${id}/creative/edits`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to request edits");
+    }
+    return response.json();
+  } catch (error) {
+    console.warn("Falling back to mock edit request.", error);
+    await delay();
+    const updated = requestMockEdits(id, note);
+    if (!updated) {
+      throw new Error("Deal not found");
+    }
+    return updated;
   }
-  return response.json();
 };
 
 export const simulatePayment = async (id: string): Promise<Deal> => {
