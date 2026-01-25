@@ -27,6 +27,63 @@
       html {
         scroll-behavior: smooth;
       }
+
+      @keyframes fade-up {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+
+      .animate-fade-up {
+        opacity: 0;
+        animation: fade-up 0.8s ease forwards;
+      }
+
+      .animate-fade-up.delay-1 {
+        animation-delay: 0.15s;
+      }
+
+      .animate-fade-up.delay-2 {
+        animation-delay: 0.3s;
+      }
+
+      .animate-fade-up.delay-3 {
+        animation-delay: 0.45s;
+      }
+
+      .animate-fade-up.delay-4 {
+        animation-delay: 0.6s;
+      }
+
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+
+      .reveal-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
     </style>
   </head>
   <body class="bg-slate-950 text-white">
@@ -42,14 +99,38 @@
           </div>
         </div>
         <nav class="hidden items-center gap-6 text-sm text-slate-300 md:flex">
-          <a class="transition hover:text-white" href="#benefits">Преимущества</a>
-          <a class="transition hover:text-white" href="#how">Как работает</a>
-          <a class="transition hover:text-white" href="#trust">Доверие</a>
-          <a class="transition hover:text-white" href="#cta">Подключиться</a>
+          <a class="transition hover:text-white" href="#benefits" data-i18n="nav.benefits">Преимущества</a>
+          <a class="transition hover:text-white" href="#how" data-i18n="nav.how">Как работает</a>
+          <a class="transition hover:text-white" href="#trust" data-i18n="nav.trust">Доверие</a>
+          <a class="transition hover:text-white" href="#cta" data-i18n="nav.bot">Telegram bot</a>
         </nav>
-        <button class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900">
-          Начать
-        </button>
+        <div class="flex items-center gap-3">
+          <a
+            class="rounded-full border border-white/20 px-3 py-2 text-xs font-semibold text-white/80 transition hover:text-white"
+            href="https://t.me/postgramx_bot"
+            target="_blank"
+            rel="noreferrer"
+            data-i18n="header.bot"
+          >
+            Перейти в бот
+          </a>
+          <div class="flex rounded-full border border-white/15 bg-white/5 p-1 text-xs font-semibold">
+            <button
+              class="rounded-full px-3 py-1 text-white transition"
+              data-lang="ru"
+              aria-pressed="true"
+            >
+              RU
+            </button>
+            <button
+              class="rounded-full px-3 py-1 text-white/60 transition hover:text-white"
+              data-lang="en"
+              aria-pressed="false"
+            >
+              EN
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -58,75 +139,98 @@
         <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.25),_transparent_60%)]"></div>
         <div class="mx-auto grid w-full max-w-6xl gap-12 px-6 py-16 md:grid-cols-[1.1fr_0.9fr] md:py-24">
           <div class="space-y-6">
-            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500">
+            <p
+              class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500 animate-fade-up"
+              data-i18n="hero.kicker"
+            >
               Новый стандарт покупок
             </p>
-            <h1 class="text-4xl font-semibold leading-tight md:text-5xl">
+            <h1
+              class="text-4xl font-semibold leading-tight md:text-5xl animate-fade-up delay-1"
+              data-i18n="hero.title"
+            >
               Покупайте в Telegram с прозрачной защитой через блокчейн
             </h1>
-            <p class="text-lg text-slate-300">
+            <p class="text-lg text-slate-300 animate-fade-up delay-2" data-i18n="hero.subtitle">
               PostgramX соединяет покупателей и продавцов напрямую в Telegram, фиксируя сделки в
               блокчейне и автоматически контролируя оплату, поставку и возвраты.
             </p>
-            <div class="flex flex-wrap items-center gap-4">
-              <button class="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold">
-                Запустить магазин в Telegram
-              </button>
-              <button class="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold">
-                Смотреть демо
-              </button>
+            <div class="flex flex-wrap items-center gap-4 animate-fade-up delay-3">
+              <a
+                class="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold"
+                href="https://t.me/postgramx_bot"
+                target="_blank"
+                rel="noreferrer"
+                data-i18n="hero.cta"
+              >
+                Перейти в Telegram бот
+              </a>
+              <span
+                class="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold"
+                data-i18n="hero.demo"
+              >
+                Демо внутри чата
+              </span>
             </div>
-            <div class="flex flex-wrap gap-6 text-sm text-slate-300">
+            <div class="flex flex-wrap gap-6 text-sm text-slate-300 animate-fade-up delay-4">
               <div>
-                <p class="text-2xl font-semibold text-white">2 мин</p>
-                <p>на подключение</p>
+                <p class="text-2xl font-semibold text-white" data-i18n="hero.stat1Value">2 мин</p>
+                <p data-i18n="hero.stat1Label">на подключение</p>
               </div>
               <div>
-                <p class="text-2xl font-semibold text-white">0%</p>
-                <p>скрытых комиссий</p>
+                <p class="text-2xl font-semibold text-white" data-i18n="hero.stat2Value">0%</p>
+                <p data-i18n="hero.stat2Label">скрытых комиссий</p>
               </div>
               <div>
-                <p class="text-2xl font-semibold text-white">24/7</p>
-                <p>авто-модерация</p>
+                <p class="text-2xl font-semibold text-white" data-i18n="hero.stat3Value">24/7</p>
+                <p data-i18n="hero.stat3Label">авто-модерация</p>
               </div>
             </div>
           </div>
-          <div class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl animate-float">
             <div class="space-y-4">
               <div class="flex items-center justify-between text-xs text-slate-400">
-                <span>Сделка №12098</span>
-                <span>Escrow в блокчейне</span>
+                <span data-i18n="hero.cardId">Сделка №12098</span>
+                <span data-i18n="hero.cardType">Escrow в блокчейне</span>
               </div>
               <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-4">
-                <p class="text-sm text-slate-400">Покупка через Telegram</p>
-                <p class="mt-2 text-xl font-semibold">AirPods Pro 2</p>
+                <p class="text-sm text-slate-400" data-i18n="hero.cardChannel">
+                  Покупка через Telegram
+                </p>
+                <p class="mt-2 text-xl font-semibold" data-i18n="hero.cardItem">AirPods Pro 2</p>
                 <div class="mt-4 flex items-center justify-between text-sm">
-                  <span class="text-slate-400">Статус</span>
+                  <span class="text-slate-400" data-i18n="hero.cardStatusLabel">Статус</span>
                   <span class="rounded-full bg-brand-600/20 px-3 py-1 text-brand-100">
-                    Escrow активен
+                    <span data-i18n="hero.cardStatus">Escrow активен</span>
                   </span>
                 </div>
               </div>
               <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-4">
-                <p class="text-sm text-slate-400">Автоматические шаги</p>
+                <p class="text-sm text-slate-400" data-i18n="hero.cardSteps">Автоматические шаги</p>
                 <ul class="mt-3 space-y-2 text-sm">
                   <li class="flex items-center justify-between">
-                    <span>1. Оплата</span>
-                    <span class="text-brand-300">Заблокировано</span>
+                    <span data-i18n="hero.step1Label">1. Оплата</span>
+                    <span class="text-brand-300" data-i18n="hero.step1Status">Заблокировано</span>
                   </li>
                   <li class="flex items-center justify-between">
-                    <span>2. Отправка</span>
-                    <span class="text-slate-500">Ожидается</span>
+                    <span data-i18n="hero.step2Label">2. Отправка</span>
+                    <span class="text-slate-500" data-i18n="hero.step2Status">Ожидается</span>
                   </li>
                   <li class="flex items-center justify-between">
-                    <span>3. Выплата продавцу</span>
-                    <span class="text-slate-500">Ожидается</span>
+                    <span data-i18n="hero.step3Label">3. Выплата продавцу</span>
+                    <span class="text-slate-500" data-i18n="hero.step3Status">Ожидается</span>
                   </li>
                 </ul>
               </div>
-              <button class="w-full rounded-2xl border border-white/10 bg-white/10 py-3 text-sm font-semibold">
+              <a
+                class="block w-full rounded-2xl border border-white/10 bg-white/10 py-3 text-center text-sm font-semibold"
+                href="https://t.me/postgramx_bot"
+                target="_blank"
+                rel="noreferrer"
+                data-i18n="hero.cardButton"
+              >
                 Открыть чат сделки
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -134,36 +238,41 @@
 
       <section id="benefits" class="border-t border-white/10 bg-slate-950">
         <div class="mx-auto w-full max-w-6xl px-6 py-16">
-          <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between reveal">
             <div>
-              <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500">
+              <p
+                class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500"
+                data-i18n="benefits.kicker"
+              >
                 Преимущества
               </p>
-              <h2 class="text-3xl font-semibold">Почему покупают через PostgramX</h2>
+              <h2 class="text-3xl font-semibold" data-i18n="benefits.title">
+                Почему покупают через PostgramX
+              </h2>
             </div>
-            <p class="max-w-lg text-sm text-slate-400">
+            <p class="max-w-lg text-sm text-slate-400" data-i18n="benefits.subtitle">
               Мы встроили безопасность блокчейна в привычный интерфейс Telegram — без сложных
               кошельков и ручных подтверждений.
             </p>
           </div>
           <div class="mt-10 grid gap-6 md:grid-cols-3">
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p class="text-lg font-semibold">Прозрачная оплата</p>
-              <p class="mt-3 text-sm text-slate-400">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6 reveal">
+              <p class="text-lg font-semibold" data-i18n="benefits.item1Title">Прозрачная оплата</p>
+              <p class="mt-3 text-sm text-slate-400" data-i18n="benefits.item1Text">
                 Средства блокируются в смарт-контракте escrow и высвобождаются только после
                 подтверждения доставки покупателем.
               </p>
             </div>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p class="text-lg font-semibold">Сделки напрямую</p>
-              <p class="mt-3 text-sm text-slate-400">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6 reveal">
+              <p class="text-lg font-semibold" data-i18n="benefits.item2Title">Сделки напрямую</p>
+              <p class="mt-3 text-sm text-slate-400" data-i18n="benefits.item2Text">
                 Покупатель и продавец общаются напрямую в Telegram, а PostgramX обеспечивает
                 безопасный расчет и прозрачный статус сделки.
               </p>
             </div>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p class="text-lg font-semibold">Защита от риска</p>
-              <p class="mt-3 text-sm text-slate-400">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6 reveal">
+              <p class="text-lg font-semibold" data-i18n="benefits.item3Title">Защита от риска</p>
+              <p class="mt-3 text-sm text-slate-400" data-i18n="benefits.item3Text">
                 Escrow снижает риск мошенничества: деньги не уходят продавцу, пока покупатель не
                 подтвердит получение.
               </p>
@@ -175,53 +284,62 @@
       <section id="how" class="border-t border-white/10 bg-slate-950">
         <div class="mx-auto w-full max-w-6xl px-6 py-16">
           <div class="grid gap-10 md:grid-cols-[0.9fr_1.1fr]">
-            <div>
-              <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500">
+            <div class="reveal">
+              <p
+                class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500"
+                data-i18n="how.kicker"
+              >
                 Как это работает
               </p>
-              <h2 class="mt-3 text-3xl font-semibold">Один поток — от заказа до выплаты</h2>
-              <p class="mt-4 text-sm text-slate-400">
+              <h2 class="mt-3 text-3xl font-semibold" data-i18n="how.title">
+                Один поток — от заказа до выплаты
+              </h2>
+              <p class="mt-4 text-sm text-slate-400" data-i18n="how.subtitle">
                 Покупатель оформляет заказ в Telegram, оплачивает и получает статус сделки в режиме
                 реального времени. Блокчейн хранит неизменяемую историю всех шагов.
               </p>
             </div>
             <div class="space-y-4">
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-6 reveal">
                 <div class="flex items-start gap-4">
                   <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-sm font-semibold">
                     01
                   </div>
                   <div>
-                    <p class="text-lg font-semibold">Оплата в Telegram</p>
-                    <p class="mt-2 text-sm text-slate-400">
+                    <p class="text-lg font-semibold" data-i18n="how.step1Title">Оплата в Telegram</p>
+                    <p class="mt-2 text-sm text-slate-400" data-i18n="how.step1Text">
                       Пользователь оплачивает через Telegram Pay или подключенный кошелек — средства
                       фиксируются в escrow-смарт-контракте.
                     </p>
                   </div>
                 </div>
               </div>
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-6 reveal">
                 <div class="flex items-start gap-4">
                   <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-sm font-semibold">
                     02
                   </div>
                   <div>
-                    <p class="text-lg font-semibold">Доставка и подтверждение</p>
-                    <p class="mt-2 text-sm text-slate-400">
+                    <p class="text-lg font-semibold" data-i18n="how.step2Title">
+                      Доставка и подтверждение
+                    </p>
+                    <p class="mt-2 text-sm text-slate-400" data-i18n="how.step2Text">
                       Продавец отправляет товар, покупатель подтверждает получение — контракт
                       фиксирует событие и готовит выплату.
                     </p>
                   </div>
                 </div>
               </div>
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-6 reveal">
                 <div class="flex items-start gap-4">
                   <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-sm font-semibold">
                     03
                   </div>
                   <div>
-                    <p class="text-lg font-semibold">Автоматическая выплата</p>
-                    <p class="mt-2 text-sm text-slate-400">
+                    <p class="text-lg font-semibold" data-i18n="how.step3Title">
+                      Автоматическая выплата
+                    </p>
+                    <p class="mt-2 text-sm text-slate-400" data-i18n="how.step3Text">
                       Деньги переводятся продавцу мгновенно, а история сделки остается в блокчейне.
                     </p>
                   </div>
@@ -235,22 +353,22 @@
       <section id="trust" class="border-t border-white/10 bg-slate-950">
         <div class="mx-auto w-full max-w-6xl px-6 py-16">
           <div class="grid gap-8 md:grid-cols-3">
-            <div class="rounded-3xl border border-white/10 bg-gradient-to-br from-brand-700/30 to-transparent p-6">
-              <p class="text-lg font-semibold">Данные защищены</p>
-              <p class="mt-3 text-sm text-slate-400">
+            <div class="rounded-3xl border border-white/10 bg-gradient-to-br from-brand-700/30 to-transparent p-6 reveal">
+              <p class="text-lg font-semibold" data-i18n="trust.item1Title">Данные защищены</p>
+              <p class="mt-3 text-sm text-slate-400" data-i18n="trust.item1Text">
                 Шифрование end-to-end и прозрачный блокчейн делают подделку истории сделки
                 невозможной.
               </p>
             </div>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p class="text-lg font-semibold">Проверенные продавцы</p>
-              <p class="mt-3 text-sm text-slate-400">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6 reveal">
+              <p class="text-lg font-semibold" data-i18n="trust.item2Title">Проверенные продавцы</p>
+              <p class="mt-3 text-sm text-slate-400" data-i18n="trust.item2Text">
                 Рейтинги и верификация в Telegram помогают покупателям выбирать надежных партнеров.
               </p>
             </div>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p class="text-lg font-semibold">Кросс-бордер оплаты</p>
-              <p class="mt-3 text-sm text-slate-400">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6 reveal">
+              <p class="text-lg font-semibold" data-i18n="trust.item3Title">Кросс-бордер оплаты</p>
+              <p class="mt-3 text-sm text-slate-400" data-i18n="trust.item3Text">
                 Поддержка стейблкоинов и фиатных выплат открывает покупки по всему миру.
               </p>
             </div>
@@ -260,28 +378,34 @@
 
       <section id="cta" class="border-t border-white/10 bg-slate-950">
         <div class="mx-auto w-full max-w-6xl px-6 py-16">
-          <div class="rounded-3xl border border-white/10 bg-white/5 p-10 md:p-12">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-10 md:p-12 reveal">
             <div class="grid gap-8 md:grid-cols-[1.2fr_0.8fr]">
               <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500">
+                <p
+                  class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500"
+                  data-i18n="cta.kicker"
+                >
                   Готовы подключиться?
                 </p>
-                <h2 class="mt-3 text-3xl font-semibold">
+                <h2 class="mt-3 text-3xl font-semibold" data-i18n="cta.title">
                   Превратите Telegram-канал в доверенный маркетплейс
                 </h2>
-                <p class="mt-4 text-sm text-slate-400">
-                  Мы подключим ваш каталог, настроим платежи и запустим блокчейн-escrow за 48 часов.
+                <p class="mt-4 text-sm text-slate-400" data-i18n="cta.subtitle">
+                  Запускайте сделки в Telegram и держите оплату под защитой блокчейн-escrow.
                 </p>
               </div>
               <div class="space-y-3">
-                <button class="w-full rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold">
-                  Оставить заявку
-                </button>
-                <button class="w-full rounded-full border border-white/20 px-6 py-3 text-sm font-semibold">
-                  Получить консультацию
-                </button>
-                <p class="text-xs text-slate-500">
-                  Нажимая «Оставить заявку», вы соглашаетесь с условиями сервиса.
+                <a
+                  class="block w-full rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold"
+                  href="https://t.me/postgramx_bot"
+                  target="_blank"
+                  rel="noreferrer"
+                  data-i18n="cta.button"
+                >
+                  Перейти в Telegram бот
+                </a>
+                <p class="text-xs text-slate-500" data-i18n="cta.note">
+                  Бот откроет сделку и покажет статус в реальном времени.
                 </p>
               </div>
             </div>
@@ -292,12 +416,208 @@
 
     <footer class="border-t border-white/10">
       <div class="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-4 px-6 py-6 text-sm text-slate-400 md:flex-row md:items-center">
-        <p>© 2024 PostgramX — Безопасные сделки в Telegram</p>
+        <p data-i18n="footer.copy">© 2026 PostgramX — Безопасные сделки в Telegram</p>
         <div class="flex gap-4">
-          <a class="transition hover:text-white" href="#">Политика</a>
-          <a class="transition hover:text-white" href="#">Контакты</a>
+          <a class="transition hover:text-white" href="#" data-i18n="footer.policy">Политика</a>
+          <a class="transition hover:text-white" href="#" data-i18n="footer.contacts">Контакты</a>
         </div>
       </div>
     </footer>
+    <script>
+      const translations = {
+        ru: {
+          "nav.benefits": "Преимущества",
+          "nav.how": "Как работает",
+          "nav.trust": "Доверие",
+          "nav.bot": "Telegram бот",
+          "header.bot": "Перейти в бот",
+          "hero.kicker": "Новый стандарт покупок",
+          "hero.title": "Покупайте в Telegram с прозрачной защитой через блокчейн",
+          "hero.subtitle":
+            "PostgramX соединяет покупателей и продавцов напрямую в Telegram, фиксируя сделки в блокчейне и автоматически контролируя оплату, поставку и возвраты.",
+          "hero.cta": "Перейти в Telegram бот",
+          "hero.demo": "Демо внутри чата",
+          "hero.stat1Value": "2 мин",
+          "hero.stat1Label": "на подключение",
+          "hero.stat2Value": "0%",
+          "hero.stat2Label": "скрытых комиссий",
+          "hero.stat3Value": "24/7",
+          "hero.stat3Label": "авто-модерация",
+          "hero.cardId": "Сделка №12098",
+          "hero.cardType": "Escrow в блокчейне",
+          "hero.cardChannel": "Покупка через Telegram",
+          "hero.cardItem": "AirPods Pro 2",
+          "hero.cardStatusLabel": "Статус",
+          "hero.cardStatus": "Escrow активен",
+          "hero.cardSteps": "Автоматические шаги",
+          "hero.step1Label": "1. Оплата",
+          "hero.step1Status": "Заблокировано",
+          "hero.step2Label": "2. Отправка",
+          "hero.step2Status": "Ожидается",
+          "hero.step3Label": "3. Выплата продавцу",
+          "hero.step3Status": "Ожидается",
+          "hero.cardButton": "Открыть чат сделки",
+          "benefits.kicker": "Преимущества",
+          "benefits.title": "Почему покупают через PostgramX",
+          "benefits.subtitle":
+            "Мы встроили безопасность блокчейна в привычный интерфейс Telegram — без сложных кошельков и ручных подтверждений.",
+          "benefits.item1Title": "Прозрачная оплата",
+          "benefits.item1Text":
+            "Средства блокируются в смарт-контракте escrow и высвобождаются только после подтверждения доставки покупателем.",
+          "benefits.item2Title": "Сделки напрямую",
+          "benefits.item2Text":
+            "Покупатель и продавец общаются напрямую в Telegram, а PostgramX обеспечивает безопасный расчет и прозрачный статус сделки.",
+          "benefits.item3Title": "Защита от риска",
+          "benefits.item3Text":
+            "Escrow снижает риск мошенничества: деньги не уходят продавцу, пока покупатель не подтвердит получение.",
+          "how.kicker": "Как это работает",
+          "how.title": "Один поток — от заказа до выплаты",
+          "how.subtitle":
+            "Покупатель оформляет заказ в Telegram, оплачивает и получает статус сделки в режиме реального времени. Блокчейн хранит неизменяемую историю всех шагов.",
+          "how.step1Title": "Оплата в Telegram",
+          "how.step1Text":
+            "Пользователь оплачивает через Telegram Pay или подключенный кошелек — средства фиксируются в escrow-смарт-контракте.",
+          "how.step2Title": "Доставка и подтверждение",
+          "how.step2Text":
+            "Продавец отправляет товар, покупатель подтверждает получение — контракт фиксирует событие и готовит выплату.",
+          "how.step3Title": "Автоматическая выплата",
+          "how.step3Text":
+            "Деньги переводятся продавцу мгновенно, а история сделки остается в блокчейне.",
+          "trust.item1Title": "Данные защищены",
+          "trust.item1Text":
+            "Шифрование end-to-end и прозрачный блокчейн делают подделку истории сделки невозможной.",
+          "trust.item2Title": "Проверенные продавцы",
+          "trust.item2Text":
+            "Рейтинги и верификация в Telegram помогают покупателям выбирать надежных партнеров.",
+          "trust.item3Title": "Кросс-бордер оплаты",
+          "trust.item3Text": "Поддержка стейблкоинов и фиатных выплат открывает покупки по всему миру.",
+          "cta.kicker": "Готовы подключиться?",
+          "cta.title": "Превратите Telegram-канал в доверенный маркетплейс",
+          "cta.subtitle":
+            "Запускайте сделки в Telegram и держите оплату под защитой блокчейн-escrow.",
+          "cta.button": "Перейти в Telegram бот",
+          "cta.note": "Бот откроет сделку и покажет статус в реальном времени.",
+          "footer.copy": "© 2026 PostgramX — Безопасные сделки в Telegram",
+          "footer.policy": "Политика",
+          "footer.contacts": "Контакты",
+        },
+        en: {
+          "nav.benefits": "Benefits",
+          "nav.how": "How it works",
+          "nav.trust": "Trust",
+          "nav.bot": "Telegram bot",
+          "header.bot": "Open bot",
+          "hero.kicker": "A new standard for purchases",
+          "hero.title": "Buy in Telegram with transparent blockchain protection",
+          "hero.subtitle":
+            "PostgramX connects buyers and sellers directly in Telegram, records deals on-chain, and automates payment, delivery, and refunds.",
+          "hero.cta": "Open Telegram bot",
+          "hero.demo": "Demo inside the chat",
+          "hero.stat1Value": "2 min",
+          "hero.stat1Label": "to connect",
+          "hero.stat2Value": "0%",
+          "hero.stat2Label": "hidden fees",
+          "hero.stat3Value": "24/7",
+          "hero.stat3Label": "auto-moderation",
+          "hero.cardId": "Deal #12098",
+          "hero.cardType": "Blockchain escrow",
+          "hero.cardChannel": "Telegram purchase",
+          "hero.cardItem": "AirPods Pro 2",
+          "hero.cardStatusLabel": "Status",
+          "hero.cardStatus": "Escrow active",
+          "hero.cardSteps": "Automated steps",
+          "hero.step1Label": "1. Payment",
+          "hero.step1Status": "Locked",
+          "hero.step2Label": "2. Shipping",
+          "hero.step2Status": "Pending",
+          "hero.step3Label": "3. Seller payout",
+          "hero.step3Status": "Pending",
+          "hero.cardButton": "Open deal chat",
+          "benefits.kicker": "Benefits",
+          "benefits.title": "Why people buy via PostgramX",
+          "benefits.subtitle":
+            "We bring blockchain security to Telegram without complicated wallets or manual confirmations.",
+          "benefits.item1Title": "Transparent payment",
+          "benefits.item1Text":
+            "Funds are locked in an escrow smart contract and released only after the buyer confirms delivery.",
+          "benefits.item2Title": "Direct deals",
+          "benefits.item2Text":
+            "Buyers and sellers chat directly in Telegram while PostgramX ensures safe settlement and clear status.",
+          "benefits.item3Title": "Risk protection",
+          "benefits.item3Text":
+            "Escrow reduces fraud risk: funds are not released until the buyer confirms receipt.",
+          "how.kicker": "How it works",
+          "how.title": "One flow — from order to payout",
+          "how.subtitle":
+            "The buyer places an order in Telegram, pays, and tracks the deal status in real time. The blockchain stores an immutable history of every step.",
+          "how.step1Title": "Pay in Telegram",
+          "how.step1Text":
+            "Users pay via Telegram Pay or a connected wallet — funds are locked in an escrow smart contract.",
+          "how.step2Title": "Delivery and confirmation",
+          "how.step2Text":
+            "The seller ships the item, the buyer confirms receipt — the contract records the event and prepares the payout.",
+          "how.step3Title": "Automatic payout",
+          "how.step3Text":
+            "Funds are released to the seller instantly, while the deal history stays on-chain.",
+          "trust.item1Title": "Data protected",
+          "trust.item1Text":
+            "End-to-end encryption and a transparent blockchain make tampering with deal history impossible.",
+          "trust.item2Title": "Verified sellers",
+          "trust.item2Text":
+            "Ratings and Telegram verification help buyers choose reliable partners.",
+          "trust.item3Title": "Cross-border payments",
+          "trust.item3Text": "Stablecoins and fiat payouts unlock global purchases.",
+          "cta.kicker": "Ready to launch?",
+          "cta.title": "Turn your Telegram channel into a trusted marketplace",
+          "cta.subtitle": "Start deals in Telegram and keep payments protected by blockchain escrow.",
+          "cta.button": "Open Telegram bot",
+          "cta.note": "The bot opens a deal and shows real-time status.",
+          "footer.copy": "© 2026 PostgramX — Safe deals in Telegram",
+          "footer.policy": "Policy",
+          "footer.contacts": "Contacts",
+        },
+      };
+
+      const langButtons = document.querySelectorAll("[data-lang]");
+      const translatable = document.querySelectorAll("[data-i18n]");
+
+      const setLanguage = (lang) => {
+        const dict = translations[lang];
+        translatable.forEach((node) => {
+          const key = node.dataset.i18n;
+          if (dict[key]) {
+            node.textContent = dict[key];
+          }
+        });
+        langButtons.forEach((btn) => {
+          const isActive = btn.dataset.lang === lang;
+          btn.setAttribute("aria-pressed", String(isActive));
+          btn.classList.toggle("text-white", isActive);
+          btn.classList.toggle("text-white/60", !isActive);
+          btn.classList.toggle("bg-white/10", isActive);
+        });
+        document.documentElement.lang = lang;
+      };
+
+      langButtons.forEach((btn) => {
+        btn.addEventListener("click", () => setLanguage(btn.dataset.lang));
+      });
+
+      setLanguage("ru");
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("reveal-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.2 }
+      );
+
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    </script>
   </body>
 </html>
