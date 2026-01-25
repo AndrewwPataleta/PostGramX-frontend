@@ -5,9 +5,15 @@ interface ListingSummaryCardProps {
   channel: ManagedChannel;
   priceTon: number;
   availabilityLabel: string;
+  tags?: string[];
 }
 
-export function ListingSummaryCard({ channel, priceTon, availabilityLabel }: ListingSummaryCardProps) {
+export function ListingSummaryCard({
+  channel,
+  priceTon,
+  availabilityLabel,
+  tags = [],
+}: ListingSummaryCardProps) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm">
       <div className="flex items-start gap-3">
@@ -39,6 +45,15 @@ export function ListingSummaryCard({ channel, priceTon, availabilityLabel }: Lis
         <span>{availabilityLabel}</span>
         <span className="rounded-full bg-primary/20 px-2 py-1 text-[10px] font-semibold">Active</span>
       </div>
+      {tags.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-foreground">
+          {tags.map((tag) => (
+            <span key={tag} className="rounded-full border border-border/60 bg-card px-2.5 py-1">
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -9,6 +9,12 @@ const createDefaultListings = (): Listing[] => {
   const today = new Date();
   const toDate = new Date();
   toDate.setDate(today.getDate() + 7);
+  const extendedTo = new Date();
+  extendedTo.setDate(today.getDate() + 14);
+  const inactiveFrom = new Date();
+  inactiveFrom.setDate(today.getDate() - 3);
+  const inactiveTo = new Date();
+  inactiveTo.setDate(today.getDate() + 4);
 
   return [
     {
@@ -20,8 +26,39 @@ const createDefaultListings = (): Listing[] => {
       availabilityTo: toDate.toISOString(),
       allowEdits: true,
       requiresApproval: true,
-      rulesText: "",
+      contentRulesText: "No gambling links. English only.",
+      tags: ["Casino", "Betting", "Crypto tokens / ICO", "English only"],
       isActive: true,
+      allowLinkTracking: true,
+      allowPinnedPlacement: false,
+    },
+    {
+      id: "listing-2",
+      channelId: "1",
+      format: "POST",
+      priceTon: 4,
+      availabilityFrom: today.toISOString(),
+      availabilityTo: extendedTo.toISOString(),
+      allowEdits: false,
+      requiresApproval: true,
+      contentRulesText: "Promo codes allowed. NSFW not allowed.",
+      tags: ["Promo codes allowed", "NSFW not allowed", "Must be pre-approved"],
+      isActive: true,
+      allowLinkTracking: true,
+      allowPinnedPlacement: false,
+    },
+    {
+      id: "listing-3",
+      channelId: "1",
+      format: "POST",
+      priceTon: 3,
+      availabilityFrom: inactiveFrom.toISOString(),
+      availabilityTo: inactiveTo.toISOString(),
+      allowEdits: true,
+      requiresApproval: true,
+      contentRulesText: "Crypto tokens only with approval.",
+      tags: ["Crypto tokens / ICO", "Financial advice", "Must be pre-approved"],
+      isActive: false,
       allowLinkTracking: true,
       allowPinnedPlacement: false,
     },
@@ -121,4 +158,8 @@ export const updateListing = (id: string, updates: Partial<ListingInput>): Listi
 
 export const disableListing = (id: string): Listing | null => {
   return updateListing(id, { isActive: false });
+};
+
+export const enableListing = (id: string): Listing | null => {
+  return updateListing(id, { isActive: true });
 };
