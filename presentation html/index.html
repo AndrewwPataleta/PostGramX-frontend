@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telega.in — Покупка через блокчейн в Telegram</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: "#eff6ff",
+                100: "#dbeafe",
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+                900: "#0f172a",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-white">
+    <header class="border-b border-white/10">
+      <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600">
+            <span class="text-lg font-semibold">T</span>
+          </div>
+          <div>
+            <p class="text-lg font-semibold">Telega.in</p>
+            <p class="text-xs text-slate-400">Покупка через блокчейн в Telegram</p>
+          </div>
+        </div>
+        <nav class="hidden items-center gap-6 text-sm text-slate-300 md:flex">
+          <a class="transition hover:text-white" href="#benefits">Преимущества</a>
+          <a class="transition hover:text-white" href="#how">Как работает</a>
+          <a class="transition hover:text-white" href="#trust">Доверие</a>
+          <a class="transition hover:text-white" href="#cta">Подключиться</a>
+        </nav>
+        <button class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900">
+          Начать
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="relative overflow-hidden">
+        <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.25),_transparent_60%)]"></div>
+        <div class="mx-auto grid w-full max-w-6xl gap-12 px-6 py-16 md:grid-cols-[1.1fr_0.9fr] md:py-24">
+          <div class="space-y-6">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500">
+              Новый стандарт покупок
+            </p>
+            <h1 class="text-4xl font-semibold leading-tight md:text-5xl">
+              Покупайте в Telegram с прозрачной защитой через блокчейн
+            </h1>
+            <p class="text-lg text-slate-300">
+              Telega.in соединяет покупателей и продавцов в Telegram, фиксируя сделки в блокчейне
+              и автоматически контролируя оплату, поставку и возвраты.
+            </p>
+            <div class="flex flex-wrap items-center gap-4">
+              <button class="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold">
+                Запустить магазин в Telegram
+              </button>
+              <button class="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold">
+                Смотреть демо
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-6 text-sm text-slate-300">
+              <div>
+                <p class="text-2xl font-semibold text-white">2 мин</p>
+                <p>на подключение</p>
+              </div>
+              <div>
+                <p class="text-2xl font-semibold text-white">0%</p>
+                <p>скрытых комиссий</p>
+              </div>
+              <div>
+                <p class="text-2xl font-semibold text-white">24/7</p>
+                <p>авто-модерация</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>Сделка №12098</span>
+                <span>Blockchain escrow</span>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-4">
+                <p class="text-sm text-slate-400">Покупка через Telegram</p>
+                <p class="mt-2 text-xl font-semibold">AirPods Pro 2</p>
+                <div class="mt-4 flex items-center justify-between text-sm">
+                  <span class="text-slate-400">Статус</span>
+                  <span class="rounded-full bg-brand-600/20 px-3 py-1 text-brand-100">
+                    Средства в блокчейне
+                  </span>
+                </div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-slate-900/80 p-4">
+                <p class="text-sm text-slate-400">Автоматические шаги</p>
+                <ul class="mt-3 space-y-2 text-sm">
+                  <li class="flex items-center justify-between">
+                    <span>1. Оплата</span>
+                    <span class="text-brand-300">Подтверждено</span>
+                  </li>
+                  <li class="flex items-center justify-between">
+                    <span>2. Отправка</span>
+                    <span class="text-slate-500">Ожидается</span>
+                  </li>
+                  <li class="flex items-center justify-between">
+                    <span>3. Выплата продавцу</span>
+                    <span class="text-slate-500">Ожидается</span>
+                  </li>
+                </ul>
+              </div>
+              <button class="w-full rounded-2xl border border-white/10 bg-white/10 py-3 text-sm font-semibold">
+                Открыть чат сделки
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="benefits" class="border-t border-white/10 bg-slate-950">
+        <div class="mx-auto w-full max-w-6xl px-6 py-16">
+          <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500">
+                Преимущества
+              </p>
+              <h2 class="text-3xl font-semibold">Почему покупают через Telega.in</h2>
+            </div>
+            <p class="max-w-lg text-sm text-slate-400">
+              Мы встроили безопасность блокчейна в привычный интерфейс Telegram — без сложных
+              кошельков и ручных подтверждений.
+            </p>
+          </div>
+          <div class="mt-10 grid gap-6 md:grid-cols-3">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p class="text-lg font-semibold">Прозрачная оплата</p>
+              <p class="mt-3 text-sm text-slate-400">
+                Средства блокируются в смарт-контракте и высвобождаются только после подтверждения
+                доставки.
+              </p>
+            </div>
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p class="text-lg font-semibold">Telegram-first</p>
+              <p class="mt-3 text-sm text-slate-400">
+                Все уведомления, статусы и документы приходят прямо в чат — покупателю не нужно
+                устанавливать новые приложения.
+              </p>
+            </div>
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p class="text-lg font-semibold">Автоматизация споров</p>
+              <p class="mt-3 text-sm text-slate-400">
+                Система фиксирует все этапы сделки и ускоряет возвраты, если условия не выполнены.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" class="border-t border-white/10 bg-slate-950">
+        <div class="mx-auto w-full max-w-6xl px-6 py-16">
+          <div class="grid gap-10 md:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500">
+                Как это работает
+              </p>
+              <h2 class="mt-3 text-3xl font-semibold">Один поток — от заказа до выплаты</h2>
+              <p class="mt-4 text-sm text-slate-400">
+                Покупатель оформляет заказ в Telegram, оплачивает и получает статус сделки в режиме
+                реального времени. Блокчейн хранит неизменяемую историю всех шагов.
+              </p>
+            </div>
+            <div class="space-y-4">
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <div class="flex items-start gap-4">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-sm font-semibold">
+                    01
+                  </div>
+                  <div>
+                    <p class="text-lg font-semibold">Оплата в Telegram</p>
+                    <p class="mt-2 text-sm text-slate-400">
+                      Пользователь оплачивает через Telegram Pay или подключенный кошелек — деньги
+                      уходят в безопасный escrow.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <div class="flex items-start gap-4">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-sm font-semibold">
+                    02
+                  </div>
+                  <div>
+                    <p class="text-lg font-semibold">Доставка и подтверждение</p>
+                    <p class="mt-2 text-sm text-slate-400">
+                      Продавец отправляет товар, клиент подтверждает получение — смарт-контракт
+                      фиксирует событие.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <div class="flex items-start gap-4">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-sm font-semibold">
+                    03
+                  </div>
+                  <div>
+                    <p class="text-lg font-semibold">Автоматическая выплата</p>
+                    <p class="mt-2 text-sm text-slate-400">
+                      Деньги переводятся продавцу мгновенно, а история сделки остается в блокчейне.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="trust" class="border-t border-white/10 bg-slate-950">
+        <div class="mx-auto w-full max-w-6xl px-6 py-16">
+          <div class="grid gap-8 md:grid-cols-3">
+            <div class="rounded-3xl border border-white/10 bg-gradient-to-br from-brand-700/30 to-transparent p-6">
+              <p class="text-lg font-semibold">Данные защищены</p>
+              <p class="mt-3 text-sm text-slate-400">
+                Шифрование end-to-end и прозрачный блокчейн делают подделку истории сделки
+                невозможной.
+              </p>
+            </div>
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p class="text-lg font-semibold">Проверенные продавцы</p>
+              <p class="mt-3 text-sm text-slate-400">
+                Рейтинги и верификация в Telegram помогают покупателям выбирать надежных партнеров.
+              </p>
+            </div>
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p class="text-lg font-semibold">Кросс-бордер оплаты</p>
+              <p class="mt-3 text-sm text-slate-400">
+                Поддержка стейблкоинов и фиатных выплат открывает покупки по всему миру.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cta" class="border-t border-white/10 bg-slate-950">
+        <div class="mx-auto w-full max-w-6xl px-6 py-16">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-10 md:p-12">
+            <div class="grid gap-8 md:grid-cols-[1.2fr_0.8fr]">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-500">
+                  Готовы подключиться?
+                </p>
+                <h2 class="mt-3 text-3xl font-semibold">
+                  Превратите Telegram-канал в доверенный маркетплейс
+                </h2>
+                <p class="mt-4 text-sm text-slate-400">
+                  Мы подключим ваш каталог, настроим платежи и запустим блокчейн-escrow за 48 часов.
+                </p>
+              </div>
+              <div class="space-y-3">
+                <button class="w-full rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold">
+                  Оставить заявку
+                </button>
+                <button class="w-full rounded-full border border-white/20 px-6 py-3 text-sm font-semibold">
+                  Получить консультацию
+                </button>
+                <p class="text-xs text-slate-500">
+                  Нажимая «Оставить заявку», вы соглашаетесь с условиями сервиса.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-white/10">
+      <div class="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-4 px-6 py-6 text-sm text-slate-400 md:flex-row md:items-center">
+        <p>© 2024 Telega.in — Безопасные сделки в Telegram</p>
+        <div class="flex gap-4">
+          <a class="transition hover:text-white" href="#">Политика</a>
+          <a class="transition hover:text-white" href="#">Контакты</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
