@@ -1,23 +1,53 @@
-import { useEffect, useState } from "react";
-import { Crown, Send } from "lucide-react";
-import { useTonAddress, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
+import { CheckCircle2, Clock, Lock, Send, ShieldCheck, Wallet } from "lucide-react";
 import { useTelegram } from "@/hooks/use-telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useLanguage } from "@/i18n/LanguageProvider";
+
+const transactions = [
+  {
+    type: "Deposit",
+    amount: "+50 TON",
+    status: "Confirmed",
+    time: "Today · 12:08",
+  },
+  {
+    type: "Escrow Lock",
+    amount: "-35 TON",
+    status: "Pending",
+    time: "Today · 11:42",
+  },
+  {
+    type: "Escrow Release",
+    amount: "+35 TON",
+    status: "Confirmed",
+    time: "Yesterday · 18:20",
+  },
+  {
+    type: "Withdrawal",
+    amount: "-12 TON",
+    status: "Processing",
+    time: "Yesterday · 16:05",
+  },
+  {
+    type: "Refund",
+    amount: "+8 TON",
+    status: "Confirmed",
+    time: "Aug 20 · 09:45",
+  },
+];
+
+const statusStyles: Record<string, string> = {
+  Confirmed: "bg-emerald-500/15 text-emerald-300",
+  Pending: "bg-amber-500/15 text-amber-300",
+  Processing: "bg-sky-500/15 text-sky-300",
+  Failed: "bg-rose-500/15 text-rose-300",
+};
 
 export default function Profile() {
   const { user } = useTelegram();
-  const { language, setLanguage, t } = useLanguage();
-  const wallet = useTonWallet();
-  const walletAddress = useTonAddress();
-  const [tonConnectUI] = useTonConnectUI();
-  const [isLoading, setIsLoading] = useState(true);
   const fullName = user
     ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`
-    : t("profile.displayNameFallback");
-  const username = user?.username ? `@${user.username}` : t("profile.usernameFallback");
-  const isPremium = Boolean(user?.is_premium);
+    : "FlowgramX User";
+  const username = user?.username ? `@${user.username}` : "@flowgramx";
   const initials = fullName
     .split(" ")
     .filter(Boolean)
@@ -25,192 +55,289 @@ export default function Profile() {
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setIsLoading(false);
-    }, 1400);
-
-    return () => window.clearTimeout(timer);
-  }, []);
-
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Header */}
+    <div className="w-full max-w-6xl mx-auto">
       <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
         <div className="px-4 py-3">
           <h1 className="text-base font-semibold text-foreground">
-            {t("profile.title")}
+            Profile Wallet / Balance
           </h1>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="px-4 py-4 space-y-4 pb-28">
-        {isLoading ? (
-          <>
-            <div className="glass p-4 flex items-center gap-4">
-              <Skeleton className="w-14 h-14 rounded-full" />
-              <div className="flex-1 min-w-0 space-y-2">
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-3 w-32" />
-              </div>
-              <Skeleton className="h-5 w-16 rounded-full" />
-            </div>
-
-            <div className="glass p-4 space-y-3">
-              <Skeleton className="h-3 w-28" />
-              <div className="grid grid-cols-2 gap-4">
-                <Skeleton className="h-20 rounded-lg" />
-                <Skeleton className="h-20 rounded-lg" />
+      <div className="px-4 py-6 space-y-6 pb-20">
+        <div className="glass p-5">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-14 w-14">
+              <AvatarImage src={user?.photo_url} alt={fullName} />
+              <AvatarFallback className="bg-primary/15 text-primary text-lg font-semibold">
+                {initials || "TG"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-semibold text-foreground">{fullName}</h2>
+              <p className="text-sm text-muted-foreground">{username}</p>
+              <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+                <ShieldCheck size={14} className="text-primary/80" />
+                Connected via Telegram
               </div>
             </div>
+          </div>
+        </div>
 
-            <div className="glass p-4 space-y-2">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-4 w-48" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="relative rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">
+                Profile Screen with Wallet Summary
+              </p>
             </div>
-
-            <div className="mt-6 space-y-2">
-              <Skeleton className="h-12 rounded-lg" />
-              <Skeleton className="h-12 rounded-lg" />
-            </div>
-
-            <div className="flex items-center justify-center gap-2 pt-6">
-              <Skeleton className="h-3 w-32 rounded-full" />
-            </div>
-          </>
-        ) : (
-          <>
-            {wallet ? (
-              <div className="glass p-4 flex flex-wrap items-center justify-between gap-3">
-                <div className="space-y-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">
-                    {t("profile.connectedWallet")}
+            <div className="px-5 py-5 space-y-4 pb-24">
+              <div className="glass p-4 space-y-3">
+                <p className="text-xs text-muted-foreground">Wallet Balance</p>
+                <div className="space-y-2">
+                  <p className="text-2xl font-semibold text-foreground">
+                    Available: 124.50 TON
                   </p>
-                  <p className="text-sm font-medium text-foreground break-all">
-                    {walletAddress}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    <span>Locked in Escrow: 35 TON</span>
+                    <span>Pending Release: 12 TON</span>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => tonConnectUI.disconnect()}
-                  className="px-3 py-1.5 rounded-full border border-border/60 text-xs font-semibold text-foreground hover:bg-card/60 transition-colors"
-                >
-                  {t("profile.disconnect")}
-                </button>
-              </div>
-            ) : null}
-
-            {/* Profile Header Card */}
-            <div className="glass p-4 flex items-center gap-4">
-              <Avatar className="h-14 w-14">
-                <AvatarImage src={user?.photo_url} alt={fullName} />
-                <AvatarFallback className="bg-primary/15 text-primary text-xl font-semibold">
-                  {initials || "TG"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    {fullName}
-                  </h2>
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                      isPremium
-                        ? "bg-primary/15 text-primary"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    <Crown size={12} />
-                    {isPremium ? t("profile.premium") : t("profile.standard")}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">{username}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  {t("profile.connectedViaTelegram")}
+                <p className="text-xs text-muted-foreground">
+                  Locked funds are released automatically after ad delivery is verified.
                 </p>
               </div>
-            </div>
 
-            <div className="glass p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">{t("profile.language")}</p>
-                  <p className="text-sm text-foreground">
-                    {t("profile.languageDescription")}
-                  </p>
-                </div>
-                <div className="flex rounded-full border border-border/60 bg-background/40 p-1 text-xs font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => setLanguage("en")}
-                    className={`px-3 py-1 rounded-full transition-colors ${
-                      language === "en"
-                        ? "bg-primary/15 text-primary"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t("profile.languageOptionEnglish")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLanguage("ru")}
-                    className={`px-3 py-1 rounded-full transition-colors ${
-                      language === "ru"
-                        ? "bg-primary/15 text-primary"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t("profile.languageOptionRussian")}
-                  </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button type="button" className="button-primary rounded-2xl py-4">
+                  Top Up
+                </button>
+                <button
+                  type="button"
+                  className="button-primary rounded-2xl py-4 bg-primary/80 hover:bg-primary"
+                >
+                  Withdraw
+                </button>
+              </div>
+
+              <div className="glass p-4">
+                <p className="text-xs text-muted-foreground mb-2">Security Indicators</p>
+                <div className="flex flex-wrap gap-2">
+                  {["TON Network", "On-chain verification", "Automated escrow"].map(
+                    (item) => (
+                      <span
+                        key={item}
+                        className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground"
+                      >
+                        {item}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
             </div>
+            <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
+              <div className="rounded-2xl border border-border/40 bg-card/80 px-4 py-3 text-xs text-muted-foreground shadow-sm">
+                Wallet actions remain visible above the Telegram safe area.
+              </div>
+            </div>
+          </div>
 
-            {/* Wallet Summary Card */}
-            <div className="glass p-4">
-              <p className="text-xs text-muted-foreground mb-3">
-                {t("profile.walletSummary")}
+          <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">
+                Top Up Flow Screen
               </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-secondary/40 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground">
-                    {t("profile.escrowBalanceLocked")}
-                  </p>
-                  <p className="text-lg font-semibold text-foreground mt-1">
-                    1.2 TON
-                  </p>
+            </div>
+            <div className="px-5 py-5 space-y-4 pb-8">
+              <div className="glass p-4 space-y-3">
+                <p className="text-xs text-muted-foreground">Top Up Balance</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">TON amount</p>
+                    <p className="text-2xl font-semibold text-foreground">50.00 TON</p>
+                  </div>
+                  <Wallet size={20} className="text-primary/80" />
                 </div>
-                <div className="bg-secondary/40 rounded-lg p-3">
+                <div className="flex gap-2">
+                  {["+10 TON", "+25 TON", "+50 TON"].map((chip) => (
+                    <span
+                      key={chip}
+                      className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary"
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass p-4 space-y-2">
+                <p className="text-xs text-muted-foreground">Payment Method</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">TON Wallet</p>
+                    <p className="text-xs text-muted-foreground">
+                      Pay using Telegram Wallet or Tonkeeper
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground">
+                    Selected
+                  </span>
+                </div>
+              </div>
+
+              <button type="button" className="button-primary rounded-2xl py-4">
+                Proceed to Payment
+              </button>
+
+              <div className="glass p-4 space-y-2">
+                <p className="text-xs text-muted-foreground">Payment Instructions</p>
+                <div className="space-y-1 text-sm text-foreground">
+                  <p>ton://transfer/EQAB...9nX</p>
                   <p className="text-xs text-muted-foreground">
-                    {t("profile.totalEarnings")}
+                    Address: EQABc7p8sT...Qx9nX
                   </p>
-                  <p className="text-lg font-semibold text-primary mt-1">
-                    8.4 TON
-                  </p>
+                  <p className="text-xs text-muted-foreground">Memo: 9F02-BX</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-primary">
+                <Clock size={14} />
+                Waiting for payment confirmation...
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">
+                Withdraw Flow Screen
+              </p>
+            </div>
+            <div className="px-5 py-5 space-y-4 pb-8">
+              <div className="glass p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Withdraw Funds</p>
+                    <p className="text-2xl font-semibold text-foreground">18.00 TON</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
+                  >
+                    Max
+                  </button>
+                </div>
+              </div>
+
+              <div className="glass p-4 space-y-2">
+                <p className="text-xs text-muted-foreground">Destination Wallet</p>
+                <p className="text-sm text-foreground">EQB7...m0fLr</p>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Network fee estimate</span>
+                <span>~0.05 TON</span>
+              </div>
+
+              <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                Withdrawals are irreversible. Make sure your address is correct.
+              </div>
+
+              <button type="button" className="button-primary rounded-2xl py-4">
+                Withdraw
+              </button>
+
+              <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
+                <CheckCircle2 size={14} />
+                Withdrawal submitted — transaction processing
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">
+                Transaction History Screen
+              </p>
+            </div>
+            <div className="px-5 py-5 space-y-4 pb-8">
+              <div className="glass p-4">
+                <p className="text-sm font-semibold text-foreground mb-3">Transactions</p>
+                <div className="space-y-3">
+                  {transactions.map((tx) => (
+                    <div
+                      key={`${tx.type}-${tx.time}`}
+                      className="flex items-start justify-between gap-3 border-b border-border/30 pb-3 last:border-b-0 last:pb-0"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                            {tx.type}
+                          </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[11px] ${
+                              statusStyles[tx.status] || "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {tx.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">{tx.time}</p>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {tx.amount}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* About Section */}
-            <div className="glass p-4">
-              <p className="text-xs text-muted-foreground mb-2">
-                {t("profile.about")}
-              </p>
-              <p className="text-sm text-foreground">
-                {t("profile.poweredByTelegram")}
+          <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">
+                Escrow Explanation Screen
               </p>
             </div>
+            <div className="px-5 py-5 space-y-4 pb-8">
+              <div className="glass p-4 space-y-3">
+                <div className="flex items-center gap-2 text-foreground">
+                  <Lock size={16} className="text-primary/80" />
+                  <p className="text-sm font-semibold">How escrow works</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Advertiser payments are locked until ads are successfully published
+                  and verified. This protects both advertisers and channel owners.
+                </p>
+              </div>
 
-            <div className="flex items-center justify-center gap-2 pt-6 text-xs text-muted-foreground/70">
-              <Send size={14} className="text-primary/70" />
-              <span className="tracking-wide">
-                {t("profile.createdBy")}
-              </span>
+              <div className="glass p-4 space-y-2">
+                <p className="text-xs text-muted-foreground">Trust indicators</p>
+                <div className="grid gap-2">
+                  {[
+                    "TON Network",
+                    "On-chain verification",
+                    "Automated escrow",
+                    "Smart-contract transparency",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-2 text-sm">
+                      <span className="h-2 w-2 rounded-full bg-primary" />
+                      <span className="text-foreground">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Send size={14} className="text-primary/70" />
+                Automated releases keep balances synchronized with delivery status.
+              </div>
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );
