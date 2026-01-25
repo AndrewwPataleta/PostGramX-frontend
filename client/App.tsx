@@ -7,7 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { TelegramProvider, useTelegramContext } from "@/components/telegram/TelegramProvider";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import Layout from "./components/Layout";
@@ -64,19 +64,20 @@ const App = () => {
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            {showSplash ? (
-              <SplashScreen onComplete={() => setShowSplash(false)} />
-            ) : null}
+            {showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}
             <BrowserRouter>
               <NavigationHaptics />
               <Layout>
                 <Routes>
-                  <Route path="/" element={<Marketplace />} />
-                  <Route path="/channel/:id" element={<ChannelDetails />} />
-                  <Route path="/create-deal" element={<CreateDeal />} />
+                  <Route path="/" element={<Navigate to="/marketplace" replace />} />
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/marketplace/channels/:channelId" element={<ChannelDetails />} />
+                  <Route
+                    path="/marketplace/channels/:channelId/request"
+                    element={<CreateDeal />}
+                  />
                   <Route path="/deals" element={<Deals />} />
-                  <Route path="/deals/:id" element={<DealDetails />} />
-                  <Route path="/deal/:id" element={<DealDetails />} />
+                  <Route path="/deals/:dealId" element={<DealDetails />} />
                   <Route path="/escrow/:dealId" element={<EscrowPayment />} />
                   <Route path="/funds-locked" element={<FundsLocked />} />
                   <Route path="/channels" element={<Channels />} />

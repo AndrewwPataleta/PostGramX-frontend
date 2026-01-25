@@ -79,7 +79,7 @@ export default function FundsLocked() {
           Continue
         </Link>
         <Link
-          to="/"
+          to="/marketplace"
           className="button-secondary text-center py-4 text-base font-semibold"
         >
           Back to Marketplace
