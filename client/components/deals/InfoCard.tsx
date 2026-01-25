@@ -7,12 +7,11 @@ interface InfoCardProps {
 
 export default function InfoCard({ title, children }: InfoCardProps) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+    <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-white">{title}</p>
-        <button className="text-xs text-slate-500">Details</button>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
       </div>
-      <div className="mt-3 space-y-2 text-xs text-slate-300">{children}</div>
+      <div className="mt-3 space-y-2 text-xs text-muted-foreground">{children}</div>
     </div>
   );
 }

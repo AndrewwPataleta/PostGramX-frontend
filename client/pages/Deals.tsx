@@ -4,7 +4,8 @@ import DealCard from "@/components/deals/DealCard";
 import { Link, useNavigate } from "react-router-dom";
 import { getDeals } from "@/features/deals/api";
 import type { Deal } from "@/features/deals/types";
-import { getDealCategory, getDealStatusPresentation, getUpdatedLabel } from "@/features/deals/utils";
+import { formatRelativeTime } from "@/features/deals/time";
+import { getDealCategory, getDealPresentation } from "@/features/deals/status";
 
 export default function Deals() {
   const [activeTab, setActiveTab] = useState("active");
@@ -84,21 +85,18 @@ export default function Deals() {
     <div className="w-full max-w-2xl mx-auto">
       <div
         ref={headerRef}
-        className="fixed left-0 right-0 z-30 bg-background/90 backdrop-blur-glass border-b border-border/50"
+        className="fixed left-0 right-0 z-30 border-b border-border/50 bg-background/90 backdrop-blur-glass"
         style={{
           top: "calc(var(--tg-content-safe-area-inset-top) + var(--wallet-banner-height, 0px))",
         }}
       >
         <div className="mx-auto w-full max-w-2xl">
-          {/* Header */}
           <div className="px-4 py-3">
             <h1 className="text-base font-semibold text-foreground">Deals</h1>
           </div>
-
-          {/* Tabs */}
           <div className="border-t border-border/50">
             <div className="px-4 flex gap-6 bg-background/80 backdrop-blur-glass">
-              {["active", "pending", "completed"].map((tab) => (
+              {(["active", "pending", "completed"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -116,41 +114,26 @@ export default function Deals() {
         </div>
       </div>
 
-      {/* Main content */}
       <div style={{ paddingTop: headerHeight }} className="px-4 py-6 space-y-4">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={`deal-skeleton-${index}`} className="glass p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="w-10 h-10 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-20" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-5 w-20 rounded-full" />
-                </div>
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <Skeleton className="h-12 rounded-lg" />
-                  <Skeleton className="h-12 rounded-lg" />
-                </div>
-                <Skeleton className="h-10 rounded-lg" />
+              <div key={`deal-skeleton-${index}`} className="rounded-2xl border border-border/50 bg-card/80 p-4">
+                <Skeleton className="h-24 rounded-xl" />
               </div>
             ))}
           </div>
         ) : showEmptyState ? (
-          <div className="glass p-8 rounded-lg text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🪄</span>
+          <div className="rounded-2xl border border-border/60 bg-card/80 p-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">
+              🪄
             </div>
             <h2 className="text-lg font-semibold text-foreground mb-2">No deals yet</h2>
             <p className="text-sm text-muted-foreground mb-6">
               Start a new collaboration to see deals listed here.
             </p>
             <Link
-              to="/"
+              to="/marketplace"
               className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
               Browse Marketplace
@@ -158,27 +141,23 @@ export default function Deals() {
           </div>
         ) : (
           <div className="space-y-4">
-            {error ? (
-              <div className="glass p-4 text-sm text-destructive">{error}</div>
-            ) : null}
+            {error ? <div className="rounded-2xl border border-border/60 bg-card/80 p-4 text-sm text-destructive">{error}</div> : null}
             {currentDeals.map((deal) => {
-              const presentation = getDealStatusPresentation(deal);
+              const presentation = getDealPresentation(deal);
               return (
                 <DealCard
                   key={deal.id}
-                  id={deal.id}
                   name={deal.channel.title}
-                  username={`@${deal.channel.username}`}
+                  username={deal.channel.username}
                   verified={deal.channel.isVerified}
                   avatarUrl={deal.channel.avatarUrl}
-                  status={presentation.label}
-                  statusKey={presentation.statusKey}
-                  icon={presentation.icon}
-                  price={deal.price}
-                  meta={getUpdatedLabel(deal.updatedAt)}
-                  secondary={presentation.secondary}
-                  action={presentation.action}
+                  statusLabel={presentation.label}
+                  statusTone={presentation.tone}
+                  price={`${deal.priceTon} TON`}
+                  updatedLabel={formatRelativeTime(deal.updatedAt)}
+                  ctaLabel={presentation.listAction}
                   onSelect={() => navigate(`/deals/${deal.id}`)}
+                  onAction={() => navigate(`/deals/${deal.id}`)}
                 />
               );
             })}

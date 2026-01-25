@@ -1,20 +1,17 @@
-import StatusPill from "./StatusPill";
-import type { StatusKey } from "./statusStyles";
+import DealStatusPill, { DealStatusTone } from "./DealStatusPill";
 
-export interface DealCardData {
-  id: string;
+interface DealCardProps {
   name: string;
   username: string;
   verified: boolean;
-  avatarUrl?: string;
-  status: string;
-  statusKey: StatusKey;
-  icon: string;
+  avatarUrl: string;
   price: string;
-  meta: string;
-  secondary: string;
-  action: string;
+  statusLabel: string;
+  statusTone: DealStatusTone;
+  updatedLabel: string;
+  ctaLabel: string;
   onSelect?: () => void;
+  onAction?: () => void;
 }
 
 export default function DealCard({
@@ -22,20 +19,18 @@ export default function DealCard({
   username,
   verified,
   avatarUrl,
-  status,
-  statusKey,
-  icon,
   price,
-  id,
-  meta,
-  secondary,
-  action,
+  statusLabel,
+  statusTone,
+  updatedLabel,
+  ctaLabel,
   onSelect,
-}: DealCardData) {
+  onAction,
+}: DealCardProps) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-[0_12px_35px_rgba(15,23,42,0.45)] ${
-        onSelect ? "cursor-pointer transition hover:border-sky-500/40" : ""
+      className={`rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm transition-colors ${
+        onSelect ? "cursor-pointer hover:border-primary/40" : ""
       }`}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
@@ -52,63 +47,46 @@ export default function DealCard({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-full bg-gradient-to-br from-cyan-400/40 via-sky-500/40 to-blue-600/40 p-[1px]">
-            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-slate-950 text-lg font-semibold text-white">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
-              ) : (
-                name.slice(0, 1)
-              )}
-            </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary/60 text-xl">
+            {avatarUrl.startsWith("http") ? (
+              <img src={avatarUrl} alt={name} className="h-full w-full rounded-full object-cover" />
+            ) : (
+              avatarUrl
+            )}
           </div>
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <span>{name}</span>
-              {verified && (
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-[10px] text-white">
+              {verified ? (
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] text-primary">
                   ✓
                 </span>
-              )}
+              ) : null}
             </div>
-            <p className="text-xs text-slate-400">{username}</p>
+            <p className="text-xs text-muted-foreground">@{username}</p>
           </div>
         </div>
-        <button className="text-slate-500">›</button>
-      </div>
-
-      <div className="mt-3">
-        <StatusPill icon={icon} label={status} tone={statusKey} />
-      </div>
-
-      <div className="mt-3 flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2 text-white">
-          <span className="text-base font-semibold">{price}</span>
-          {statusKey === "fundsLocked" && <span className="text-sm">🔒</span>}
-        </div>
-        <div className="text-xs text-slate-500">{id}</div>
-      </div>
-
-      <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
-        <span>{secondary}</span>
-        <span>{meta}</span>
+        <DealStatusPill label={statusLabel} tone={statusTone} />
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <button
-          type="button"
-          className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-[0_8px_18px_rgba(14,165,233,0.4)]"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {action}
-        </button>
-        <button
-          type="button"
-          className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200"
-          onClick={(event) => event.stopPropagation()}
-        >
-          Details
-        </button>
+        <div>
+          <p className="text-xs text-muted-foreground">Price</p>
+          <p className="text-sm font-semibold text-foreground">{price}</p>
+        </div>
+        <p className="text-xs text-muted-foreground">{updatedLabel}</p>
       </div>
+
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onAction?.();
+        }}
+        className="mt-4 w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+      >
+        {ctaLabel}
+      </button>
     </div>
   );
 }

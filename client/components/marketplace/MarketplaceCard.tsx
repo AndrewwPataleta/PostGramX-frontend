@@ -10,7 +10,7 @@ interface MarketplaceCardProps {
 export function MarketplaceCard({ channel }: MarketplaceCardProps) {
   return (
     <Link
-      to={`/channel/${channel.id}`}
+      to={`/marketplace/channels/${channel.id}`}
       className="block glass p-4 hover:bg-card/60 transition-colors"
     >
       {/* Channel Header */}

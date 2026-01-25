@@ -1,118 +1,96 @@
-import type { Deal } from "./types";
+import { mockChannels } from "@/features/marketplace/mockChannels";
+import type { CreateDealPayload, Deal } from "./types";
+
+const STORAGE_KEY = "flowgramx.mockDeals";
 
 const now = Date.now();
 const minutesAgo = (minutes: number) => new Date(now - minutes * 60_000).toISOString();
 const minutesFromNow = (minutes: number) => new Date(now + minutes * 60_000).toISOString();
 const hoursFromNow = (hours: number) => new Date(now + hours * 3_600_000).toISOString();
 
-export const mockDeals: Deal[] = [
+const defaultDeals: Deal[] = [
   {
-    id: "DL-1001",
-    status: "AWAITING_OWNER_ACCEPT",
-    role: "ADVERTISER",
-    updatedAt: minutesAgo(12),
-    price: "18 TON",
+    id: "DL-2001",
+    status: "OWNER_ACCEPTED",
+    updatedAt: minutesAgo(8),
+    priceTon: 4.2,
+    briefText: "Launch teaser for FlowgramX with CTA to beta waitlist.",
     channel: {
-      id: "ch-cryptohub",
-      title: "Crypto Signals Hub",
-      username: "cryptohub",
-      avatarUrl: "https://placehold.co/96x96/0f172a/38bdf8?text=C",
-      isVerified: true,
-    },
-  },
-  {
-    id: "DL-1002",
-    status: "ACTIVE",
-    role: "ADVERTISER",
-    updatedAt: minutesAgo(24),
-    price: "40 TON",
-    channel: {
-      id: "ch-tonlaunchpad",
-      title: "TON Launchpad",
-      username: "tonlaunchpad",
-      avatarUrl: "https://placehold.co/96x96/111827/f97316?text=T",
-      isVerified: true,
+      id: mockChannels[0].id,
+      title: mockChannels[0].title,
+      username: mockChannels[0].username,
+      avatarUrl: mockChannels[0].avatarUrl,
+      isVerified: mockChannels[0].verified,
+      subscribers: mockChannels[0].subscribers,
+      averageViews: mockChannels[0].averageViews,
+      language: mockChannels[0].language,
+      priceTon: mockChannels[0].priceTon,
     },
     escrow: {
       status: "AWAITING_PAYMENT",
-      amount: "40 TON",
+      amountTon: 4.2,
       network: "TON",
-      updatedAt: minutesAgo(24),
-    },
-  },
-  {
-    id: "DL-1003",
-    status: "ACTIVE",
-    role: "OWNER",
-    updatedAt: minutesAgo(8),
-    price: "35 TON",
-    channel: {
-      id: "ch-flowgram",
-      title: "FlowgramX Daily",
-      username: "flowgramx",
-      avatarUrl: "https://placehold.co/96x96/0f172a/22d3ee?text=F",
-      isVerified: true,
-    },
-    escrow: {
-      status: "HELD",
-      amount: "35 TON",
-      network: "TON",
+      depositAddress: "EQC2MockDepositAddress1111",
+      memo: "FGX-2001",
       updatedAt: minutesAgo(8),
     },
+  },
+  {
+    id: "DL-2002",
+    status: "CREATIVE_SUBMITTED",
+    updatedAt: minutesAgo(18),
+    priceTon: 3.5,
+    briefText: "Promote new campaign dashboard with a short CTA to try demo.",
+    channel: {
+      id: mockChannels[1].id,
+      title: mockChannels[1].title,
+      username: mockChannels[1].username,
+      avatarUrl: mockChannels[1].avatarUrl,
+      isVerified: mockChannels[1].verified,
+      subscribers: mockChannels[1].subscribers,
+      averageViews: mockChannels[1].averageViews,
+      language: mockChannels[1].language,
+      priceTon: mockChannels[1].priceTon,
+    },
+    escrow: {
+      status: "FUNDS_LOCKED",
+      amountTon: 3.5,
+      network: "TON",
+      updatedAt: minutesAgo(20),
+    },
     creative: {
-      text: "Drafting a launch teaser for FlowgramX updates.",
-      submittedAt: null,
+      text: "🚀 FlowgramX just launched a smarter way to buy Telegram placements. Try the demo today.",
+      submittedAt: minutesAgo(18),
       approvedAt: null,
     },
   },
   {
-    id: "DL-1004",
-    status: "ACTIVE",
-    role: "ADVERTISER",
-    updatedAt: minutesAgo(4),
-    price: "27 TON",
+    id: "DL-2003",
+    status: "SCHEDULED",
+    updatedAt: minutesAgo(40),
+    priceTon: 2.6,
+    briefText: "Drive signups for creator waitlist with emphasis on verified channels.",
     channel: {
-      id: "ch-founder",
-      title: "Founder Notes",
-      username: "foundernotes",
-      avatarUrl: "https://placehold.co/96x96/0b1120/a855f7?text=F",
-      isVerified: true,
+      id: mockChannels[2].id,
+      title: mockChannels[2].title,
+      username: mockChannels[2].username,
+      avatarUrl: mockChannels[2].avatarUrl,
+      isVerified: mockChannels[2].verified,
+      subscribers: mockChannels[2].subscribers,
+      averageViews: mockChannels[2].averageViews,
+      language: mockChannels[2].language,
+      priceTon: mockChannels[2].priceTon,
     },
     escrow: {
-      status: "HELD",
-      amount: "27 TON",
+      status: "FUNDS_LOCKED",
+      amountTon: 2.6,
       network: "TON",
-      updatedAt: minutesAgo(4),
+      updatedAt: minutesAgo(40),
     },
     creative: {
-      text: "Launching the new FlowgramX workflow today. Grab your slot.",
-      submittedAt: minutesAgo(9),
-      approvedAt: null,
-    },
-  },
-  {
-    id: "DL-1005",
-    status: "ACTIVE",
-    role: "OWNER",
-    updatedAt: minutesAgo(16),
-    price: "22 TON",
-    channel: {
-      id: "ch-signalstream",
-      title: "Signal Stream",
-      username: "signalstream",
-      avatarUrl: "https://placehold.co/96x96/0f172a/38bdf8?text=S",
-      isVerified: true,
-    },
-    escrow: {
-      status: "HELD",
-      amount: "22 TON",
-      network: "TON",
-      updatedAt: minutesAgo(16),
-    },
-    creative: {
-      text: "Approved creative ready for scheduling.",
-      submittedAt: minutesAgo(22),
-      approvedAt: minutesAgo(14),
+      text: "FlowgramX connects advertisers with top Telegram channels. Join the waitlist today.",
+      submittedAt: minutesAgo(60),
+      approvedAt: minutesAgo(48),
     },
     schedule: {
       scheduledAt: hoursFromNow(2),
@@ -120,91 +98,315 @@ export const mockDeals: Deal[] = [
     },
   },
   {
-    id: "DL-1006",
-    status: "ACTIVE",
-    role: "ADVERTISER",
-    updatedAt: minutesAgo(7),
-    price: "48 TON",
+    id: "DL-2004",
+    status: "POSTED",
+    updatedAt: minutesAgo(6),
+    priceTon: 5.1,
+    briefText: "Highlight escrow safety and bot-assisted messaging for advertisers.",
     channel: {
-      id: "ch-cryptoatlas",
-      title: "Crypto Atlas",
-      username: "cryptoatlas",
-      avatarUrl: "https://placehold.co/96x96/111827/2dd4bf?text=C",
-      isVerified: true,
+      id: mockChannels[3].id,
+      title: mockChannels[3].title,
+      username: mockChannels[3].username,
+      avatarUrl: mockChannels[3].avatarUrl,
+      isVerified: mockChannels[3].verified,
+      subscribers: mockChannels[3].subscribers,
+      averageViews: mockChannels[3].averageViews,
+      language: mockChannels[3].language,
+      priceTon: mockChannels[3].priceTon,
     },
     escrow: {
-      status: "HELD",
-      amount: "48 TON",
+      status: "FUNDS_LOCKED",
+      amountTon: 5.1,
       network: "TON",
-      updatedAt: minutesAgo(7),
+      updatedAt: minutesAgo(8),
     },
     creative: {
-      text: "Post copy approved and now live for verification.",
-      submittedAt: minutesAgo(40),
+      text: "FlowgramX keeps your TON safe in escrow until the post is verified. Learn more today.",
+      submittedAt: minutesAgo(35),
       approvedAt: minutesAgo(30),
     },
     schedule: {
-      scheduledAt: minutesAgo(20),
+      scheduledAt: minutesAgo(15),
       timezone: "UTC",
     },
     post: {
-      messageId: "984521",
-      viewUrl: "https://t.me/cryptoatlas/984521",
-      verifyUntil: minutesFromNow(30),
+      messageId: "99421",
+      viewUrl: "https://t.me/signalstream/99421",
+      verifyUntil: minutesFromNow(22),
+      postedAt: minutesAgo(12),
     },
   },
   {
-    id: "DL-1007",
-    status: "COMPLETED",
-    role: "ADVERTISER",
-    updatedAt: minutesAgo(18),
-    price: "52 TON",
+    id: "DL-2005",
+    status: "RELEASED",
+    updatedAt: minutesAgo(55),
+    priceTon: 3.1,
+    briefText: "Showcase creative review and scheduling in the mini app.",
     channel: {
-      id: "ch-web3",
-      title: "Web3 Horizon",
-      username: "web3horizon",
-      avatarUrl: "https://placehold.co/96x96/111827/22c55e?text=W",
-      isVerified: true,
+      id: mockChannels[4].id,
+      title: mockChannels[4].title,
+      username: mockChannels[4].username,
+      avatarUrl: mockChannels[4].avatarUrl,
+      isVerified: mockChannels[4].verified,
+      subscribers: mockChannels[4].subscribers,
+      averageViews: mockChannels[4].averageViews,
+      language: mockChannels[4].language,
+      priceTon: mockChannels[4].priceTon,
     },
     escrow: {
       status: "RELEASED",
-      amount: "52 TON",
+      amountTon: 3.1,
       network: "TON",
-      updatedAt: minutesAgo(18),
+      updatedAt: minutesAgo(55),
     },
     creative: {
-      text: "Thanks for featuring our launch — appreciate the support!",
-      submittedAt: minutesAgo(90),
-      approvedAt: minutesAgo(80),
+      text: "Our first FlowgramX campaign is live — thanks to the community!",
+      submittedAt: minutesAgo(120),
+      approvedAt: minutesAgo(110),
     },
     schedule: {
-      scheduledAt: minutesAgo(70),
+      scheduledAt: minutesAgo(90),
       timezone: "UTC",
     },
     post: {
-      messageId: "984502",
-      viewUrl: "https://t.me/web3horizon/984502",
-      verifyUntil: minutesAgo(5),
+      messageId: "99400",
+      viewUrl: "https://t.me/web3horizon/99400",
+      verifyUntil: minutesAgo(10),
+      postedAt: minutesAgo(80),
     },
   },
   {
-    id: "DL-1008",
-    status: "CANCELLED",
-    role: "ADVERTISER",
-    updatedAt: minutesAgo(29),
-    price: "14 TON",
+    id: "DL-2006",
+    status: "REFUNDED",
+    updatedAt: minutesAgo(90),
+    priceTon: 3.8,
+    briefText: "Russian audience campaign for product launch update.",
     channel: {
-      id: "ch-chainupdates",
-      title: "Chain Updates",
-      username: "chainupdates",
-      avatarUrl: "https://placehold.co/96x96/0f172a/f87171?text=C",
-      isVerified: true,
+      id: mockChannels[5].id,
+      title: mockChannels[5].title,
+      username: mockChannels[5].username,
+      avatarUrl: mockChannels[5].avatarUrl,
+      isVerified: mockChannels[5].verified,
+      subscribers: mockChannels[5].subscribers,
+      averageViews: mockChannels[5].averageViews,
+      language: mockChannels[5].language,
+      priceTon: mockChannels[5].priceTon,
     },
     escrow: {
       status: "REFUNDED",
-      amount: "14 TON",
+      amountTon: 3.8,
       network: "TON",
-      updatedAt: minutesAgo(29),
+      updatedAt: minutesAgo(90),
     },
   },
 ];
+
+const hasStorage = () => typeof window !== "undefined" && !!window.localStorage;
+
+const readDeals = () => {
+  if (!hasStorage()) {
+    return [...defaultDeals];
+  }
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  if (!stored) {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultDeals));
+    return [...defaultDeals];
+  }
+  try {
+    const parsed = JSON.parse(stored) as Deal[];
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+  } catch (error) {
+    console.warn("Failed to parse mock deals", error);
+  }
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultDeals));
+  return [...defaultDeals];
+};
+
+const writeDeals = (deals: Deal[]) => {
+  if (!hasStorage()) {
+    return;
+  }
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(deals));
+};
+
+export const getMockDeals = () => readDeals();
+
+export const getMockDeal = (id: string) => readDeals().find((deal) => deal.id === id) ?? null;
+
+const updateDeal = (id: string, updater: (deal: Deal) => Deal) => {
+  const deals = readDeals();
+  const index = deals.findIndex((deal) => deal.id === id);
+  if (index === -1) {
+    return null;
+  }
+  const updated = updater({ ...deals[index] });
+  deals[index] = updated;
+  writeDeals(deals);
+  return updated;
+};
+
+const createDealId = () => `DL-${Math.floor(1000 + Math.random() * 9000)}`;
+
+export const createMockDeal = (payload: CreateDealPayload) => {
+  const channel = mockChannels.find((item) => item.id === payload.channelId) ?? mockChannels[0];
+  const createdAt = new Date().toISOString();
+
+  const baseDeal: Deal = {
+    id: createDealId(),
+    status: "REQUESTED",
+    updatedAt: createdAt,
+    priceTon: channel.priceTon,
+    briefText: payload.briefText,
+    requestedScheduleAt: payload.requestedScheduleAt ?? null,
+    channel: {
+      id: channel.id,
+      title: channel.title,
+      username: channel.username,
+      avatarUrl: channel.avatarUrl,
+      isVerified: channel.verified,
+      subscribers: channel.subscribers,
+      averageViews: channel.averageViews,
+      language: channel.language,
+      priceTon: channel.priceTon,
+    },
+  };
+
+  const acceptedDeal: Deal = {
+    ...baseDeal,
+    status: "OWNER_ACCEPTED",
+    escrow: {
+      status: "AWAITING_PAYMENT",
+      amountTon: channel.priceTon,
+      network: "TON",
+      depositAddress: "EQC2MockDepositAddress2222",
+      memo: `FGX-${baseDeal.id}`,
+      updatedAt: createdAt,
+    },
+  };
+
+  const deals = readDeals();
+  const nextDeals = [acceptedDeal, ...deals];
+  writeDeals(nextDeals);
+  return acceptedDeal;
+};
+
+export const approveMockCreative = (id: string) =>
+  updateDeal(id, (deal) => {
+    const approvedAt = new Date().toISOString();
+    const hasSchedule = Boolean(deal.schedule?.scheduledAt);
+    return {
+      ...deal,
+      status: hasSchedule ? "SCHEDULED" : "CREATIVE_APPROVED",
+      updatedAt: approvedAt,
+      creative: {
+        ...deal.creative,
+        approvedAt,
+      },
+    };
+  });
+
+export const requestMockEdits = (id: string, note?: string) =>
+  updateDeal(id, (deal) => {
+    const updatedAt = new Date().toISOString();
+    return {
+      ...deal,
+      status: "CREATIVE_DRAFTING",
+      updatedAt,
+      creative: {
+        ...deal.creative,
+        text: note ? `${deal.creative?.text ?? ""}\n\nEdits: ${note}`.trim() : deal.creative?.text,
+        submittedAt: null,
+        approvedAt: null,
+        lastUpdatedAt: updatedAt,
+      },
+    };
+  });
+
+export const simulateMockPayment = (id: string) =>
+  updateDeal(id, (deal) => {
+    const updatedAt = new Date().toISOString();
+    if (deal.escrow?.status === "AWAITING_PAYMENT") {
+      return {
+        ...deal,
+        status: "PAYMENT_CONFIRMING",
+        updatedAt,
+        escrow: {
+          ...deal.escrow,
+          status: "PAYMENT_CONFIRMING",
+          updatedAt,
+        },
+      };
+    }
+
+    if (deal.escrow?.status === "PAYMENT_CONFIRMING") {
+      return {
+        ...deal,
+        status: "FUNDS_LOCKED",
+        updatedAt,
+        escrow: {
+          ...deal.escrow,
+          status: "FUNDS_LOCKED",
+          updatedAt,
+        },
+        creative: deal.creative ?? {
+          text: "",
+          submittedAt: null,
+          approvedAt: null,
+        },
+      };
+    }
+
+    return { ...deal, updatedAt };
+  });
+
+export const simulateMockPost = (id: string) =>
+  updateDeal(id, (deal) => {
+    const updatedAt = new Date().toISOString();
+    return {
+      ...deal,
+      status: "POSTED",
+      updatedAt,
+      post: {
+        messageId: "10101",
+        viewUrl: `https://t.me/${deal.channel.username}/10101`,
+        verifyUntil: minutesFromNow(25),
+        postedAt: updatedAt,
+      },
+    };
+  });
+
+export const simulateMockVerifyPass = (id: string) =>
+  updateDeal(id, (deal) => {
+    const updatedAt = new Date().toISOString();
+    return {
+      ...deal,
+      status: "RELEASED",
+      updatedAt,
+      escrow: deal.escrow
+        ? {
+            ...deal.escrow,
+            status: "RELEASED",
+            updatedAt,
+          }
+        : undefined,
+    };
+  });
+
+export const simulateMockVerifyFail = (id: string) =>
+  updateDeal(id, (deal) => {
+    const updatedAt = new Date().toISOString();
+    return {
+      ...deal,
+      status: "REFUNDED",
+      updatedAt,
+      escrow: deal.escrow
+        ? {
+            ...deal.escrow,
+            status: "REFUNDED",
+            updatedAt,
+          }
+        : undefined,
+    };
+  });

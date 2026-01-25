@@ -25,7 +25,7 @@ const NotFound = () => {
         Continue chatting with us to generate this page, or return to the main app.
       </p>
       <Link
-        to="/"
+        to="/marketplace"
         className="button-primary text-center py-3 px-8 font-semibold w-full max-w-xs"
       >
         Return to Marketplace
