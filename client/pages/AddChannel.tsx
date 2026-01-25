@@ -45,27 +45,18 @@ export default function AddChannel() {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-12">
-        <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.35em] text-sky-400">
-            FlowgramX Telegram Mini App
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold text-white">
-            Add Channel / Connect Your Channel Flow
-          </h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Secure, Telegram-native verification journey for channel owners and PR managers.
-          </p>
-        </div>
         <div className="flex w-full flex-col items-center gap-6">
-          <div className="text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-              {activeStep + 1} · {stepLabel}
-            </p>
-            <p className="mt-2 text-xs text-slate-400">Step {activeStep + 1} of {steps.length}</p>
-          </div>
-
           <div className="w-full max-w-sm rounded-[32px] border border-white/10 bg-slate-900/80 shadow-2xl">
             <div className="flex min-h-[720px] flex-col px-5 pb-6 pt-6 safe-area-top safe-area-bottom">
+              <div className="text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  {activeStep + 1} · {stepLabel}
+                </p>
+                <p className="mt-2 text-xs text-slate-400">
+                  Step {activeStep + 1} of {steps.length}
+                </p>
+              </div>
+
               {activeStep === 0 && (
                 <>
                   <div className="space-y-2">
@@ -394,14 +385,14 @@ export default function AddChannel() {
 
           <div className="flex w-full max-w-sm items-center justify-between text-sm">
             <button
-              className="button-secondary px-5 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+              className="button-secondary whitespace-nowrap px-5 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
               disabled={activeStep === 0}
               onClick={goPrev}
             >
               Назад
             </button>
             <button
-              className="button-primary px-6 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+              className="button-primary whitespace-nowrap px-6 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
               disabled={activeStep === steps.length - 1}
               onClick={goNext}
             >
