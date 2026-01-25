@@ -1,6 +1,17 @@
-import { CheckCircle2, Clock, Lock, Send, ShieldCheck, Wallet } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  CheckCircle2,
+  Clock,
+  History,
+  Lock,
+  Send,
+  ShieldCheck,
+  Wallet,
+} from "lucide-react";
 import { useTelegram } from "@/hooks/use-telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState } from "react";
 
 const transactions = [
   {
@@ -44,6 +55,9 @@ const statusStyles: Record<string, string> = {
 
 export default function Profile() {
   const { user } = useTelegram();
+  const [activeSection, setActiveSection] = useState<
+    "history" | "topup" | "withdraw" | "escrow"
+  >("history");
   const fullName = user
     ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`
     : "FlowgramX User";
@@ -59,9 +73,7 @@ export default function Profile() {
     <div className="w-full max-w-6xl mx-auto">
       <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
         <div className="px-4 py-3">
-          <h1 className="text-base font-semibold text-foreground">
-            Profile Wallet / Balance
-          </h1>
+          <h1 className="text-base font-semibold text-foreground">Profile Wallet</h1>
         </div>
       </div>
 
@@ -85,212 +97,84 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="relative rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border/40">
-              <p className="text-sm font-semibold text-foreground">
-                Profile Screen with Wallet Summary
-              </p>
-            </div>
-            <div className="px-5 py-5 space-y-4 pb-24">
-              <div className="glass p-4 space-y-3">
-                <p className="text-xs text-muted-foreground">Wallet Balance</p>
-                <div className="space-y-2">
-                  <p className="text-2xl font-semibold text-foreground">
-                    Available: 124.50 TON
-                  </p>
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                    <span>Locked in Escrow: 35 TON</span>
-                    <span>Pending Release: 12 TON</span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Locked funds are released automatically after ad delivery is verified.
-                </p>
+        <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+          <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+            <div className="relative rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-border/40">
+                <p className="text-sm font-semibold text-foreground">Wallet Summary</p>
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button type="button" className="button-primary rounded-2xl py-4">
-                  Top Up
-                </button>
-                <button
-                  type="button"
-                  className="button-primary rounded-2xl py-4 bg-primary/80 hover:bg-primary"
-                >
-                  Withdraw
-                </button>
-              </div>
-
-              <div className="glass p-4">
-                <p className="text-xs text-muted-foreground mb-2">Security Indicators</p>
-                <div className="flex flex-wrap gap-2">
-                  {["TON Network", "On-chain verification", "Automated escrow"].map(
-                    (item) => (
-                      <span
-                        key={item}
-                        className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground"
-                      >
-                        {item}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
-              <div className="rounded-2xl border border-border/40 bg-card/80 px-4 py-3 text-xs text-muted-foreground shadow-sm">
-                Wallet actions remain visible above the Telegram safe area.
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border/40">
-              <p className="text-sm font-semibold text-foreground">
-                Top Up Flow Screen
-              </p>
-            </div>
-            <div className="px-5 py-5 space-y-4 pb-8">
-              <div className="glass p-4 space-y-3">
-                <p className="text-xs text-muted-foreground">Top Up Balance</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">TON amount</p>
-                    <p className="text-2xl font-semibold text-foreground">50.00 TON</p>
-                  </div>
-                  <Wallet size={20} className="text-primary/80" />
-                </div>
-                <div className="flex gap-2">
-                  {["+10 TON", "+25 TON", "+50 TON"].map((chip) => (
-                    <span
-                      key={chip}
-                      className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary"
-                    >
-                      {chip}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="glass p-4 space-y-2">
-                <p className="text-xs text-muted-foreground">Payment Method</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">TON Wallet</p>
-                    <p className="text-xs text-muted-foreground">
-                      Pay using Telegram Wallet or Tonkeeper
+              <div className="px-5 py-5 space-y-4 pb-20">
+                <div className="glass p-4 space-y-3">
+                  <p className="text-xs text-muted-foreground">Balance</p>
+                  <div className="space-y-2">
+                    <p className="text-2xl font-semibold text-foreground">
+                      Available: 124.50 TON
                     </p>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                      <span>Locked in Escrow: 35 TON</span>
+                      <span>Pending Release: 12 TON</span>
+                    </div>
                   </div>
-                  <span className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground">
-                    Selected
-                  </span>
-                </div>
-              </div>
-
-              <button type="button" className="button-primary rounded-2xl py-4">
-                Proceed to Payment
-              </button>
-
-              <div className="glass p-4 space-y-2">
-                <p className="text-xs text-muted-foreground">Payment Instructions</p>
-                <div className="space-y-1 text-sm text-foreground">
-                  <p>ton://transfer/EQAB...9nX</p>
                   <p className="text-xs text-muted-foreground">
-                    Address: EQABc7p8sT...Qx9nX
+                    Locked funds release after ad delivery verification.
                   </p>
-                  <p className="text-xs text-muted-foreground">Memo: 9F02-BX</p>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-primary">
-                <Clock size={14} />
-                Waiting for payment confirmation...
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border/40">
-              <p className="text-sm font-semibold text-foreground">
-                Withdraw Flow Screen
-              </p>
-            </div>
-            <div className="px-5 py-5 space-y-4 pb-8">
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Withdraw Funds</p>
-                    <p className="text-2xl font-semibold text-foreground">18.00 TON</p>
-                  </div>
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
+                    className="button-primary rounded-2xl py-4"
+                    onClick={() => setActiveSection("topup")}
                   >
-                    Max
+                    Top Up
+                  </button>
+                  <button
+                    type="button"
+                    className="button-primary rounded-2xl py-4 bg-primary/80 hover:bg-primary"
+                    onClick={() => setActiveSection("withdraw")}
+                  >
+                    Withdraw
                   </button>
                 </div>
-              </div>
 
-              <div className="glass p-4 space-y-2">
-                <p className="text-xs text-muted-foreground">Destination Wallet</p>
-                <p className="text-sm text-foreground">EQB7...m0fLr</p>
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Network fee estimate</span>
-                <span>~0.05 TON</span>
-              </div>
-
-              <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-                Withdrawals are irreversible. Make sure your address is correct.
-              </div>
-
-              <button type="button" className="button-primary rounded-2xl py-4">
-                Withdraw
-              </button>
-
-              <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
-                <CheckCircle2 size={14} />
-                Withdrawal submitted — transaction processing
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border/40">
-              <p className="text-sm font-semibold text-foreground">
-                Transaction History Screen
-              </p>
-            </div>
-            <div className="px-5 py-5 space-y-4 pb-8">
-              <div className="glass p-4">
-                <p className="text-sm font-semibold text-foreground mb-3">Transactions</p>
-                <div className="space-y-3">
-                  {transactions.map((tx) => (
-                    <div
-                      key={`${tx.type}-${tx.time}`}
-                      className="flex items-start justify-between gap-3 border-b border-border/30 pb-3 last:border-b-0 last:pb-0"
+                <div className="glass p-4 space-y-2">
+                  <p className="text-xs text-muted-foreground">Instant withdraw</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-foreground">18.00 TON</p>
+                    <button
+                      type="button"
+                      className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
+                      onClick={() => setActiveSection("withdraw")}
                     >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground">
-                            {tx.type}
-                          </span>
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[11px] ${
-                              statusStyles[tx.status] || "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {tx.status}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">{tx.time}</p>
-                      </div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {tx.amount}
-                      </p>
-                    </div>
-                  ))}
+                      Withdraw now
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Use saved wallet EQB7...m0fLr
+                  </p>
+                </div>
+
+                <div className="glass p-4">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Security Indicators
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {["TON Network", "On-chain verification", "Automated escrow"].map(
+                      (item) => (
+                        <span
+                          key={item}
+                          className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground"
+                        >
+                          {item}
+                        </span>
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
+                <div className="rounded-2xl border border-border/40 bg-card/80 px-4 py-3 text-xs text-muted-foreground shadow-sm">
+                  Wallet actions stay visible above the Telegram safe area.
                 </div>
               </div>
             </div>
@@ -298,43 +182,220 @@ export default function Profile() {
 
           <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-border/40">
-              <p className="text-sm font-semibold text-foreground">
-                Escrow Explanation Screen
-              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { id: "history", label: "History", icon: History },
+                  { id: "topup", label: "Top Up", icon: ArrowDownLeft },
+                  { id: "withdraw", label: "Withdraw", icon: ArrowUpRight },
+                  { id: "escrow", label: "Escrow", icon: Lock },
+                ].map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() =>
+                      setActiveSection(id as "history" | "topup" | "withdraw" | "escrow")
+                    }
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      activeSection === id
+                        ? "border-primary/60 bg-primary/15 text-primary"
+                        : "border-border/40 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Icon size={14} />
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
+
             <div className="px-5 py-5 space-y-4 pb-8">
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center gap-2 text-foreground">
-                  <Lock size={16} className="text-primary/80" />
-                  <p className="text-sm font-semibold">How escrow works</p>
+              {activeSection === "history" && (
+                <div className="glass p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground">
+                      Transaction History
+                    </p>
+                    <span className="text-xs text-muted-foreground">
+                      Last 7 days
+                    </span>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {transactions.map((tx) => (
+                      <div
+                        key={`${tx.type}-${tx.time}`}
+                        className="flex items-start justify-between gap-3 border-b border-border/30 pb-3 last:border-b-0 last:pb-0"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                              {tx.type}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[11px] ${
+                                statusStyles[tx.status] ||
+                                "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {tx.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{tx.time}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">
+                          {tx.amount}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Advertiser payments are locked until ads are successfully published
-                  and verified. This protects both advertisers and channel owners.
-                </p>
-              </div>
+              )}
 
-              <div className="glass p-4 space-y-2">
-                <p className="text-xs text-muted-foreground">Trust indicators</p>
-                <div className="grid gap-2">
-                  {[
-                    "TON Network",
-                    "On-chain verification",
-                    "Automated escrow",
-                    "Smart-contract transparency",
-                  ].map((item) => (
-                    <div key={item} className="flex items-center gap-2 text-sm">
-                      <span className="h-2 w-2 rounded-full bg-primary" />
-                      <span className="text-foreground">{item}</span>
+              {activeSection === "topup" && (
+                <>
+                  <div className="glass p-4 space-y-3">
+                    <p className="text-xs text-muted-foreground">Top Up Balance</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">TON amount</p>
+                        <p className="text-2xl font-semibold text-foreground">
+                          50.00 TON
+                        </p>
+                      </div>
+                      <Wallet size={20} className="text-primary/80" />
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <div className="flex flex-wrap gap-2">
+                      {["+10 TON", "+25 TON", "+50 TON"].map((chip) => (
+                        <span
+                          key={chip}
+                          className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary"
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Send size={14} className="text-primary/70" />
-                Automated releases keep balances synchronized with delivery status.
-              </div>
+                  <div className="glass p-4 space-y-2">
+                    <p className="text-xs text-muted-foreground">Payment Method</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          TON Wallet
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Pay using Telegram Wallet or Tonkeeper
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground">
+                        Selected
+                      </span>
+                    </div>
+                  </div>
+
+                  <button type="button" className="button-primary rounded-2xl py-4">
+                    Proceed to Payment
+                  </button>
+
+                  <div className="glass p-4 space-y-2">
+                    <p className="text-xs text-muted-foreground">Payment Instructions</p>
+                    <div className="space-y-1 text-sm text-foreground">
+                      <p>ton://transfer/EQAB...9nX</p>
+                      <p className="text-xs text-muted-foreground">
+                        Address: EQABc7p8sT...Qx9nX
+                      </p>
+                      <p className="text-xs text-muted-foreground">Memo: 9F02-BX</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-primary">
+                    <Clock size={14} />
+                    Waiting for payment confirmation...
+                  </div>
+                </>
+              )}
+
+              {activeSection === "withdraw" && (
+                <>
+                  <div className="glass p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Withdraw Funds</p>
+                        <p className="text-2xl font-semibold text-foreground">
+                          18.00 TON
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
+                      >
+                        Max
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="glass p-4 space-y-2">
+                    <p className="text-xs text-muted-foreground">Destination Wallet</p>
+                    <p className="text-sm text-foreground">EQB7...m0fLr</p>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Network fee estimate</span>
+                    <span>~0.05 TON</span>
+                  </div>
+
+                  <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                    Withdrawals are irreversible. Make sure your address is correct.
+                  </div>
+
+                  <button type="button" className="button-primary rounded-2xl py-4">
+                    Withdraw
+                  </button>
+
+                  <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
+                    <CheckCircle2 size={14} />
+                    Withdrawal submitted — transaction processing
+                  </div>
+                </>
+              )}
+
+              {activeSection === "escrow" && (
+                <>
+                  <div className="glass p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-foreground">
+                      <Lock size={16} className="text-primary/80" />
+                      <p className="text-sm font-semibold">How escrow works</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Advertiser payments are locked until ads are successfully
+                      published and verified. This protects both advertisers and
+                      channel owners.
+                    </p>
+                  </div>
+
+                  <div className="glass p-4 space-y-2">
+                    <p className="text-xs text-muted-foreground">Trust indicators</p>
+                    <div className="grid gap-2">
+                      {[
+                        "TON Network",
+                        "On-chain verification",
+                        "Automated escrow",
+                        "Smart-contract transparency",
+                      ].map((item) => (
+                        <div key={item} className="flex items-center gap-2 text-sm">
+                          <span className="h-2 w-2 rounded-full bg-primary" />
+                          <span className="text-foreground">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Send size={14} className="text-primary/70" />
+                    Automated releases keep balances synchronized with delivery
+                    status.
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
