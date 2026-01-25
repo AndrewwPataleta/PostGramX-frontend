@@ -64,14 +64,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           <p className="text-sm text-white/70">{step.subtitle}</p>
         </div>
 
-        <div className="h-1 w-52 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full w-1/2 bg-gradient-to-r from-transparent via-white/70 to-transparent animate-[shimmer_2s_linear_infinite]" />
-        </div>
-
-        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/50">
-          <span className="h-2 w-2 rounded-full bg-white/70 animate-pulse" />
-          <span>Entering</span>
-          <span className="h-2 w-2 rounded-full bg-white/70 animate-pulse" />
+        <div className="text-xs uppercase tracking-[0.3em] text-white/50">
+          Entering
         </div>
       </div>
     </div>
