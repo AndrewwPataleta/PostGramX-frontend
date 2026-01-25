@@ -52,6 +52,7 @@ export default function ListingPreview() {
           channel={channel}
           priceTon={listing?.priceTon ?? 25}
           availabilityLabel={availabilityLabel}
+          tags={listing?.tags ?? []}
         />
 
         <div className="rounded-2xl border border-border/60 bg-card/80 p-4 text-sm text-muted-foreground">

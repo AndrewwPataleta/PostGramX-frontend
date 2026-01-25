@@ -9,7 +9,8 @@ export interface Listing {
   availabilityTo: string;
   allowEdits: boolean;
   requiresApproval: boolean;
-  rulesText: string;
+  contentRulesText: string;
+  tags: string[];
   isActive: boolean;
   allowLinkTracking: boolean;
   allowPinnedPlacement: boolean;
@@ -23,7 +24,8 @@ export interface ListingInput {
   availabilityTo: string;
   allowEdits: boolean;
   requiresApproval: boolean;
-  rulesText: string;
+  contentRulesText: string;
+  tags: string[];
   isActive: boolean;
   allowLinkTracking: boolean;
   allowPinnedPlacement: boolean;
