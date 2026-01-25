@@ -12,6 +12,7 @@ import { TelegramProvider, useTelegramContext } from "@/components/telegram/Tele
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 import Layout from "./components/Layout";
+import RequireAuth from "@/components/auth/RequireAuth";
 import Marketplace from "./pages/Marketplace";
 import ChannelDetails from "./pages/ChannelDetails";
 import CreateDeal from "./pages/CreateDeal";
@@ -76,19 +77,100 @@ const App = () => {
                     <Route path="/marketplace/channels/:channelId" element={<ChannelDetails />} />
                     <Route
                       path="/marketplace/channels/:channelId/request"
-                      element={<CreateDeal />}
+                      element={
+                        <RequireAuth>
+                          <CreateDeal />
+                        </RequireAuth>
+                      }
                     />
-                    <Route path="/deals" element={<Deals />} />
-                    <Route path="/deals/:dealId" element={<DealDetails />} />
-                    <Route path="/escrow/:dealId" element={<EscrowPayment />} />
-                    <Route path="/funds-locked" element={<FundsLocked />} />
-                    <Route path="/channels" element={<Channels />} />
-                    <Route path="/channel-manage/:id" element={<ChannelDetailsManage />} />
-                    <Route path="/add-channel" element={<AddChannel />} />
-                    <Route path="/add-channel-step1" element={<AddChannelStep1 />} />
-                    <Route path="/add-channel-step2" element={<AddChannelStep2 />} />
-                    <Route path="/add-channel-step3" element={<AddChannelStep3 />} />
-                    <Route path="/profile" element={<Profile />} />
+                    <Route
+                      path="/deals"
+                      element={
+                        <RequireAuth>
+                          <Deals />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/deals/:dealId"
+                      element={
+                        <RequireAuth>
+                          <DealDetails />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/escrow/:dealId"
+                      element={
+                        <RequireAuth>
+                          <EscrowPayment />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/funds-locked"
+                      element={
+                        <RequireAuth>
+                          <FundsLocked />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/channels"
+                      element={
+                        <RequireAuth>
+                          <Channels />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/channel-manage/:id"
+                      element={
+                        <RequireAuth>
+                          <ChannelDetailsManage />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/add-channel"
+                      element={
+                        <RequireAuth>
+                          <AddChannel />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/add-channel-step1"
+                      element={
+                        <RequireAuth>
+                          <AddChannelStep1 />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/add-channel-step2"
+                      element={
+                        <RequireAuth>
+                          <AddChannelStep2 />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/add-channel-step3"
+                      element={
+                        <RequireAuth>
+                          <AddChannelStep3 />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/profile"
+                      element={
+                        <RequireAuth>
+                          <Profile />
+                        </RequireAuth>
+                      }
+                    />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

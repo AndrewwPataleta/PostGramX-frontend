@@ -22,6 +22,7 @@ import {
 interface TelegramContextValue {
   webAppDetected: boolean;
   user: TelegramUser | null;
+  isAuthenticated: boolean;
   safeAreaInset: TelegramInsets;
   contentSafeAreaInset: TelegramInsets | null;
 }
@@ -91,6 +92,7 @@ export const TelegramProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       webAppDetected,
       user,
+      isAuthenticated: Boolean(webAppDetected && user),
       safeAreaInset,
       contentSafeAreaInset,
     }),
