@@ -25,6 +25,14 @@ import ErrorState from "@/components/feedback/ErrorState";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import type { WalletTransaction } from "@/features/profile/types";
 import { getErrorMessage } from "@/lib/api/errors";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const statusStyles: Record<string, string> = {
   Confirmed: "bg-emerald-500/15 text-emerald-300",
@@ -45,10 +53,12 @@ export default function Profile() {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState(50);
+  const [topUpAmountInput, setTopUpAmountInput] = useState("50");
   const [topUpStatus, setTopUpStatus] = useState<"idle" | "pending" | "confirmed">(
     "idle"
   );
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
+  const [isTopUpSheetOpen, setIsTopUpSheetOpen] = useState(false);
   const wallet = useTonWallet();
   const [tonConnectUI] = useTonConnectUI();
   const { open: openWalletModal } = useTonConnectModal();
@@ -79,6 +89,14 @@ export default function Profile() {
       setAvailableBalance(balance.available);
     }
   }, [balance]);
+
+  const updateTopUpAmount = (value: string) => {
+    setTopUpAmountInput(value);
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      setTopUpAmount(parsed);
+    }
+  };
 
   const handleTopUp = async () => {
     if (!Number.isFinite(topUpAmount) || topUpAmount <= 0) {
@@ -115,6 +133,7 @@ export default function Profile() {
         ...prev,
       ]);
       setTopUpStatus("confirmed");
+      setIsTopUpSheetOpen(false);
       toast.success("Mock top up confirmed");
     } catch (err) {
       setTopUpStatus("idle");
@@ -196,7 +215,10 @@ export default function Profile() {
                       <button
                         type="button"
                         className="button-primary rounded-2xl py-2 text-sm"
-                        onClick={() => setActiveSection("topup")}
+                        onClick={() => {
+                          setActiveSection("topup");
+                          setIsTopUpSheetOpen(true);
+                        }}
                       >
                         Top Up
                       </button>
@@ -244,9 +266,14 @@ export default function Profile() {
                       <button
                         key={id}
                         type="button"
-                        onClick={() =>
-                          setActiveSection(id as "history" | "topup" | "withdraw" | "escrow")
-                        }
+                        onClick={() => {
+                          if (id === "topup") {
+                            setIsTopUpSheetOpen(true);
+                          }
+                          setActiveSection(
+                            id as "history" | "topup" | "withdraw" | "escrow"
+                          );
+                        }}
                         className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                           activeSection === id
                             ? "border-primary/60 bg-primary/15 text-primary"
@@ -317,22 +344,13 @@ export default function Profile() {
                           </div>
                           <Wallet size={20} className="text-primary/80" />
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          {topUpChips.map((amount) => (
-                            <button
-                              key={amount}
-                              type="button"
-                              onClick={() => setTopUpAmount(amount)}
-                              className={`rounded-full border px-3 py-1 text-xs transition ${
-                                topUpAmount === amount
-                                  ? "border-primary/60 bg-primary/20 text-primary"
-                                  : "border-primary/40 bg-primary/10 text-primary/80"
-                              }`}
-                            >
-                              +{amount} TON
-                            </button>
-                          ))}
-                        </div>
+                        <button
+                          type="button"
+                          className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
+                          onClick={() => setIsTopUpSheetOpen(true)}
+                        >
+                          Change amount
+                        </button>
                       </div>
 
                       <div className="glass p-4 space-y-2">
@@ -351,15 +369,6 @@ export default function Profile() {
                           </span>
                         </div>
                       </div>
-
-                      <button
-                        type="button"
-                        className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
-                        onClick={handleTopUp}
-                        disabled={isTopUpLoading}
-                      >
-                        {isTopUpLoading ? "Processing..." : "Proceed to Payment"}
-                      </button>
 
                       <div className="glass p-4 space-y-2">
                         <p className="text-xs text-muted-foreground">Payment Instructions</p>
@@ -483,6 +492,61 @@ export default function Profile() {
           </>
         )}
       </div>
+      <Sheet open={isTopUpSheetOpen} onOpenChange={setIsTopUpSheetOpen}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-3xl border-t border-border/60 bg-background/95 px-5 pb-8 pt-6"
+        >
+          <SheetHeader className="text-left">
+            <SheetTitle>Top up balance</SheetTitle>
+            <SheetDescription>
+              Enter the TON amount you want to add to your wallet.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-5 space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Amount (TON)</label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={topUpAmountInput}
+                  onChange={(event) => updateTopUpAmount(event.target.value)}
+                  className="h-12 rounded-2xl text-lg"
+                  placeholder="0.00"
+                />
+                <span className="text-sm font-medium text-muted-foreground">TON</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {topUpChips.map((amount) => (
+                <button
+                  key={amount}
+                  type="button"
+                  onClick={() => updateTopUpAmount(amount.toString())}
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    topUpAmount === amount
+                      ? "border-primary/60 bg-primary/20 text-primary"
+                      : "border-primary/40 bg-primary/10 text-primary/80"
+                  }`}
+                >
+                  +{amount} TON
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
+              onClick={handleTopUp}
+              disabled={isTopUpLoading}
+            >
+              {isTopUpLoading ? "Processing..." : "Top up"}
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
