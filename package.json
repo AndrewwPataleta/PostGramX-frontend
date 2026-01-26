@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tonconnect/ui-react": "^2.1.0",
+    "axios": "^1.11.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

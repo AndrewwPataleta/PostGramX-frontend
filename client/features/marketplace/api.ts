@@ -5,6 +5,7 @@ import {
   isMockListingsEnabled,
   subscribeToMockListings,
 } from "@/features/listings/mockStore";
+import { apiClient } from "@/lib/api/client";
 
 const USE_MOCK_MARKETPLACE = import.meta.env.VITE_USE_MOCK_MARKETPLACE !== "false";
 
@@ -14,7 +15,7 @@ const delay = async (minMs = 250, maxMs = 500) => {
 };
 
 if (USE_MOCK_MARKETPLACE) {
-  console.info("Marketplace API running in MOCK MODE");
+  console.info("MOCK MODE ENABLED for Marketplace");
 }
 
 export const getChannels = async (): Promise<MarketplaceChannel[]> => {
@@ -31,11 +32,8 @@ export const getChannels = async (): Promise<MarketplaceChannel[]> => {
   }
 
   try {
-    const response = await fetch("/api/marketplace/channels");
-    if (!response.ok) {
-      throw new Error("Failed to load channels");
-    }
-    return response.json();
+    const response = await apiClient.get<MarketplaceChannel[]>("/marketplace/channels");
+    return response.data;
   } catch (error) {
     console.warn("Falling back to mock marketplace channels.", error);
     await delay(200, 400);
@@ -62,11 +60,8 @@ export const getChannel = async (id: string): Promise<MarketplaceChannel> => {
   }
 
   try {
-    const response = await fetch(`/api/marketplace/channels/${id}`);
-    if (!response.ok) {
-      throw new Error("Failed to load channel");
-    }
-    return response.json();
+    const response = await apiClient.get<MarketplaceChannel>(`/marketplace/channels/${id}`);
+    return response.data;
   } catch (error) {
     console.warn("Falling back to mock marketplace channel.", error);
     await delay(200, 400);
@@ -85,4 +80,9 @@ export const onMockListingsUpdate = (callback: () => void) => {
   }
 
   return subscribeToMockListings(callback);
+};
+
+export const marketplaceApi = {
+  getChannels,
+  getChannel,
 };

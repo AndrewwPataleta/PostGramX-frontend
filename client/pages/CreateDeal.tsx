@@ -1,60 +1,28 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { createDeal } from "@/features/deals/api";
-import { getChannel } from "@/features/marketplace/api";
-import type { MarketplaceChannel } from "@/features/marketplace/types";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useMarketplaceChannel } from "@/features/marketplace/hooks";
+import { useCreateDeal } from "@/features/deals/hooks";
+import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import ErrorState from "@/components/feedback/ErrorState";
+import { getErrorMessage } from "@/lib/api/errors";
 
 export default function CreateDeal() {
   const { channelId } = useParams<{ channelId: string }>();
   const navigate = useNavigate();
-  const [channel, setChannel] = useState<MarketplaceChannel | null>(null);
   const [briefText, setBriefText] = useState("");
   const [preferredDate, setPreferredDate] = useState<Date | undefined>();
   const [preferredTime, setPreferredTime] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!channelId) {
-      setError("Missing channel");
-      setIsLoading(false);
-      return;
-    }
-    let mounted = true;
-    getChannel(channelId)
-      .then((data) => {
-        if (!mounted) {
-          return;
-        }
-        setChannel(data);
-      })
-      .catch((err) => {
-        if (!mounted) {
-          return;
-        }
-        setError(err instanceof Error ? err.message : "Unable to load channel");
-      })
-      .finally(() => {
-        if (!mounted) {
-          return;
-        }
-        setIsLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [channelId]);
+  const { data: channel, isLoading, error, refetch } = useMarketplaceChannel(channelId);
+  const createDealMutation = useCreateDeal();
+  const isSubmitting = createDealMutation.isPending;
 
   const handleSubmit = async () => {
     if (!channelId || !briefText.trim()) {
@@ -62,7 +30,6 @@ export default function CreateDeal() {
       return;
     }
 
-    setIsSubmitting(true);
     try {
       const scheduleIso = (() => {
         if (!preferredDate || !preferredTime) {
@@ -77,18 +44,15 @@ export default function CreateDeal() {
         return scheduledAt.toISOString();
       })();
 
-      const deal = await createDeal({
+      const result = await createDealMutation.mutateAsync({
         channelId,
         briefText: briefText.trim(),
         requestedScheduleAt: scheduleIso,
         ctaUrl: ctaUrl.trim() || null,
       });
-      toast.success("Request sent");
-      navigate(`/deals/${deal.id}`, { replace: true });
+      navigate(`/deals/${result.id}`, { replace: true });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Unable to create deal");
-    } finally {
-      setIsSubmitting(false);
+      toast.error(getErrorMessage(err, "Unable to create deal"));
     }
   };
 
@@ -108,11 +72,13 @@ export default function CreateDeal() {
 
       <div className="px-4 py-6 space-y-4">
         {isLoading ? (
-          <Skeleton className="h-40 w-full rounded-2xl" />
+          <LoadingSkeleton items={1} />
         ) : error || !channel ? (
-          <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-sm text-destructive">
-            {error ?? "Channel not found"}
-          </div>
+          <ErrorState
+            message={getErrorMessage(error, "Channel not found")}
+            description="Please try again later."
+            onRetry={() => refetch()}
+          />
         ) : (
           <>
             <div className="rounded-2xl border border-border/60 bg-card/80 p-4">

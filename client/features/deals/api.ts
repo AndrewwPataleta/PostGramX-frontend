@@ -10,6 +10,7 @@ import {
   simulateMockVerifyFail,
   simulateMockVerifyPass,
 } from "./mockDeals";
+import { apiClient } from "@/lib/api/client";
 
 export const USE_MOCK_DEALS = import.meta.env.VITE_USE_MOCK_DEALS !== "false";
 
@@ -19,7 +20,7 @@ const delay = async (minMs = 300, maxMs = 600) => {
 };
 
 if (USE_MOCK_DEALS) {
-  console.info("Deals API running in MOCK MODE");
+  console.info("MOCK MODE ENABLED for Deals");
 }
 
 export const getDeals = async (): Promise<Deal[]> => {
@@ -29,11 +30,8 @@ export const getDeals = async (): Promise<Deal[]> => {
   }
 
   try {
-    const response = await fetch("/api/deals");
-    if (!response.ok) {
-      throw new Error("Failed to load deals");
-    }
-    return response.json();
+    const response = await apiClient.get<Deal[]>("/deals");
+    return response.data;
   } catch (error) {
     console.warn("Falling back to mock deals.", error);
     await delay();
@@ -52,11 +50,8 @@ export const getDeal = async (id: string): Promise<Deal> => {
   }
 
   try {
-    const response = await fetch(`/api/deals/${id}`);
-    if (!response.ok) {
-      throw new Error("Failed to load deal");
-    }
-    return response.json();
+    const response = await apiClient.get<Deal>(`/deals/${id}`);
+    return response.data;
   } catch (error) {
     console.warn("Falling back to mock deal.", error);
     await delay();
@@ -75,16 +70,8 @@ export const createDeal = async (payload: CreateDealPayload): Promise<Deal> => {
   }
 
   try {
-    const response = await fetch("/api/deals", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to create deal");
-    }
-    return response.json();
+    const response = await apiClient.post<Deal>("/deals", payload);
+    return response.data;
   } catch (error) {
     console.warn("Falling back to mock deal creation.", error);
     await delay();
@@ -103,11 +90,8 @@ export const approveCreative = async (id: string): Promise<Deal> => {
   }
 
   try {
-    const response = await fetch(`/api/deals/${id}/creative/approve`, { method: "POST" });
-    if (!response.ok) {
-      throw new Error("Failed to approve creative");
-    }
-    return response.json();
+    const response = await apiClient.post<Deal>(`/deals/${id}/creative/approve`);
+    return response.data;
   } catch (error) {
     console.warn("Falling back to mock creative approval.", error);
     await delay();
@@ -130,15 +114,8 @@ export const requestEdits = async (id: string, note?: string): Promise<Deal> => 
   }
 
   try {
-    const response = await fetch(`/api/deals/${id}/creative/edits`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ note }),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to request edits");
-    }
-    return response.json();
+    const response = await apiClient.post<Deal>(`/deals/${id}/creative/edits`, { note });
+    return response.data;
   } catch (error) {
     console.warn("Falling back to mock edit request.", error);
     await delay();
@@ -196,4 +173,16 @@ export const simulateVerifyFail = async (id: string): Promise<Deal> => {
     throw new Error("Deal not found");
   }
   return updated;
+};
+
+export const dealsApi = {
+  getDeals,
+  getDeal,
+  createDeal,
+  approveCreative,
+  requestEdits,
+  simulatePayment,
+  simulatePost,
+  simulateVerifyPass,
+  simulateVerifyFail,
 };
