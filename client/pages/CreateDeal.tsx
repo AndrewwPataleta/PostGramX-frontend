@@ -97,15 +97,20 @@ export default function CreateDeal() {
                       type="button"
                       variant="outline"
                       className={cn(
-                        "w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2 text-sm font-normal",
+                        "w-full min-w-0 justify-between rounded-xl border-border/60 bg-background px-3 py-2 text-sm font-normal",
                         !preferredDate && "text-muted-foreground",
                       )}
                     >
-                      {preferredDate ? format(preferredDate, "PPP") : "Select a date"}
-                      <CalendarIcon className="h-4 w-4 opacity-60" />
+                      <span className="flex-1 truncate text-left">
+                        {preferredDate ? format(preferredDate, "PPP") : "Select a date"}
+                      </span>
+                      <CalendarIcon className="h-4 w-4 opacity-60 shrink-0" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent align="start" className="w-auto p-0">
+                  <PopoverContent
+                    align="center"
+                    className="w-[calc(100vw-2rem)] max-w-[320px] p-0"
+                  >
                     <Calendar
                       mode="single"
                       selected={preferredDate}
