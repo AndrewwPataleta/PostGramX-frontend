@@ -9,10 +9,9 @@ import {
 } from "react";
 import {
   DEFAULT_INSETS,
-  ensureWebAppReady,
+  ensureReady,
   getTelegramUser,
   getTelegramWebApp,
-  mockTelegramUser,
   normalizeInsets,
   setInsetCssVars,
   TelegramInsets,
@@ -48,19 +47,19 @@ export const TelegramProvider = ({ children }: { children: ReactNode }) => {
     const webApp = getTelegramWebApp();
     if (!webApp) {
       setWebAppDetected(false);
-      setUser(mockTelegramUser);
+      setUser(null);
       setSafeAreaInset(DEFAULT_INSETS);
       setContentSafeAreaInset(null);
       setInsetCssVars(DEFAULT_INSETS, DEFAULT_INSETS);
       if (!hasWarnedMissingWebApp) {
-        console.warn("Telegram WebApp not detected, using mock user");
+        console.warn("Telegram WebApp not detected");
         hasWarnedMissingWebApp = true;
       }
       return;
     }
 
     setWebAppDetected(true);
-    ensureWebAppReady(webApp);
+    ensureReady();
     setUser(getTelegramUser(webApp));
 
     webApp.disableVerticalSwipes?.();

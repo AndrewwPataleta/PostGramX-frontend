@@ -1,16 +1,28 @@
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { API_BASE_URL } from "@/config/env";
-import { AUTH_EXPIRED_EVENT, clearAuthToken, getAuthToken } from "@/lib/api/auth";
+import { AUTH_EXPIRED_EVENT } from "@/lib/api/auth";
+import {
+  buildAuthRequest,
+  clearSession,
+  getAccessToken,
+  getTelegramInitDataToken,
+  refreshSession,
+} from "@/features/auth/telegramAuth";
 import type { ApiError } from "@/types/api";
 
 type ApiClientResponse<T> = {
   data: T;
   status: number;
-  headers: Headers;
+  headers: Record<string, string>;
 };
 
-type RequestConfig = {
-  headers?: HeadersInit;
-  signal?: AbortSignal;
+type RequestConfig = AxiosRequestConfig & {
+  wrap?: boolean;
+};
+
+type RetryableRequestConfig = AxiosRequestConfig & {
+  __isRetry?: boolean;
+  wrap?: boolean;
 };
 
 const createRequestId = () => {
@@ -21,97 +33,170 @@ const createRequestId = () => {
   return `req_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 };
 
-const normalizeApiError = (
-  error: unknown,
-  details?: unknown,
-  status = 0
-): ApiError => {
+const normalizeApiError = (error: unknown, status = 0): ApiError => {
+  if (error instanceof AxiosError) {
+    return {
+      code: (error.response?.data as { code?: string })?.code ?? "API_ERROR",
+      message:
+        (error.response?.data as { message?: string })?.message ??
+        error.message ??
+        "Request failed",
+      status: error.response?.status ?? status,
+      details: error.response?.data,
+    };
+  }
+
   if (error instanceof Error) {
     return {
-      code: (details as { code?: string })?.code || "API_ERROR",
-      message: (details as { message?: string })?.message || error.message || "Request failed",
+      code: "API_ERROR",
+      message: error.message || "Request failed",
       status,
-      details,
+      details: null,
     };
   }
 
   return {
     code: "UNKNOWN_ERROR",
-    message: (details as { message?: string })?.message || "Unexpected error",
+    message: "Unexpected error",
     status,
-    details,
+    details: null,
   };
 };
 
-const parseResponseData = async <T>(response: Response): Promise<T> => {
-  if (response.status === 204) {
-    return undefined as T;
-  }
+const api = axios.create({
+  baseURL: API_BASE_URL,
+});
 
-  const contentType = response.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
-    return (await response.json()) as T;
-  }
-
-  return (await response.text()) as T;
+const wrapPayload = (data: unknown) => {
+  const request = buildAuthRequest(false);
+  return {
+    platformType: request.platformType,
+    authType: request.authType,
+    token: request.token,
+    data,
+  };
 };
 
-const request = async <T>(
-  method: string,
-  url: string,
-  payload?: unknown,
-  config: RequestConfig = {}
-): Promise<ApiClientResponse<T>> => {
-  const token = getAuthToken();
-  const headers = new Headers(config.headers);
+const withSessionExpired = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+  }
+};
+
+api.interceptors.request.use((config) => {
+  const requestConfig = config as RetryableRequestConfig;
+  const token = getAccessToken();
+  const initData = getTelegramInitDataToken();
+
+  requestConfig.headers = requestConfig.headers ?? {};
+  requestConfig.headers["X-Request-Id"] = createRequestId();
+
+  if (initData) {
+    requestConfig.headers["X-Telegram-Init-Data"] = initData;
+  }
 
   if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+    requestConfig.headers.Authorization = `Bearer ${token}`;
   }
 
-  headers.set("X-Request-Id", createRequestId());
-
-  const isFormData = payload instanceof FormData;
-  if (payload != null && !isFormData) {
-    headers.set("Content-Type", "application/json");
+  const method = requestConfig.method?.toLowerCase();
+  if (
+    requestConfig.wrap &&
+    requestConfig.data !== undefined &&
+    (method === "post" || method === "put" || method === "patch")
+  ) {
+    requestConfig.data = wrapPayload(requestConfig.data);
   }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}${url}`, {
-      method,
-      headers,
-      body: payload == null ? undefined : isFormData ? payload : JSON.stringify(payload),
-      signal: config.signal,
+  return requestConfig;
+});
+
+let refreshPromise: Promise<void> | null = null;
+
+const runRefresh = async () => {
+  if (!refreshPromise) {
+    refreshPromise = refreshSession().finally(() => {
+      refreshPromise = null;
     });
+  }
 
-    const data = await parseResponseData<T>(response);
+  return refreshPromise;
+};
 
-    if (!response.ok) {
-      const normalized = normalizeApiError(new Error(response.statusText), data, response.status);
-      if (normalized.status === 401 && typeof window !== "undefined") {
-        clearAuthToken();
-        window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const status = error.response?.status;
+    const config = error.config as RetryableRequestConfig | undefined;
+
+    if ((status === 401 || status === 403) && config && !config.__isRetry) {
+      config.__isRetry = true;
+      try {
+        await runRefresh();
+        return api.request(config);
+      } catch (refreshError) {
+        clearSession();
+        withSessionExpired();
+        return Promise.reject(refreshError);
       }
-      throw normalized;
     }
 
+    if (status === 401 || status === 403) {
+      clearSession();
+      withSessionExpired();
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+const request = async <T>(
+  config: AxiosRequestConfig
+): Promise<ApiClientResponse<T>> => {
+  try {
+    const response: AxiosResponse<T> = await api.request<T>(config);
     return {
-      data,
+      data: response.data,
       status: response.status,
-      headers: response.headers,
+      headers: response.headers as Record<string, string>,
     };
   } catch (error) {
-    if ((error as ApiError)?.status === 401 && typeof window !== "undefined") {
-      clearAuthToken();
-      window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
-    }
-
-    throw normalizeApiError(error, undefined, (error as ApiError)?.status ?? 0);
+    throw normalizeApiError(error, (error as AxiosError)?.response?.status ?? 0);
   }
 };
 
 export const apiClient = {
-  get: <T>(url: string, config?: RequestConfig) => request<T>("GET", url, undefined, config),
+  get: <T>(url: string, config?: RequestConfig) =>
+    request<T>({
+      url,
+      method: "get",
+      ...config,
+    }),
   post: <T>(url: string, payload?: unknown, config?: RequestConfig) =>
-    request<T>("POST", url, payload, config),
+    request<T>({
+      url,
+      method: "post",
+      data: payload,
+      ...config,
+    }),
+  put: <T>(url: string, payload?: unknown, config?: RequestConfig) =>
+    request<T>({
+      url,
+      method: "put",
+      data: payload,
+      ...config,
+    }),
+  patch: <T>(url: string, payload?: unknown, config?: RequestConfig) =>
+    request<T>({
+      url,
+      method: "patch",
+      data: payload,
+      ...config,
+    }),
+  delete: <T>(url: string, config?: RequestConfig) =>
+    request<T>({
+      url,
+      method: "delete",
+      ...config,
+    }),
 };
