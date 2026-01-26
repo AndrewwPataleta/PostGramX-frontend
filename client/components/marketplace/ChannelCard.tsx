@@ -24,8 +24,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       })()
     : null;
   const listingTags = channel.listing?.tags ?? [];
-  const visibleTags = listingTags.slice(0, 3);
-  const remainingTags = listingTags.length - visibleTags.length;
+  const visibleTags = listingTags.slice(0, 5);
   const pinnedDurationLabel = channel.listing?.pinDurationHours
     ? formatDuration(channel.listing.pinDurationHours)
     : null;

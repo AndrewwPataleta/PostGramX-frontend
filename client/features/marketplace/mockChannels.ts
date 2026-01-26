@@ -1,5 +1,9 @@
 import type { MarketplaceChannel } from "./types";
 
+const today = new Date();
+const weekFrom = new Date();
+weekFrom.setDate(today.getDate() + 7);
+
 export const mockChannels: MarketplaceChannel[] = [
   {
     id: "1",
@@ -13,6 +17,21 @@ export const mockChannels: MarketplaceChannel[] = [
     language: "EN",
     priceTon: 2.5,
     description: "Verified creator channel ready for sponsor placements and crypto-native offers.",
+    listing: {
+      id: "listing-mock-1",
+      channelId: "1",
+      format: "POST",
+      priceTon: 2.5,
+      availabilityFrom: today.toISOString(),
+      availabilityTo: weekFrom.toISOString(),
+      allowEdits: true,
+      requiresApproval: true,
+      contentRulesText: "Casino and betting promos allowed with approval.",
+      tags: ["Casino", "Betting", "iGaming", "Crypto", "English only"],
+      isActive: true,
+      allowLinkTracking: true,
+      allowPinnedPlacement: false,
+    },
   },
   {
     id: "ch-flow-1",
@@ -26,6 +45,21 @@ export const mockChannels: MarketplaceChannel[] = [
     language: "EN",
     priceTon: 4.2,
     description: "Launch announcements and high-intent crypto audience with strong conversion rates.",
+    listing: {
+      id: "listing-mock-2",
+      channelId: "ch-flow-1",
+      format: "POST",
+      priceTon: 4.2,
+      availabilityFrom: today.toISOString(),
+      availabilityTo: weekFrom.toISOString(),
+      allowEdits: false,
+      requiresApproval: true,
+      contentRulesText: "Betting partners only. No adult content.",
+      tags: ["Betting", "Sports", "Finance", "Promo codes", "No NSFW"],
+      isActive: true,
+      allowLinkTracking: true,
+      allowPinnedPlacement: false,
+    },
   },
   {
     id: "ch-flow-2",
