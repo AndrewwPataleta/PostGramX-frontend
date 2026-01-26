@@ -7,6 +7,8 @@ export interface Listing {
   priceTon: number;
   availabilityFrom: string;
   availabilityTo: string;
+  pinDurationHours: number | null;
+  visibilityDurationHours: number;
   allowEdits: boolean;
   requiresApproval: boolean;
   contentRulesText: string;
@@ -22,6 +24,8 @@ export interface ListingInput {
   priceTon: number;
   availabilityFrom: string;
   availabilityTo: string;
+  pinDurationHours: number | null;
+  visibilityDurationHours: number;
   allowEdits: boolean;
   requiresApproval: boolean;
   contentRulesText: string;

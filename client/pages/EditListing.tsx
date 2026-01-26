@@ -4,6 +4,16 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
 import { managedChannelData } from "@/features/channels/managedChannels";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   disableListing,
   enableListing,
   getListingById,
@@ -20,11 +30,37 @@ const availabilityOptions = [
   { label: "Custom range", days: null },
 ];
 
+const pinDurationOptions = [
+  { label: "Not pinned", value: "none" },
+  { label: "6 hours", value: "6" },
+  { label: "12 hours", value: "12" },
+  { label: "24 hours", value: "24" },
+  { label: "48 hours", value: "48" },
+  { label: "Custom", value: "custom" },
+];
+
+const visibilityDurationOptions = [
+  { label: "24 hours", value: "24" },
+  { label: "48 hours", value: "48" },
+  { label: "72 hours", value: "72" },
+  { label: "7 days", value: "168" },
+  { label: "Custom", value: "custom" },
+];
+
 const getRangeDays = (from: string, to: string) => {
   const fromDate = new Date(from);
   const toDate = new Date(to);
   const diffMs = toDate.getTime() - fromDate.getTime();
   return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+};
+
+const resolveHours = (choice: string, customValue: string, fallback: number) => {
+  if (choice === "custom") {
+    const parsed = Number(customValue);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  }
+  const parsed = Number(choice);
+  return Number.isFinite(parsed) ? parsed : fallback;
 };
 
 export default function EditListing() {
@@ -39,6 +75,23 @@ export default function EditListing() {
   const initialChoice = [1, 3, 7, 14].includes(initialRangeDays)
     ? initialRangeDays
     : 0;
+  const initialPinDuration = listing?.pinDurationHours ?? null;
+  const initialPinChoice = initialPinDuration
+    ? [6, 12, 24, 48].includes(initialPinDuration)
+      ? String(initialPinDuration)
+      : "custom"
+    : "none";
+  const initialPinCustom =
+    initialPinDuration && ![6, 12, 24, 48].includes(initialPinDuration)
+      ? String(initialPinDuration)
+      : "";
+  const initialVisibilityDuration = listing?.visibilityDurationHours ?? 24;
+  const initialVisibilityChoice = [24, 48, 72, 168].includes(initialVisibilityDuration)
+    ? String(initialVisibilityDuration)
+    : "custom";
+  const initialVisibilityCustom = [24, 48, 72, 168].includes(initialVisibilityDuration)
+    ? ""
+    : String(initialVisibilityDuration);
 
   const [priceTon, setPriceTon] = useState(listing ? String(listing.priceTon) : "25");
   const [availabilityChoice, setAvailabilityChoice] = useState(initialChoice);
@@ -47,6 +100,14 @@ export default function EditListing() {
   );
   const [customTo, setCustomTo] = useState(
     listing ? listing.availabilityTo.split("T")[0] : "",
+  );
+  const [pinDurationChoice, setPinDurationChoice] = useState(initialPinChoice);
+  const [pinCustomHours, setPinCustomHours] = useState(initialPinCustom);
+  const [visibilityDurationChoice, setVisibilityDurationChoice] = useState(
+    initialVisibilityChoice,
+  );
+  const [visibilityCustomHours, setVisibilityCustomHours] = useState(
+    initialVisibilityCustom,
   );
   const [allowEdits, setAllowEdits] = useState(listing?.allowEdits ?? true);
   const [allowLinkTracking, setAllowLinkTracking] = useState(
@@ -63,6 +124,7 @@ export default function EditListing() {
       ? initialTags
       : [...initialTags, "Must be pre-approved"],
   );
+  const [showVisibilityWarning, setShowVisibilityWarning] = useState(false);
 
   const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
 
@@ -76,6 +138,13 @@ export default function EditListing() {
     }
     return "Availability pending";
   }, [availabilityChoice, customFrom, customTo]);
+  const pinDurationHours =
+    pinDurationChoice === "none" ? null : resolveHours(pinDurationChoice, pinCustomHours, 24);
+  const visibilityDurationHours = resolveHours(
+    visibilityDurationChoice,
+    visibilityCustomHours,
+    24,
+  );
 
   if (!channel || !listing) {
     return (
@@ -85,7 +154,7 @@ export default function EditListing() {
     );
   }
 
-  const handleSave = () => {
+  const applySave = () => {
     const today = new Date();
     const availabilityFrom = availabilityChoice
       ? today
@@ -105,13 +174,30 @@ export default function EditListing() {
       priceTon: Number(priceTon || 0),
       availabilityFrom: availabilityFrom.toISOString(),
       availabilityTo: availabilityTo.toISOString(),
+      pinDurationHours,
+      visibilityDurationHours,
       allowEdits,
       allowLinkTracking,
       contentRulesText,
       tags: ensuredTags,
+      allowPinnedPlacement: pinDurationHours !== null,
     });
 
     navigate(`/channel-manage/${channel.id}`);
+  };
+
+  const handleSave = () => {
+    const hasActiveDeals = channel.activeDeals > 0;
+    const pinChanged = (listing.pinDurationHours ?? null) !== pinDurationHours;
+    const visibilityChanged =
+      (listing.visibilityDurationHours ?? 24) !== visibilityDurationHours;
+
+    if (hasActiveDeals && (pinChanged || visibilityChanged)) {
+      setShowVisibilityWarning(true);
+      return;
+    }
+
+    applySave();
   };
 
   const handleDisable = () => {
@@ -215,6 +301,122 @@ export default function EditListing() {
               </div>
             </div>
           ) : null}
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-foreground">Post visibility requirements</h2>
+            <p className="text-xs text-muted-foreground">
+              Define how long the ad post must remain published to receive payment.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-foreground">Pinned post duration</label>
+            <select
+              value={pinDurationChoice}
+              onChange={(event) => setPinDurationChoice(event.target.value)}
+              className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
+            >
+              {pinDurationOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <div className="flex flex-wrap gap-2">
+              {[6, 12, 24, 48].map((hours) => (
+                <button
+                  key={hours}
+                  type="button"
+                  onClick={() => setPinDurationChoice(String(hours))}
+                  className={`rounded-full border px-3 py-1 text-[11px] ${
+                    pinDurationChoice === String(hours)
+                      ? "border-primary/60 bg-primary/20 text-primary"
+                      : "border-border/60 bg-secondary/60 text-foreground"
+                  }`}
+                >
+                  {hours}h
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setPinDurationChoice("none")}
+                className={`rounded-full border px-3 py-1 text-[11px] ${
+                  pinDurationChoice === "none"
+                    ? "border-primary/60 bg-primary/20 text-primary"
+                    : "border-border/60 bg-secondary/60 text-foreground"
+                }`}
+              >
+                Off
+              </button>
+            </div>
+            {pinDurationChoice === "custom" ? (
+              <input
+                type="number"
+                value={pinCustomHours}
+                onChange={(event) => setPinCustomHours(event.target.value)}
+                placeholder="Custom hours"
+                className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
+              />
+            ) : null}
+            <p className="text-xs text-muted-foreground">
+              If enabled, the ad will stay pinned at the top of your channel.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-foreground">
+              Post visibility duration
+            </label>
+            <select
+              value={visibilityDurationChoice}
+              onChange={(event) => setVisibilityDurationChoice(event.target.value)}
+              className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
+            >
+              {visibilityDurationOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <div className="flex flex-wrap gap-2">
+              {[24, 48, 72, 168].map((hours) => (
+                <button
+                  key={hours}
+                  type="button"
+                  onClick={() => setVisibilityDurationChoice(String(hours))}
+                  className={`rounded-full border px-3 py-1 text-[11px] ${
+                    visibilityDurationChoice === String(hours)
+                      ? "border-primary/60 bg-primary/20 text-primary"
+                      : "border-border/60 bg-secondary/60 text-foreground"
+                  }`}
+                >
+                  {hours === 168 ? "7d" : `${hours}h`}
+                </button>
+              ))}
+            </div>
+            {visibilityDurationChoice === "custom" ? (
+              <input
+                type="number"
+                value={visibilityCustomHours}
+                onChange={(event) => setVisibilityCustomHours(event.target.value)}
+                placeholder="Custom hours"
+                className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
+              />
+            ) : null}
+            <p className="text-xs text-muted-foreground">
+              The post must stay visible in the channel feed without deletion or major edits.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-primary/30 bg-primary/10 px-3 py-3 text-xs text-primary">
+            <p className="font-semibold text-foreground">Escrow verification rule</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Funds will be released only after the post remains published and pinned (if
+              enabled) for the selected duration.
+            </p>
+          </div>
         </section>
 
         <section className="space-y-3">
@@ -406,6 +608,8 @@ export default function EditListing() {
             channel={channel}
             priceTon={Number(priceTon || 0)}
             availabilityLabel={availabilityLabel}
+            pinDurationHours={pinDurationHours}
+            visibilityDurationHours={visibilityDurationHours}
             tags={selectedTags}
           />
         </section>
@@ -418,6 +622,20 @@ export default function EditListing() {
           >
             Save changes
           </button>
+          <AlertDialog open={showVisibilityWarning} onOpenChange={setShowVisibilityWarning}>
+            <AlertDialogContent className="max-w-sm rounded-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Update visibility rules?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Changing visibility rules will only apply to new deals.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={applySave}>Continue</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <button
             type="button"
             onClick={handleDisable}

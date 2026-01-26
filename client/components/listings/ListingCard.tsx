@@ -32,11 +32,23 @@ const formatAvailabilityBadge = (listing: Listing) => {
 const formatListingFormat = (format: Listing["format"]) =>
   format === "POST" ? "Post" : format.toLowerCase();
 
+const formatDuration = (hours: number) => {
+  if (hours >= 168 && hours % 24 === 0) {
+    return `${hours / 24}d`;
+  }
+  return `${hours}h`;
+};
+
 export function ListingCard({ listing, variant = "full", actionSlot }: ListingCardProps) {
   const tags = listing.tags ?? [];
   const maxTags = variant === "compact" ? 3 : tags.length;
   const visibleTags = tags.slice(0, maxTags);
   const remainingTags = Math.max(0, tags.length - visibleTags.length);
+  const visibilityDuration = listing.visibilityDurationHours ?? 24;
+  const pinnedDurationLabel = listing.pinDurationHours
+    ? formatDuration(listing.pinDurationHours)
+    : null;
+  const visibleDurationLabel = formatDuration(visibilityDuration);
 
   return (
     <div
@@ -64,6 +76,17 @@ export function ListingCard({ listing, variant = "full", actionSlot }: ListingCa
         </span>
         <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-foreground">
           {listing.requiresApproval ? "Approval required" : "No approval"}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
+        {pinnedDurationLabel ? (
+          <span className="rounded-full bg-secondary/60 px-2.5 py-1">
+            Pinned: {pinnedDurationLabel}
+          </span>
+        ) : null}
+        <span className="rounded-full bg-secondary/60 px-2.5 py-1">
+          Visible: {visibleDurationLabel}
         </span>
       </div>
 
