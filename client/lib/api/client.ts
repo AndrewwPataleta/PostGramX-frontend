@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/config/env";
+import { API_BASE_URL, API_LOG } from "@/config/env";
 import { AUTH_EXPIRED_EVENT, clearAuthToken, getAuthToken } from "@/lib/api/auth";
 import type { ApiError } from "@/types/api";
 
@@ -75,26 +75,75 @@ const serializePayload = (payload: unknown) => {
   return payload;
 };
 
+const SENSITIVE_KEYS = new Set([
+  "token",
+  "initData",
+  "init_data",
+  "accessToken",
+  "authorization",
+]);
+
+const redactString = (value: string) => {
+  const trimmed = value.trim();
+  const prefix = trimmed.slice(0, 20);
+  return `${prefix}...(redacted)`;
+};
+
+const redactValue = (value: unknown, key?: string): unknown => {
+  if (typeof value === "string") {
+    const normalizedKey = key ? key.toLowerCase() : undefined;
+    const isSensitiveKey = normalizedKey ? SENSITIVE_KEYS.has(normalizedKey) : false;
+    if (isSensitiveKey) {
+      return redactString(value);
+    }
+    if (value.toLowerCase().startsWith("bearer ")) {
+      return `Bearer ${redactString(value.slice(7))}`;
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => redactValue(item));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).reduce<Record<string, unknown>>(
+      (acc, [entryKey, entryValue]) => {
+        acc[entryKey] = redactValue(entryValue, entryKey);
+        return acc;
+      },
+      {}
+    );
+  }
+
+  return value;
+};
+
+const redactHeaders = (headers: Headers) =>
+  redactValue(Object.fromEntries(headers.entries()));
+
 const logRequest = ({
   requestId,
   method,
   url,
   headers,
   payload,
+  timestamp,
 }: {
   requestId: string;
   method: string;
   url: string;
   headers: Headers;
   payload: unknown;
+  timestamp: string;
 }) => {
-  console.info("[api] request", {
-    requestId,
-    method,
-    url,
-    headers: Object.fromEntries(headers.entries()),
-    payload: serializePayload(payload),
-  });
+  if (!API_LOG) {
+    return;
+  }
+  console.info(`[API] -> ${method} ${url} (reqId=${requestId}, t0=${timestamp})`);
+  console.info("Headers:", redactHeaders(headers));
+  if (payload != null) {
+    console.info("Body:", redactValue(serializePayload(payload)));
+  }
 };
 
 const logResponse = ({
@@ -103,20 +152,22 @@ const logResponse = ({
   url,
   status,
   data,
+  durationMs,
 }: {
   requestId: string;
   method: string;
   url: string;
   status: number;
   data: unknown;
+  durationMs: number;
 }) => {
-  console.info("[api] response", {
-    requestId,
-    method,
-    url,
-    status,
-    data,
-  });
+  if (!API_LOG) {
+    return;
+  }
+  console.info(
+    `[API] <- ${status} ${method} ${url} (reqId=${requestId}, ms=${durationMs})`
+  );
+  console.info("Resp:", redactValue(data));
 };
 
 const logError = ({
@@ -125,20 +176,22 @@ const logError = ({
   url,
   status,
   error,
+  durationMs,
 }: {
   requestId: string;
   method: string;
   url: string;
   status: number;
   error: ApiError;
+  durationMs: number;
 }) => {
-  console.error("[api] error", {
-    requestId,
-    method,
-    url,
-    status,
-    error,
-  });
+  if (!API_LOG) {
+    return;
+  }
+  console.error(
+    `[API] !! ${status} ${method} ${url} (reqId=${requestId}, ms=${durationMs})`
+  );
+  console.error("Error:", error.message);
 };
 
 const request = async <T>(
@@ -150,6 +203,8 @@ const request = async <T>(
   const token = getAuthToken();
   const headers = new Headers(config.headers);
   const requestId = createRequestId();
+  const startTime = typeof performance !== "undefined" ? performance.now() : Date.now();
+  const timestamp = new Date().toISOString();
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
@@ -163,7 +218,7 @@ const request = async <T>(
   }
 
   try {
-    logRequest({ requestId, method, url, headers, payload });
+    logRequest({ requestId, method, url, headers, payload, timestamp });
 
     const response = await fetch(`${API_BASE_URL}${url}`, {
       method,
@@ -173,7 +228,16 @@ const request = async <T>(
     });
 
     const data = await parseResponseData<T>(response);
-    logResponse({ requestId, method, url, status: response.status, data });
+    const durationMs =
+      (typeof performance !== "undefined" ? performance.now() : Date.now()) - startTime;
+    logResponse({
+      requestId,
+      method,
+      url,
+      status: response.status,
+      data,
+      durationMs: Math.round(durationMs),
+    });
 
     if (!response.ok) {
       const normalized = normalizeApiError(new Error(response.statusText), data, response.status);
@@ -191,12 +255,15 @@ const request = async <T>(
     };
   } catch (error) {
     const normalizedError = normalizeApiError(error, undefined, (error as ApiError)?.status ?? 0);
+    const durationMs =
+      (typeof performance !== "undefined" ? performance.now() : Date.now()) - startTime;
     logError({
       requestId,
       method,
       url,
       status: normalizedError.status,
       error: normalizedError,
+      durationMs: Math.round(durationMs),
     });
 
     if ((error as ApiError)?.status === 401 && typeof window !== "undefined") {

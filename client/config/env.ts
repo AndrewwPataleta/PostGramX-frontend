@@ -7,3 +7,8 @@ const resolvedBaseUrl =
     : fallbackBaseUrl;
 
 export const API_BASE_URL = resolvedBaseUrl;
+
+export const TELEGRAM_MOCK = import.meta.env.VITE_TELEGRAM_MOCK === "true";
+
+export const API_LOG =
+  import.meta.env.VITE_API_LOG === "true" || Boolean(import.meta.env.DEV);
