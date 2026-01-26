@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { MarketplaceChannel } from "@/features/marketplace/types";
+import type { MarketplaceChannel } from "@/features/marketplace/types/marketplace";
 
 interface ChannelCardProps {
   channel: MarketplaceChannel;

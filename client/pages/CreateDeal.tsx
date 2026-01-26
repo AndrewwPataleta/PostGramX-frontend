@@ -7,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useMarketplaceChannel } from "@/features/marketplace/hooks";
+import { useMarketplaceChannelViewModel } from "@/features/marketplace/viewmodels/useMarketplaceChannelViewModel";
 import { useCreateDeal } from "@/features/deals/hooks";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import ErrorState from "@/components/feedback/ErrorState";
@@ -20,7 +20,11 @@ export default function CreateDeal() {
   const [preferredDate, setPreferredDate] = useState<Date | undefined>();
   const [preferredTime, setPreferredTime] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
-  const { data: channel, isLoading, error, refetch } = useMarketplaceChannel(channelId);
+  const { state: channelState, actions: channelActions } =
+    useMarketplaceChannelViewModel(channelId);
+  const channel = channelState.channel;
+  const isLoading = channelState.isLoading;
+  const error = channelState.error;
   const createDealMutation = useCreateDeal();
   const isSubmitting = createDealMutation.isPending;
 
@@ -65,7 +69,7 @@ export default function CreateDeal() {
           <ErrorState
             message={getErrorMessage(error, "Channel not found")}
             description="Please try again later."
-            onRetry={() => refetch()}
+            onRetry={channelActions.refetch}
           />
         ) : (
           <>
