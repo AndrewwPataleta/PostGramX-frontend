@@ -1,4 +1,4 @@
-import type { MarketplaceChannel } from "./types";
+import type { MarketplaceChannel } from "@/features/marketplace/types/marketplace";
 
 const today = new Date();
 const weekFrom = new Date();

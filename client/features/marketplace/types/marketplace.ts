@@ -14,3 +14,5 @@ export interface MarketplaceChannel {
   description: string;
   listing?: Listing;
 }
+
+export type MarketplaceChannelDto = MarketplaceChannel;

@@ -1,4 +1,4 @@
-import { mockChannels } from "@/features/marketplace/mockChannels";
+import { mockChannels } from "@/features/marketplace/api/mockChannels";
 import type { CreateDealPayload, Deal } from "./types";
 
 const STORAGE_KEY = "flowgramx.mockDeals";
