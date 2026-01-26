@@ -43,6 +43,7 @@ const statusStyles: Record<string, string> = {
 };
 
 const topUpChips = [10, 25, 50];
+const withdrawChips = [5, 10, 20];
 
 export default function Profile() {
   const { user } = useTelegram();
@@ -61,6 +62,13 @@ export default function Profile() {
   );
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
   const [isTopUpSheetOpen, setIsTopUpSheetOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState(18);
+  const [withdrawAmountInput, setWithdrawAmountInput] = useState("18");
+  const [withdrawStatus, setWithdrawStatus] = useState<
+    "idle" | "pending" | "confirmed"
+  >("idle");
+  const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
+  const [isWithdrawSheetOpen, setIsWithdrawSheetOpen] = useState(false);
   const wallet = useTonWallet();
   const [tonConnectUI] = useTonConnectUI();
   const { open: openWalletModal } = useTonConnectModal();
@@ -97,6 +105,14 @@ export default function Profile() {
     const parsed = Number(value);
     if (Number.isFinite(parsed)) {
       setTopUpAmount(parsed);
+    }
+  };
+
+  const updateWithdrawAmount = (value: string) => {
+    setWithdrawAmountInput(value);
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      setWithdrawAmount(parsed);
     }
   };
 
@@ -144,6 +160,49 @@ export default function Profile() {
       );
     } finally {
       setIsTopUpLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!Number.isFinite(withdrawAmount) || withdrawAmount <= 0) {
+      toast.error(t("profile.toastSelectValidWithdraw"));
+      return;
+    }
+    if (withdrawAmount > availableBalance) {
+      toast.error(t("profile.toastInsufficientBalance"));
+      return;
+    }
+
+    setIsWithdrawLoading(true);
+    setWithdrawStatus("pending");
+    try {
+      setAvailableBalance((prev) =>
+        Number(Math.max(prev - withdrawAmount, 0).toFixed(2))
+      );
+      const now = new Date();
+      const timeLabel = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      setTransactions((prev) => [
+        {
+          type: "Withdrawal",
+          amount: `-${withdrawAmount} TON`,
+          status: "Processing",
+          time: `${t("profile.today")} · ${timeLabel}`,
+        },
+        ...prev,
+      ]);
+      setWithdrawStatus("confirmed");
+      setIsWithdrawSheetOpen(false);
+      toast.success(t("profile.toastWithdrawSubmitted"));
+    } catch (err) {
+      setWithdrawStatus("idle");
+      toast.error(
+        err instanceof Error ? err.message : t("profile.toastWithdrawFailed")
+      );
+    } finally {
+      setIsWithdrawLoading(false);
     }
   };
 
@@ -253,7 +312,10 @@ export default function Profile() {
                       <button
                         type="button"
                         className="button-primary rounded-2xl py-2 text-sm bg-primary/80 hover:bg-primary"
-                        onClick={() => setActiveSection("withdraw")}
+                        onClick={() => {
+                          setActiveSection("withdraw");
+                          setIsWithdrawSheetOpen(true);
+                        }}
                       >
                         {t("profile.withdraw")}
                       </button>
@@ -270,7 +332,10 @@ export default function Profile() {
                         <button
                           type="button"
                           className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
-                          onClick={() => setActiveSection("withdraw")}
+                          onClick={() => {
+                            setActiveSection("withdraw");
+                            setIsWithdrawSheetOpen(true);
+                          }}
                         >
                           {t("profile.withdrawNow")}
                         </button>
@@ -490,16 +555,26 @@ export default function Profile() {
                               {t("profile.withdrawFunds")}
                             </p>
                             <p className="text-2xl font-semibold text-foreground">
-                              18.00 TON
+                              {withdrawAmount.toFixed(2)} TON
                             </p>
                           </div>
                           <button
                             type="button"
                             className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
+                            onClick={() =>
+                              updateWithdrawAmount(availableBalance.toFixed(2))
+                            }
                           >
                             {t("profile.max")}
                           </button>
                         </div>
+                        <button
+                          type="button"
+                          className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
+                          onClick={() => setIsWithdrawSheetOpen(true)}
+                        >
+                          {t("profile.changeAmount")}
+                        </button>
                       </div>
 
                       <div className="glass p-4 space-y-2">
@@ -520,15 +595,21 @@ export default function Profile() {
 
                       <button
                         type="button"
-                        className="button-primary rounded-2xl py-4"
+                        className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
+                        onClick={() => setIsWithdrawSheetOpen(true)}
+                        disabled={isWithdrawLoading}
                       >
-                        {t("profile.withdrawAction")}
+                        {isWithdrawLoading
+                          ? t("profile.processing")
+                          : t("profile.withdrawAction")}
                       </button>
 
-                      <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
-                        <CheckCircle2 size={14} />
-                        {t("profile.withdrawSubmitted")}
-                      </div>
+                      {withdrawStatus === "confirmed" ? (
+                        <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
+                          <CheckCircle2 size={14} />
+                          {t("profile.withdrawSubmitted")}
+                        </div>
+                      ) : null}
                     </>
                   )}
 
@@ -631,6 +712,72 @@ export default function Profile() {
               disabled={isTopUpLoading}
             >
               {isTopUpLoading ? "Processing..." : "Top up"}
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
+      <Sheet open={isWithdrawSheetOpen} onOpenChange={setIsWithdrawSheetOpen}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-3xl border-t border-border/60 bg-background/95 px-5 pb-8 pt-6"
+        >
+          <SheetHeader className="text-left">
+            <SheetTitle>{t("profile.withdrawSheetTitle")}</SheetTitle>
+            <SheetDescription>
+              {t("profile.withdrawSheetDescription")}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-5 space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">
+                {t("profile.tonAmount")}
+              </label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={withdrawAmountInput}
+                  onChange={(event) => updateWithdrawAmount(event.target.value)}
+                  className="h-12 rounded-2xl text-lg"
+                  placeholder="0.00"
+                />
+                <span className="text-sm font-medium text-muted-foreground">TON</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {withdrawChips.map((amount) => (
+                <button
+                  key={amount}
+                  type="button"
+                  onClick={() => updateWithdrawAmount(amount.toString())}
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    withdrawAmount === amount
+                      ? "border-primary/60 bg-primary/20 text-primary"
+                      : "border-primary/40 bg-primary/10 text-primary/80"
+                  }`}
+                >
+                  {amount} TON
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => updateWithdrawAmount(availableBalance.toFixed(2))}
+                className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
+              >
+                {t("profile.max")}
+              </button>
+            </div>
+            <button
+              type="button"
+              className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
+              onClick={handleWithdraw}
+              disabled={isWithdrawLoading}
+            >
+              {isWithdrawLoading
+                ? t("profile.processing")
+                : t("profile.withdrawAction")}
             </button>
           </div>
         </SheetContent>
