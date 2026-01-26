@@ -56,6 +56,91 @@ const parseResponseData = async <T>(response: Response): Promise<T> => {
   return (await response.text()) as T;
 };
 
+const serializePayload = (payload: unknown) => {
+  if (payload instanceof FormData) {
+    return Array.from(payload.entries()).reduce<Record<string, unknown>>(
+      (acc, [key, value]) => {
+        if (key in acc) {
+          const existing = acc[key];
+          acc[key] = Array.isArray(existing) ? [...existing, value] : [existing, value];
+        } else {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {}
+    );
+  }
+
+  return payload;
+};
+
+const logRequest = ({
+  requestId,
+  method,
+  url,
+  headers,
+  payload,
+}: {
+  requestId: string;
+  method: string;
+  url: string;
+  headers: Headers;
+  payload: unknown;
+}) => {
+  console.info("[api] request", {
+    requestId,
+    method,
+    url,
+    headers: Object.fromEntries(headers.entries()),
+    payload: serializePayload(payload),
+  });
+};
+
+const logResponse = ({
+  requestId,
+  method,
+  url,
+  status,
+  data,
+}: {
+  requestId: string;
+  method: string;
+  url: string;
+  status: number;
+  data: unknown;
+}) => {
+  console.info("[api] response", {
+    requestId,
+    method,
+    url,
+    status,
+    data,
+  });
+};
+
+const logError = ({
+  requestId,
+  method,
+  url,
+  status,
+  error,
+}: {
+  requestId: string;
+  method: string;
+  url: string;
+  status: number;
+  error: ApiError;
+}) => {
+  console.error("[api] error", {
+    requestId,
+    method,
+    url,
+    status,
+    error,
+  });
+};
+
 const request = async <T>(
   method: string,
   url: string,
@@ -64,12 +149,13 @@ const request = async <T>(
 ): Promise<ApiClientResponse<T>> => {
   const token = getAuthToken();
   const headers = new Headers(config.headers);
+  const requestId = createRequestId();
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  headers.set("X-Request-Id", createRequestId());
+  headers.set("X-Request-Id", requestId);
 
   const isFormData = payload instanceof FormData;
   if (payload != null && !isFormData) {
@@ -77,6 +163,8 @@ const request = async <T>(
   }
 
   try {
+    logRequest({ requestId, method, url, headers, payload });
+
     const response = await fetch(`${API_BASE_URL}${url}`, {
       method,
       headers,
@@ -85,6 +173,7 @@ const request = async <T>(
     });
 
     const data = await parseResponseData<T>(response);
+    logResponse({ requestId, method, url, status: response.status, data });
 
     if (!response.ok) {
       const normalized = normalizeApiError(new Error(response.statusText), data, response.status);
@@ -101,12 +190,21 @@ const request = async <T>(
       headers: response.headers,
     };
   } catch (error) {
+    const normalizedError = normalizeApiError(error, undefined, (error as ApiError)?.status ?? 0);
+    logError({
+      requestId,
+      method,
+      url,
+      status: normalizedError.status,
+      error: normalizedError,
+    });
+
     if ((error as ApiError)?.status === 401 && typeof window !== "undefined") {
       clearAuthToken();
       window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
     }
 
-    throw normalizeApiError(error, undefined, (error as ApiError)?.status ?? 0);
+    throw normalizedError;
   }
 };
 
