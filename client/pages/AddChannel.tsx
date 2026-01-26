@@ -71,7 +71,7 @@ export default function AddChannel() {
         ) : (
           <div className="space-y-2">
             <button
-              onClick={() => navigate("/channel-manage/1/listings/new")}
+              onClick={() => navigate("/channel-manage/1/listings/create")}
               className="button-primary text-base font-semibold"
             >
               Create listing

@@ -1,5 +1,5 @@
 import { API_BASE_URL, API_LOG } from "@/config/env";
-import { AUTH_EXPIRED_EVENT, clearAuthToken, getAuthToken } from "@/lib/api/auth";
+import { AUTH_EXPIRED_EVENT, getAuthToken } from "@/lib/api/auth";
 import type { ApiError } from "@/types/api";
 
 type ApiClientResponse<T> = {
@@ -194,6 +194,26 @@ const logError = ({
   console.error("Error:", error.message);
 };
 
+let hasDispatchedAuthExpired = false;
+let authExpiredTimeout: number | null = null;
+
+const dispatchAuthExpired = () => {
+  if (typeof window === "undefined" || hasDispatchedAuthExpired) {
+    return;
+  }
+  hasDispatchedAuthExpired = true;
+  window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+
+  if (authExpiredTimeout) {
+    window.clearTimeout(authExpiredTimeout);
+  }
+
+  authExpiredTimeout = window.setTimeout(() => {
+    hasDispatchedAuthExpired = false;
+    authExpiredTimeout = null;
+  }, 2000);
+};
+
 const request = async <T>(
   method: string,
   url: string,
@@ -241,9 +261,8 @@ const request = async <T>(
 
     if (!response.ok) {
       const normalized = normalizeApiError(new Error(response.statusText), data, response.status);
-      if (normalized.status === 401 && typeof window !== "undefined") {
-        clearAuthToken();
-        window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+      if (normalized.status === 401) {
+        dispatchAuthExpired();
       }
       throw normalized;
     }
@@ -266,9 +285,8 @@ const request = async <T>(
       durationMs: Math.round(durationMs),
     });
 
-    if ((error as ApiError)?.status === 401 && typeof window !== "undefined") {
-      clearAuthToken();
-      window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+    if ((error as ApiError)?.status === 401) {
+      dispatchAuthExpired();
     }
 
     throw normalizedError;

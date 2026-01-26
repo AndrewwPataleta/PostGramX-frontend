@@ -181,7 +181,7 @@ export default function ChannelDetailsManage() {
                     Manage
                   </button>
                   <Link
-                    to={`/channel-manage/${channel.id}/listings/new`}
+                    to={`/channel-manage/${channel.id}/listings/create`}
                     className="text-xs font-semibold text-primary"
                   >
                     Create listing
@@ -207,7 +207,7 @@ export default function ChannelDetailsManage() {
                     Create your first listing to start receiving offers.
                   </p>
                   <Link
-                    to={`/channel-manage/${channel.id}/listings/new`}
+                    to={`/channel-manage/${channel.id}/listings/create`}
                     className="mt-3 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
                   >
                     Create listing
@@ -304,7 +304,7 @@ export default function ChannelDetailsManage() {
             )}
 
             <Link
-              to={`/channel-manage/${channel.id}/listings/new`}
+              to={`/channel-manage/${channel.id}/listings/create`}
               className="w-full button-primary py-3 text-base font-semibold text-center"
             >
               Create Listing

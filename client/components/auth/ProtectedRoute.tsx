@@ -7,9 +7,9 @@ type ProtectedRouteProps = {
 };
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isReady } = useAuth();
+  const { isReady, user } = useAuth();
 
-  if (!isReady) {
+  if (!isReady || !user) {
     return <Navigate to="/splash" replace />;
   }
 

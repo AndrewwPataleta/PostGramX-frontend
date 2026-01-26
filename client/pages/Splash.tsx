@@ -6,18 +6,21 @@ import { TELEGRAM_MOCK } from "@/config/env";
 
 const Splash = () => {
   const navigate = useNavigate();
-  const { initSession, retry, isLoading, isReady, error } = useAuth();
+  const { initSession, retry, isLoading, isReady, error, user } = useAuth();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (isReady && user) {
+      return;
+    }
     void initSession();
-  }, [initSession]);
+  }, [initSession, isReady, user]);
 
   useEffect(() => {
-    if (isReady) {
+    if (isReady && user) {
       navigate("/marketplace", { replace: true });
     }
-  }, [isReady, navigate]);
+  }, [isReady, navigate, user]);
 
   useEffect(() => {
     if (!copied) {

@@ -1,13 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FlowLayout from "@/components/add-channel/FlowLayout";
 
 export default function AddChannelStep1() {
   const [username, setUsername] = useState("");
+  const navigate = useNavigate();
 
   const handleContinue = () => {
     if (username.trim()) {
-      // Navigate to step 2
-      window.location.href = "/add-channel-step2";
+      navigate("/add-channel/step-2");
     }
   };
 

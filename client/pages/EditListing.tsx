@@ -183,7 +183,7 @@ export default function EditListing() {
       allowPinnedPlacement: pinDurationHours !== null,
     });
 
-    navigate(`/channel-manage/${channel.id}`);
+    navigate(`/channel-manage/${channel.id}/overview`);
   };
 
   const handleSave = () => {
@@ -202,12 +202,12 @@ export default function EditListing() {
 
   const handleDisable = () => {
     disableListing(listing.id);
-    navigate(`/channel-manage/${channel.id}`);
+    navigate(`/channel-manage/${channel.id}/overview`);
   };
 
   const handleEnable = () => {
     enableListing(listing.id);
-    navigate(`/channel-manage/${channel.id}`);
+    navigate(`/channel-manage/${channel.id}/overview`);
   };
 
   return (
