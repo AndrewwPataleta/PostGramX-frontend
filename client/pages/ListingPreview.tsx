@@ -1,5 +1,4 @@
-import { ArrowLeft } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
 import { managedChannelData } from "@/features/channels/managedChannels";
 import { getActiveListingForChannel, isMockListingsEnabled } from "@/features/listings/mockStore";
@@ -29,18 +28,6 @@ export default function ListingPreview() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="sticky top-0 bg-card/80 backdrop-blur-glass border-b border-border/50 z-10">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Link to={`/channel-manage/${channel.id}`}>
-            <ArrowLeft size={24} className="text-foreground" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-foreground">Listing preview</h1>
-            <p className="text-xs text-muted-foreground">How your offer appears in Marketplace</p>
-          </div>
-        </div>
-      </div>
-
       <div className="px-4 py-6 space-y-4">
         {mockModeEnabled ? (
           <div className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary w-fit">

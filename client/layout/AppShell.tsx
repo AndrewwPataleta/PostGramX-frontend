@@ -1,22 +1,20 @@
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Zap, Store, TrendingUp, User } from "lucide-react";
-import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { Store, TrendingUp, User, Zap } from "lucide-react";
 import WalletConnectBanner from "@/components/wallet/WalletConnectBanner";
+import TopToolbar from "@/components/TopToolbar";
 import { useLanguage } from "@/i18n/LanguageProvider";
 
-interface LayoutProps {
-  children: ReactNode;
-}
+const mainNavPaths = ["/marketplace", "/deals", "/channels", "/profile"];
 
-const Layout = ({ children }: LayoutProps) => {
+const AppShell = () => {
   const location = useLocation();
   const mainRef = useRef<HTMLDivElement | null>(null);
   const scrollPositionsRef = useRef<Map<string, number>>(new Map());
   const lastPathRef = useRef(location.pathname);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const { t } = useLanguage();
-  const mainNavPaths = ["/marketplace", "/deals", "/channels", "/profile"];
+
   const isMainNavRoute = mainNavPaths.includes(location.pathname);
   const shouldHideBottomNav =
     !isMainNavRoute || (location.pathname === "/marketplace" && isKeyboardOpen);
@@ -24,7 +22,7 @@ const Layout = ({ children }: LayoutProps) => {
   const bottomNavHeight = shouldHideBottomNav ? 0 : 104 + bottomNavOffset;
   const showWalletBanner = useMemo(
     () => ["/", "/deals", "/channels"].includes(location.pathname),
-    [location.pathname]
+    [location.pathname],
   );
 
   const isActive = (path: string) =>
@@ -97,14 +95,26 @@ const Layout = ({ children }: LayoutProps) => {
     };
   }, [location.pathname]);
 
+  const shellStyle: CSSProperties = {
+    "--bottom-nav-height": `${bottomNavHeight}px`,
+  } as CSSProperties;
+
+  const contentStyle: CSSProperties = {
+    paddingTop:
+      "calc(max(var(--tg-safe-top), var(--tg-content-safe-area-inset-top)) + var(--app-toolbar-height))",
+    paddingBottom:
+      "calc(max(var(--tg-safe-bottom), var(--tg-content-safe-area-inset-bottom)) + var(--bottom-nav-height))",
+    paddingLeft: "max(var(--tg-safe-left), var(--tg-content-safe-area-inset-left))",
+    paddingRight: "max(var(--tg-safe-right), var(--tg-content-safe-area-inset-right))",
+  };
+
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SafeAreaLayout bottomNavHeight={bottomNavHeight}>
-        <main className="flex-1 overflow-y-auto touch-pan-y" ref={mainRef}>
-          {showWalletBanner ? <WalletConnectBanner /> : null}
-          {children}
-        </main>
-      </SafeAreaLayout>
+    <div className="flex h-full flex-col bg-background" style={shellStyle}>
+      <TopToolbar />
+      <main className="flex-1 overflow-y-auto touch-pan-y" ref={mainRef} style={contentStyle}>
+        {showWalletBanner ? <WalletConnectBanner /> : null}
+        <Outlet />
+      </main>
 
       <nav
         className={`fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+8px)] left-0 right-0 z-50 px-4 ${
@@ -137,4 +147,4 @@ const Layout = ({ children }: LayoutProps) => {
   );
 };
 
-export default Layout;
+export default AppShell;

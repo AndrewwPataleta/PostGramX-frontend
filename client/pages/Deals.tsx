@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import DealCard from "@/components/deals/DealCard";
 import { Link, useNavigate } from "react-router-dom";
 import { formatRelativeTime } from "@/features/deals/time";
@@ -10,8 +10,6 @@ import { getErrorMessage } from "@/lib/api/errors";
 
 export default function Deals() {
   const [activeTab, setActiveTab] = useState("active");
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const headerRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const {
     data: deals = [],
@@ -20,65 +18,33 @@ export default function Deals() {
     refetch,
   } = useDeals(activeTab as "active" | "pending" | "completed");
 
-  useEffect(() => {
-    const header = headerRef.current;
-    if (!header) {
-      return;
-    }
-
-    const updateHeaderHeight = () => {
-      setHeaderHeight(header.offsetHeight);
-    };
-
-    updateHeaderHeight();
-
-    const observer = new ResizeObserver(() => updateHeaderHeight());
-    observer.observe(header);
-    window.addEventListener("resize", updateHeaderHeight);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateHeaderHeight);
-    };
-  }, []);
-
   const currentDeals = deals;
   const showEmptyState = !isLoading && currentDeals.length === 0 && !error;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div
-        ref={headerRef}
-        className="fixed left-0 right-0 z-30 border-b border-border/50 bg-background/90 backdrop-blur-glass"
-        style={{
-          top: "calc(var(--tg-content-safe-area-inset-top) + var(--wallet-banner-height, 0px))",
-        }}
-      >
-        <div className="mx-auto w-full max-w-2xl">
-          <div className="px-4 py-3">
-            <h1 className="text-base font-semibold text-foreground">Deals</h1>
-          </div>
-          <div className="border-t border-border/50">
-            <div className="px-4 flex gap-6 bg-background/90 backdrop-blur-glass">
-              {(["active", "pending", "completed"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`py-3 font-medium text-sm border-b-2 transition-colors ${
-                    activeTab === tab
-                      ? "text-primary border-b-primary"
-                      : "text-muted-foreground border-b-transparent"
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
+      <div className="px-4 pt-4">
+        <h1 className="text-base font-semibold text-foreground">Deals</h1>
+        <div className="mt-3 border-t border-border/50">
+          <div className="flex gap-6 bg-background/90 backdrop-blur-glass">
+            {(["active", "pending", "completed"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-3 font-medium text-sm border-b-2 transition-colors ${
+                  activeTab === tab
+                    ? "text-primary border-b-primary"
+                    : "text-muted-foreground border-b-transparent"
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div style={{ paddingTop: headerHeight }} className="px-4 py-6 space-y-4">
+      <div className="px-4 py-6 space-y-4">
         {isLoading ? (
           <LoadingSkeleton items={3} />
         ) : error ? (

@@ -11,7 +11,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-route
 import { TelegramProvider, useTelegramContext } from "@/components/telegram/TelegramProvider";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
-import Layout from "./components/Layout";
+import AppShell from "@/layout/AppShell";
 import RequireAuth from "@/components/auth/RequireAuth";
 import Marketplace from "./pages/Marketplace";
 import ChannelDetails from "./pages/ChannelDetails";
@@ -87,8 +87,8 @@ const App = () => {
               {showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}
               <BrowserRouter>
                 <NavigationHaptics />
-                <Layout>
-                  <Routes>
+                <Routes>
+                  <Route element={<AppShell />}>
                     <Route path="/" element={<Navigate to="/marketplace" replace />} />
                     <Route path="/marketplace" element={<Marketplace />} />
                     <Route path="/marketplace/channels/:channelId" element={<ChannelDetails />} />
@@ -222,8 +222,8 @@ const App = () => {
                     />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Layout>
+                  </Route>
+                </Routes>
               </BrowserRouter>
             </TooltipProvider>
           </LanguageProvider>

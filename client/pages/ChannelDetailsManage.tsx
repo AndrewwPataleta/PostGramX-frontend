@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, BarChart3, Edit, Power, Plus } from "lucide-react";
+import { BarChart3, Edit, Power, Plus } from "lucide-react";
 import { Sparkline } from "@/components/Sparkline";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { managedChannelData } from "@/features/channels/managedChannels";
@@ -55,19 +55,6 @@ export default function ChannelDetailsManage() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Header with back button */}
-      <div className="sticky top-0 bg-card/80 backdrop-blur-glass border-b border-border/50 z-10">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Link to="/channels">
-            <ArrowLeft size={24} className="text-foreground" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-foreground">{channel.name}</h1>
-            <p className="text-xs text-muted-foreground">Channel management</p>
-          </div>
-        </div>
-      </div>
-
       {/* Channel Header */}
       <div className="px-4 py-6 bg-gradient-to-b from-card/50 to-transparent">
         <div className="flex items-center gap-4 mb-4">
@@ -87,7 +74,7 @@ export default function ChannelDetailsManage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border/50 sticky top-14 z-9 bg-card/80 backdrop-blur-glass px-4">
+      <div className="border-b border-border/50 bg-card/80 backdrop-blur-glass px-4">
         <div className="flex gap-6">
           {[
             { id: "overview", label: "Overview" },

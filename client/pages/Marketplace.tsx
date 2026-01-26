@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import ChannelCard from "@/components/marketplace/ChannelCard";
 import { ActiveFiltersChips } from "@/components/ActiveFiltersChips";
@@ -25,8 +25,6 @@ export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const headerRef = useRef<HTMLDivElement | null>(null);
   const {
     data: channels = [],
     isLoading,
@@ -41,28 +39,6 @@ export default function Marketplace() {
       unsubscribe();
     };
   }, [refetch]);
-
-  useEffect(() => {
-    const header = headerRef.current;
-    if (!header) {
-      return;
-    }
-
-    const updateHeaderHeight = () => {
-      setHeaderHeight(header.offsetHeight);
-    };
-
-    updateHeaderHeight();
-
-    const observer = new ResizeObserver(() => updateHeaderHeight());
-    observer.observe(header);
-    window.addEventListener("resize", updateHeaderHeight);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateHeaderHeight);
-    };
-  }, []);
 
   const filteredChannels = useMemo(() => {
     return channels.filter((channel) => {
@@ -137,39 +113,31 @@ export default function Marketplace() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div
-        ref={headerRef}
-        className="fixed left-0 right-0 z-30 border-b border-border/50 bg-background/90 backdrop-blur-glass"
-        style={{
-          top: "calc(var(--tg-content-safe-area-inset-top) + var(--wallet-banner-height, 0px))",
-        }}
-      >
-        <div className="mx-auto w-full max-w-2xl px-4 py-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-base font-semibold text-foreground">Marketplace</h1>
-            <button
-              type="button"
-              onClick={() => setIsFilterOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
-            >
-              <SlidersHorizontal size={14} />
-              Filters
-            </button>
-          </div>
-          <div className="mt-3 flex items-center gap-2 rounded-2xl border border-border/60 bg-card px-3 py-2">
-            <Search size={16} className="text-muted-foreground" />
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search channels or @username"
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            />
-          </div>
+      <div className="px-4 pt-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-base font-semibold text-foreground">Marketplace</h1>
+          <button
+            type="button"
+            onClick={() => setIsFilterOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
+          >
+            <SlidersHorizontal size={14} />
+            Filters
+          </button>
+        </div>
+        <div className="flex items-center gap-2 rounded-2xl border border-border/60 bg-card px-3 py-2">
+          <Search size={16} className="text-muted-foreground" />
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search channels or @username"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+          />
         </div>
         <ActiveFiltersChips filters={filters} onRemoveFilter={handleRemoveFilter} />
       </div>
 
-      <div style={{ paddingTop: headerHeight }} className="px-4 py-6 space-y-3">
+      <div className="px-4 py-6 space-y-3">
         {isLoading
           ? Array.from({ length: 5 }).map((_, index) => (
               <div key={`marketplace-skeleton-${index}`} className="rounded-2xl border border-border/50 bg-card/80 p-4">
