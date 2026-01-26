@@ -16,6 +16,9 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         return `Available next ${diffDays} day${diffDays === 1 ? "" : "s"}`;
       })()
     : null;
+  const listingTags = channel.listing?.tags ?? [];
+  const visibleTags = listingTags.slice(0, 3);
+  const remainingTags = listingTags.length - visibleTags.length;
 
   return (
     <Link
@@ -43,6 +46,20 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             <span>·</span>
             <span>{channel.language}</span>
           </div>
+          {visibleTags.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-foreground">
+              {visibleTags.map((tag) => (
+                <span key={tag} className="rounded-full bg-secondary/60 px-2.5 py-1">
+                  {tag}
+                </span>
+              ))}
+              {remainingTags > 0 ? (
+                <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-muted-foreground">
+                  +{remainingTags} more
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">From</p>
