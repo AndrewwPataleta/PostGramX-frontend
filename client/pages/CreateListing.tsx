@@ -133,13 +133,29 @@ export default function CreateListing() {
             <h2 className="text-sm font-semibold text-foreground">Price per post</h2>
             <p className="text-xs text-muted-foreground">Price shown publicly in Marketplace.</p>
           </div>
-          <input
-            type="number"
-            value={priceTon}
-            onChange={(event) => setPriceTon(event.target.value)}
-            placeholder="Example: 25 TON"
-            className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="number"
+              value={priceTon}
+              onChange={(event) => setPriceTon(event.target.value)}
+              placeholder="Example: 25 TON"
+              className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground sm:flex-1"
+            />
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card/60 px-2 py-2 text-xs text-muted-foreground sm:w-auto">
+              <button
+                type="button"
+                className="rounded-lg bg-primary/20 px-3 py-1 text-xs font-semibold text-primary"
+              >
+                TON
+              </button>
+              <div className="rounded-lg border border-border/60 bg-muted/60 px-3 py-1 text-center text-[11px] font-semibold text-muted-foreground">
+                USD
+                <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                  Coming soon
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-2">
             {[10, 25, 50].map((value) => (
               <button
