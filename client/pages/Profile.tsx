@@ -13,7 +13,12 @@ import { useTelegram } from "@/hooks/use-telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buildTonConnectTransaction, buildTonTransferLink } from "@/features/deals/payment";
 import { useState } from "react";
-import { useTonConnectModal, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
+import {
+  TonConnectButton,
+  useTonConnectModal,
+  useTonConnectUI,
+  useTonWallet,
+} from "@tonconnect/ui-react";
 import { toast } from "sonner";
 
 const initialTransactions = [
@@ -167,10 +172,11 @@ export default function Profile() {
         <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
           <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
             <div className="relative rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-border/40">
+              <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-foreground">Wallet Summary</p>
+                <TonConnectButton className="shrink-0" />
               </div>
-              <div className="px-5 py-5 space-y-4 pb-20">
+              <div className="px-5 py-5 space-y-4 pb-6">
                 <div className="glass p-4 space-y-3">
                   <p className="text-xs text-muted-foreground">Balance</p>
                   <div className="space-y-2">
@@ -190,14 +196,14 @@ export default function Profile() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    className="button-primary rounded-2xl py-4"
+                    className="button-primary rounded-2xl py-2 text-sm"
                     onClick={() => setActiveSection("topup")}
                   >
                     Top Up
                   </button>
                   <button
                     type="button"
-                    className="button-primary rounded-2xl py-4 bg-primary/80 hover:bg-primary"
+                    className="button-primary rounded-2xl py-2 text-sm bg-primary/80 hover:bg-primary"
                     onClick={() => setActiveSection("withdraw")}
                   >
                     Withdraw
@@ -221,28 +227,6 @@ export default function Profile() {
                   </p>
                 </div>
 
-                <div className="glass p-4">
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Security Indicators
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {["TON Network", "On-chain verification", "Automated escrow"].map(
-                      (item) => (
-                        <span
-                          key={item}
-                          className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground"
-                        >
-                          {item}
-                        </span>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
-                <div className="rounded-2xl border border-border/40 bg-card/80 px-4 py-3 text-xs text-muted-foreground shadow-sm">
-                  Wallet actions stay visible above the Telegram safe area.
-                </div>
               </div>
             </div>
           </div>
