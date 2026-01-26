@@ -237,8 +237,6 @@ export default function Profile() {
                   <div className="flex flex-wrap items-center gap-2">
                     {[
                       { id: "history", label: "History", icon: History },
-                      { id: "topup", label: "Top Up", icon: ArrowDownLeft },
-                      { id: "withdraw", label: "Withdraw", icon: ArrowUpRight },
                       { id: "escrow", label: "Escrow", icon: Lock },
                     ].map(({ id, label, icon: Icon }) => (
                       <button
