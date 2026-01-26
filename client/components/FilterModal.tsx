@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
+import { flattenTagOptions, listingTagCategories } from "@/features/listings/tagOptions";
 
 export interface FilterState {
   priceRange: [number, number];
@@ -8,6 +9,7 @@ export interface FilterState {
   engagementRange?: [number, number];
   languages: string[];
   categories: string[];
+  tags: string[];
   verifiedOnly: boolean;
   dateRange: [string, string];
 }
@@ -53,9 +55,13 @@ export const FilterModal = ({
     engagement: false,
     language: false,
     category: false,
+    tags: false,
     availability: false,
     verification: false,
   });
+  const [tagQuery, setTagQuery] = useState("");
+  const [customTag, setCustomTag] = useState("");
+  const tagOptions = flattenTagOptions(listingTagCategories);
 
   const pricePresets: Array<{ label: string; range: [number, number] }> = [
     { label: "Any", range: [0, 10] },
@@ -177,6 +183,7 @@ export const FilterModal = ({
       engagementRange: [0, 100],
       languages: [],
       categories: [],
+      tags: [],
       verifiedOnly: false,
       dateRange: ["", ""],
     });
@@ -529,6 +536,108 @@ export const FilterModal = ({
                       {cat}
                     </button>
                   ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Tags Section */}
+          <div className="space-y-3">
+            <button
+              onClick={() => toggleSection("tags")}
+              className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
+            >
+              <span className="font-semibold text-foreground">Tags</span>
+              <ChevronDown
+                size={18}
+                className={`text-muted-foreground transition-transform ${
+                  expandedSections.tags ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {expandedSections.tags && (
+              <div className="px-3 pb-3 space-y-3">
+                <input
+                  type="text"
+                  value={tagQuery}
+                  onChange={(event) => setTagQuery(event.target.value)}
+                  placeholder="Search tags"
+                  className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customTag}
+                    onChange={(event) => setCustomTag(event.target.value)}
+                    placeholder="Add custom tag"
+                    className="flex-1 rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextTag = customTag.trim();
+                      if (!nextTag) {
+                        return;
+                      }
+                      setLocalFilters((prev) => ({
+                        ...prev,
+                        tags: prev.tags.includes(nextTag) ? prev.tags : [...prev.tags, nextTag],
+                      }));
+                      setCustomTag("");
+                    }}
+                    className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"
+                  >
+                    Add
+                  </button>
+                </div>
+                {localFilters.tags.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {localFilters.tags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() =>
+                          setLocalFilters((prev) => ({
+                            ...prev,
+                            tags: prev.tags.filter((item) => item !== tag),
+                          }))
+                        }
+                        className="rounded-full bg-secondary px-3 py-1 text-xs text-foreground hover:bg-secondary/80"
+                      >
+                        {tag} ×
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  {tagOptions
+                    .filter((tag) =>
+                      tag.toLowerCase().includes(tagQuery.trim().toLowerCase()),
+                    )
+                    .map((tag) => {
+                      const isSelected = localFilters.tags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() =>
+                            setLocalFilters((prev) => ({
+                              ...prev,
+                              tags: isSelected
+                                ? prev.tags.filter((item) => item !== tag)
+                                : [...prev.tags, tag],
+                            }))
+                          }
+                          className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                            isSelected
+                              ? "border-primary/60 bg-primary/20 text-primary"
+                              : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
                 </div>
               </div>
             )}

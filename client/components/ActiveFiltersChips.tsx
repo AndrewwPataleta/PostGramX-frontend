@@ -21,6 +21,7 @@ export const ActiveFiltersChips = ({
     (filters as any).engagementRange?.[1] < 100 ||
     filters.languages.length > 0 ||
     filters.categories.length > 0 ||
+    filters.tags.length > 0 ||
     filters.verifiedOnly;
 
   if (!hasActiveFilters) return null;
@@ -101,6 +102,17 @@ export const ActiveFiltersChips = ({
             className="inline-flex items-center gap-1.5 bg-accent/20 hover:bg-accent/30 text-accent px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
           >
             {cat}
+            <X size={14} />
+          </button>
+        ))}
+
+        {filters.tags.map((tag) => (
+          <button
+            key={tag}
+            onClick={() => onRemoveFilter("tags", tag)}
+            className="inline-flex items-center gap-1.5 bg-secondary/70 hover:bg-secondary text-foreground px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+          >
+            {tag}
             <X size={14} />
           </button>
         ))}

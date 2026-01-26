@@ -14,6 +14,7 @@ const defaultFilters: FilterState = {
   engagementRange: [0, 100],
   languages: [],
   categories: [],
+  tags: [],
   verifiedOnly: false,
   dateRange: ["", ""],
 };
@@ -98,6 +99,9 @@ export default function Marketplace() {
       const matchesLanguage =
         filters.languages.length === 0 || filters.languages.includes(channel.language);
       const matchesVerified = !filters.verifiedOnly || channel.verified;
+      const channelTags = channel.listing?.tags ?? [];
+      const matchesTags =
+        filters.tags.length === 0 || channelTags.some((tag) => filters.tags.includes(tag));
 
       return (
         matchesQuery &&
@@ -106,7 +110,8 @@ export default function Marketplace() {
         matchesViews &&
         matchesEngagement &&
         matchesLanguage &&
-        matchesVerified
+        matchesVerified &&
+        matchesTags
       );
     });
   }, [channels, filters, searchQuery]);
@@ -133,6 +138,11 @@ export default function Marketplace() {
           return {
             ...prev,
             categories: prev.categories.filter((cat) => cat !== value),
+          };
+        case "tags":
+          return {
+            ...prev,
+            tags: prev.tags.filter((tag) => tag !== value),
           };
         default:
           return prev;

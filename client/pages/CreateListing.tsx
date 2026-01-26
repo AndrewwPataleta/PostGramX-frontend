@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, Info } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
@@ -6,44 +6,21 @@ import { managedChannelData } from "@/features/channels/managedChannels";
 import { createListing, isMockListingsEnabled } from "@/features/listings/mockStore";
 import { listingTagCategories } from "@/features/listings/tagOptions";
 
-const availabilityOptions = [
-  { label: "1 day", days: 1 },
-  { label: "3 days", days: 3 },
-  { label: "7 days", days: 7 },
-  { label: "14 days", days: 14 },
-  { label: "Custom range", days: null },
-];
-
 export default function CreateListing() {
   const { id } = useParams<{ id: string }>();
   const channel = id ? managedChannelData[id] : null;
   const navigate = useNavigate();
   const [priceTon, setPriceTon] = useState("25");
-  const [availabilityChoice, setAvailabilityChoice] = useState(7);
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
   const [allowEdits, setAllowEdits] = useState(true);
   const [allowLinkTracking, setAllowLinkTracking] = useState(true);
   const [contentRulesText, setContentRulesText] = useState("");
   const [tagQuery, setTagQuery] = useState("");
   const [customTag, setCustomTag] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>(["Must be pre-approved"]);
+  const availabilityDays = 7;
 
   const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
-
-  const availabilityLabel = useMemo(() => {
-    if (availabilityChoice) {
-      return `Available next ${availabilityChoice} day${availabilityChoice === 1 ? "" : "s"}`;
-    }
-    if (customFrom && customTo) {
-      const from = new Date(customFrom);
-      const to = new Date(customTo);
-      const diffMs = to.getTime() - from.getTime();
-      const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-      return `Available ${diffDays} days`;
-    }
-    return "Availability pending";
-  }, [availabilityChoice, customFrom, customTo]);
+  const availabilityLabel = `Available next ${availabilityDays} days`;
 
   if (!channel) {
     return (
@@ -55,16 +32,8 @@ export default function CreateListing() {
 
   const handlePublish = () => {
     const today = new Date();
-    const availabilityFrom = availabilityChoice
-      ? today
-      : customFrom
-        ? new Date(customFrom)
-        : today;
-    const availabilityTo = availabilityChoice
-      ? new Date(today.getTime() + availabilityChoice * 24 * 60 * 60 * 1000)
-      : customTo
-        ? new Date(customTo)
-        : today;
+    const availabilityFrom = today;
+    const availabilityTo = new Date(today.getTime() + availabilityDays * 24 * 60 * 60 * 1000);
     const ensuredTags = selectedTags.includes("Must be pre-approved")
       ? selectedTags
       : [...selectedTags, "Must be pre-approved"];
@@ -97,7 +66,7 @@ export default function CreateListing() {
           <div>
             <h1 className="font-semibold text-foreground">Create Ad Listing</h1>
             <p className="text-xs text-muted-foreground">
-              Set price and availability for advertisers
+              Set pricing and conditions for advertisers
             </p>
           </div>
         </div>
@@ -152,51 +121,6 @@ export default function CreateListing() {
               </button>
             ))}
           </div>
-        </section>
-
-        <section className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Availability</h2>
-            <p className="text-xs text-muted-foreground">
-              Advertisers will only be able to schedule posts inside this range.
-            </p>
-          </div>
-          <select
-            value={availabilityChoice}
-            onChange={(event) => setAvailabilityChoice(Number(event.target.value))}
-            className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
-          >
-            {availabilityOptions.map((option) => (
-              <option
-                key={option.label}
-                value={option.days ?? 0}
-              >
-                Available for next: {option.label}
-              </option>
-            ))}
-          </select>
-          {availabilityChoice === 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">From date</label>
-                <input
-                  type="date"
-                  value={customFrom}
-                  onChange={(event) => setCustomFrom(event.target.value)}
-                  className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">To date</label>
-                <input
-                  type="date"
-                  value={customTo}
-                  onChange={(event) => setCustomTo(event.target.value)}
-                  className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
-                />
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <section className="space-y-3">
