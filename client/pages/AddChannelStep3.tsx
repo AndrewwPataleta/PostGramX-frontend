@@ -6,7 +6,6 @@ export default function AddChannelStep3() {
   return (
     <FlowLayout
       title="Grant Access"
-      backTo="/add-channel-step2"
       footerPaddingClassName="pb-[calc(140px+var(--tg-content-safe-area-inset-bottom))]"
       footer={
         <div className="space-y-2">

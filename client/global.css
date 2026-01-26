@@ -21,6 +21,8 @@
     --tg-content-safe-area-inset-bottom: 0px;
     --tg-content-safe-area-inset-left: 0px;
     --tg-content-safe-area-inset-right: 0px;
+    --app-toolbar-height: 52px;
+    --bottom-nav-height: 0px;
 
     /* Dark mode first (Telegram native) */
     --background: 213 26% 11%;
@@ -109,11 +111,19 @@
 
   html {
     @apply bg-background;
+    height: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
+    height: 100%;
+    overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  #root {
+    height: 100%;
+    overflow: hidden;
   }
 
   input,

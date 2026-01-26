@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, Copy, Link as LinkIcon } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Copy, Link as LinkIcon } from "lucide-react";
+import { useParams } from "react-router-dom";
 import DetailHeader from "@/components/deals/DetailHeader";
 import InfoCard from "@/components/deals/InfoCard";
 import Timeline from "@/components/deals/Timeline";
@@ -27,7 +27,6 @@ import { getErrorMessage } from "@/lib/api/errors";
 
 export default function DealDetails() {
   const { dealId } = useParams<{ dealId: string }>();
-  const navigate = useNavigate();
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [showManualTransfer, setShowManualTransfer] = useState(false);
   const wallet = useTonWallet();
@@ -172,18 +171,6 @@ export default function DealDetails() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="sticky top-0 z-10 border-b border-border/50 bg-card/80 backdrop-blur-glass">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <button type="button" onClick={() => navigate(-1)} className="text-foreground">
-            <ArrowLeft size={24} />
-          </button>
-          <div>
-            <h1 className="font-semibold text-foreground">Deal Details</h1>
-            <p className="text-xs text-muted-foreground">Advertiser view</p>
-          </div>
-        </div>
-      </div>
-
       <div className="px-4 py-6 space-y-4">
         {isLoading ? (
           <LoadingSkeleton items={3} />

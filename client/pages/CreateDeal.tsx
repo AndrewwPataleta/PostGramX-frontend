@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
@@ -58,18 +58,6 @@ export default function CreateDeal() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="sticky top-0 z-10 border-b border-border/50 bg-card/80 backdrop-blur-glass">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Link to={channelId ? `/marketplace/channels/${channelId}` : "/marketplace"}>
-            <ArrowLeft size={24} className="text-foreground" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-foreground">Create Deal</h1>
-            <p className="text-xs text-muted-foreground">Submit campaign brief</p>
-          </div>
-        </div>
-      </div>
-
       <div className="px-4 py-6 space-y-4">
         {isLoading ? (
           <LoadingSkeleton items={1} />

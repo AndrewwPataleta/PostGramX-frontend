@@ -1,4 +1,4 @@
-import { ArrowLeft, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import ErrorState from "@/components/feedback/ErrorState";
@@ -11,20 +11,6 @@ export default function ChannelDetails() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="sticky top-0 z-10 border-b border-border/50 bg-card/80 backdrop-blur-glass">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Link to="/marketplace">
-            <ArrowLeft size={24} className="text-foreground" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-foreground">
-              {channel?.title ?? "Channel details"}
-            </h1>
-            <p className="text-xs text-muted-foreground">Channel overview</p>
-          </div>
-        </div>
-      </div>
-
       <div className="px-4 py-6 space-y-4">
         {isLoading ? (
           <LoadingSkeleton items={3} />

@@ -6,7 +6,6 @@ export default function AddChannelStep2() {
   return (
     <FlowLayout
       title="Confirm Channel"
-      backTo="/add-channel-step1"
       footerPaddingClassName="pb-[calc(140px+var(--tg-content-safe-area-inset-bottom))]"
       footer={
         <div className="space-y-2">

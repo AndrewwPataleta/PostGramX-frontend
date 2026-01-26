@@ -14,7 +14,6 @@ export default function AddChannelStep1() {
   return (
     <FlowLayout
       title="Connect Channel"
-      backTo="/channels"
       footerMode="sticky"
       footerPaddingClassName="pb-[calc(24px+var(--tg-content-safe-area-inset-bottom))]"
       footer={

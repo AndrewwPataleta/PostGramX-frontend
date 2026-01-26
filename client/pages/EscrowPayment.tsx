@@ -1,5 +1,4 @@
-import { ArrowLeft, Lock, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Lock, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 export default function EscrowPayment() {
@@ -7,19 +6,6 @@ export default function EscrowPayment() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Header with back button */}
-      <div className="sticky top-0 bg-background/90 backdrop-blur-glass border-b border-border/50 z-10">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <Link to="/deals">
-            <ArrowLeft size={24} className="text-foreground" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-foreground">Secure Payment</h1>
-            <p className="text-xs text-muted-foreground">Escrow protection</p>
-          </div>
-        </div>
-      </div>
-
       {/* Main content */}
       <div className="px-4 pt-6 pb-24 space-y-4">
         {/* Secure Payment Card */}

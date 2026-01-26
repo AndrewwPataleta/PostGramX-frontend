@@ -23,18 +23,9 @@ export default function AddChannel() {
     setActiveStep((current) => Math.max(current - 1, 0));
   };
 
-  const handleBack = () => {
-    if (activeStep === 0) {
-      navigate("/channels");
-      return;
-    }
-    goPrev();
-  };
-
   return (
     <FlowLayout
       title={steps[activeStep]}
-      onBack={handleBack}
       footerMode={activeStep === 0 ? "sticky" : "fixed"}
       footerPaddingClassName={
         activeStep === 0
