@@ -14,7 +14,7 @@ const SafeAreaLayout = ({
 }: SafeAreaLayoutProps) => {
   const style: CSSProperties = {
     paddingTop:
-      "max(var(--tg-safe-top), var(--tg-content-safe-area-inset-top))",
+      "calc(var(--tg-content-safe-area-inset-top) + var(--tg-safe-area-inset-top))",
     paddingBottom: `calc(max(var(--tg-safe-bottom), var(--tg-content-safe-area-inset-bottom)) + ${bottomNavHeight}px)`,
     paddingLeft:
       "max(var(--tg-safe-left), var(--tg-content-safe-area-inset-left))",
@@ -23,7 +23,7 @@ const SafeAreaLayout = ({
   };
 
   return (
-    <div className={cn("flex-1", className)} style={style}>
+    <div className={cn("flex-1 bg-background", className)} style={style}>
       {children}
     </div>
   );
