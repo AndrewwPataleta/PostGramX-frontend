@@ -5,7 +5,7 @@ interface SplashScreenProps {
   onComplete: () => void;
 }
 
-const STEP_DURATION_MS = 1500;
+const STEP_DURATION_MS = 100;
 
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const { t } = useLanguage();
