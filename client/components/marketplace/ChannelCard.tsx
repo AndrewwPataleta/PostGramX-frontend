@@ -6,6 +6,13 @@ interface ChannelCardProps {
   channel: MarketplaceChannel;
 }
 
+const formatDuration = (hours: number) => {
+  if (hours >= 168 && hours % 24 === 0) {
+    return `${hours / 24}d`;
+  }
+  return `${hours}h`;
+};
+
 export default function ChannelCard({ channel }: ChannelCardProps) {
   const availabilityLabel = channel.listing
     ? (() => {
@@ -19,6 +26,12 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
   const listingTags = channel.listing?.tags ?? [];
   const visibleTags = listingTags.slice(0, 3);
   const remainingTags = listingTags.length - visibleTags.length;
+  const pinnedDurationLabel = channel.listing?.pinDurationHours
+    ? formatDuration(channel.listing.pinDurationHours)
+    : null;
+  const visibilityDurationLabel = channel.listing
+    ? formatDuration(channel.listing.visibilityDurationHours ?? 24)
+    : null;
 
   return (
     <Link
@@ -58,6 +71,18 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                   +{remainingTags} more
                 </span>
               ) : null}
+            </div>
+          ) : null}
+          {visibilityDurationLabel ? (
+            <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-foreground">
+              {pinnedDurationLabel ? (
+                <span className="rounded-full bg-secondary/60 px-2 py-1">
+                  Pinned: {pinnedDurationLabel}
+                </span>
+              ) : null}
+              <span className="rounded-full bg-secondary/60 px-2 py-1">
+                Visible: {visibilityDurationLabel}
+              </span>
             </div>
           ) : null}
         </div>

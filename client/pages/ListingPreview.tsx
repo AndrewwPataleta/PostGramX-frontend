@@ -17,6 +17,8 @@ export default function ListingPreview() {
         return `Available next ${diffDays} day${diffDays === 1 ? "" : "s"}`;
       })()
     : "Available next 7 days";
+  const pinDurationHours = listing?.pinDurationHours ?? null;
+  const visibilityDurationHours = listing?.visibilityDurationHours ?? 24;
 
   if (!channel) {
     return (
@@ -39,6 +41,8 @@ export default function ListingPreview() {
           channel={channel}
           priceTon={listing?.priceTon ?? 25}
           availabilityLabel={availabilityLabel}
+          pinDurationHours={pinDurationHours}
+          visibilityDurationHours={visibilityDurationHours}
           tags={listing?.tags ?? []}
         />
 
