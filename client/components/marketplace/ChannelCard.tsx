@@ -17,8 +17,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       })()
     : null;
   const listingTags = channel.listing?.tags ?? [];
-  const visibleTags = listingTags.slice(0, 3);
-  const remainingTags = listingTags.length - visibleTags.length;
+  const visibleTags = listingTags.slice(0, 5);
 
   return (
     <Link
@@ -53,11 +52,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                   {tag}
                 </span>
               ))}
-              {remainingTags > 0 ? (
-                <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-muted-foreground">
-                  +{remainingTags} more
-                </span>
-              ) : null}
             </div>
           ) : null}
         </div>
