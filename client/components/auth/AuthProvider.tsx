@@ -3,12 +3,13 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { apiClient } from "@/lib/api/client";
-import { clearAuthToken, setAuthToken } from "@/lib/api/auth";
+import { AUTH_EXPIRED_EVENT, clearAuthToken, setAuthToken } from "@/lib/api/auth";
 import {
   getTelegramUser,
   getTelegramWebApp,
@@ -17,6 +18,8 @@ import {
 } from "@/lib/telegram";
 import { TELEGRAM_MOCK } from "@/config/env";
 import type { ApiError } from "@/types/api";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 type AuthError = {
   type: "missing_telegram" | "auth_failed";
@@ -78,6 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [error, setError] = useState<AuthError | null>(null);
   const inFlightRef = useRef(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const initSession = useCallback(async () => {
     if (inFlightRef.current) {
@@ -139,6 +144,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       inFlightRef.current = false;
     }
   }, []);
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      clearAuthToken();
+      setIsReady(false);
+      setIsLoading(false);
+      setUser(null);
+      setAccessToken(null);
+      setError({
+        type: "auth_failed",
+        message: "Session expired. Please sign in again.",
+      });
+      toast.error("Session expired. Please sign in again.");
+
+      if (location.pathname !== "/splash") {
+        navigate("/splash", {
+          replace: true,
+          state: { returnTo: location.pathname },
+        });
+      }
+    };
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    };
+  }, [location.pathname, navigate]);
 
   const retry = useCallback(() => {
     void initSession();

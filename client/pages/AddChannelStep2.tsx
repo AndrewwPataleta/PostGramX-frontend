@@ -10,13 +10,13 @@ export default function AddChannelStep2() {
       footer={
         <div className="space-y-2">
           <Link
-            to="/add-channel-step3"
+            to="/add-channel/step-3"
             className="button-primary block text-center text-base font-semibold"
           >
             Continue
           </Link>
           <Link
-            to="/add-channel-step1"
+            to="/add-channel/step-1"
             className="button-secondary block text-center text-base font-semibold"
           >
             Change channel

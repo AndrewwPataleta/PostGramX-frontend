@@ -21,7 +21,7 @@ export default function ListingSuccess() {
             View in Marketplace
           </Link>
           <Link
-            to={`/channel-manage/${id}/listings/new`}
+            to={`/channel-manage/${id}/listings/create`}
             className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm font-medium text-foreground text-center"
           >
             Create another listing
