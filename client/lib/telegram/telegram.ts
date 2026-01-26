@@ -1,6 +1,6 @@
 export interface TelegramUser {
   id: number;
-  first_name: string;
+  first_name?: string;
   last_name?: string;
   username?: string;
   language_code?: string;
@@ -65,6 +65,12 @@ export const DEFAULT_INSETS: TelegramInsets = {
   left: 0,
 };
 
+const IS_TELEGRAM_MOCK =
+  typeof import.meta.env.VITE_TELEGRAM_MOCK === "string" &&
+  import.meta.env.VITE_TELEGRAM_MOCK.toLowerCase() === "true";
+
+const MOCK_INIT_DATA = "mock_init_data=postgramx";
+
 export const mockTelegramUser: TelegramUser = {
   id: 999999,
   first_name: "Local",
@@ -74,12 +80,26 @@ export const mockTelegramUser: TelegramUser = {
   is_premium: false,
 };
 
+const mockWebApp: TelegramWebApp = {
+  initData: MOCK_INIT_DATA,
+  initDataUnsafe: {
+    user: mockTelegramUser,
+  },
+  ready: () => undefined,
+  expand: () => undefined,
+};
+
 export const getTelegramWebApp = (): TelegramWebApp | null => {
   if (typeof window === "undefined") {
-    return null;
+    return IS_TELEGRAM_MOCK ? mockWebApp : null;
   }
 
-  return window.Telegram?.WebApp ?? null;
+  return window.Telegram?.WebApp ?? (IS_TELEGRAM_MOCK ? mockWebApp : null);
+};
+
+export const getInitData = (): string => {
+  const webApp = getTelegramWebApp();
+  return webApp?.initData ?? "";
 };
 
 export const normalizeInsets = (
@@ -113,12 +133,27 @@ const parseUserFromInitData = (initData?: string): TelegramUser | null => {
   }
 };
 
+export const getUserUnsafe = (): TelegramUser | null => {
+  const webApp = getTelegramWebApp();
+  if (!webApp) {
+    return null;
+  }
+
+  return webApp.initDataUnsafe?.user ?? parseUserFromInitData(webApp.initData);
+};
+
 export const getTelegramUser = (webApp: TelegramWebApp | null): TelegramUser | null => {
   if (!webApp) {
     return null;
   }
 
   return webApp.initDataUnsafe?.user ?? parseUserFromInitData(webApp.initData);
+};
+
+export const ensureReady = () => {
+  const webApp = getTelegramWebApp();
+  webApp?.ready?.();
+  webApp?.expand?.();
 };
 
 export const ensureWebAppReady = (webApp: TelegramWebApp) => {

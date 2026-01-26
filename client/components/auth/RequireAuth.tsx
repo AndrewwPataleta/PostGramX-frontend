@@ -1,19 +1,12 @@
 import { ReactNode } from "react";
-import { useTelegram } from "@/hooks/use-telegram";
-import AuthRequired from "@/components/auth/AuthRequired";
+import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 
 interface RequireAuthProps {
   children: ReactNode;
 }
 
 const RequireAuth = ({ children }: RequireAuthProps) => {
-  const { isAuthenticated } = useTelegram();
-
-  if (!isAuthenticated) {
-    return <AuthRequired />;
-  }
-
-  return <>{children}</>;
+  return <ProtectedRoute>{children}</ProtectedRoute>;
 };
 
 export default RequireAuth;

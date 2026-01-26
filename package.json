@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "VITE_API_BASE_URL=http://localhost:8080/api VITE_TELEGRAM_MOCK=true vite --host 0.0.0.0 --port 8080",
     "start": "vite preview --host 0.0.0.0 --port 8080",
     "build": "vite build",
     "test": "vitest --run",
@@ -12,6 +13,7 @@
   },
   "dependencies": {
     "@tonconnect/ui-react": "^2.1.0",
+    "axios": "^1.11.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

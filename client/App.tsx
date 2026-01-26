@@ -12,7 +12,8 @@ import { TelegramProvider, useTelegramContext } from "@/components/telegram/Tele
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 import AppShell from "@/layout/AppShell";
-import RequireAuth from "@/components/auth/RequireAuth";
+import { AuthProvider } from "@/features/auth/AuthProvider";
+import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 import Marketplace from "./pages/Marketplace";
 import ChannelDetails from "./pages/ChannelDetails";
 import CreateDeal from "./pages/CreateDeal";
@@ -33,9 +34,7 @@ import EscrowPayment from "./pages/EscrowPayment";
 import FundsLocked from "./pages/FundsLocked";
 import NotFound from "./pages/NotFound";
 import SplashScreen from "./components/SplashScreen";
-import { getTelegramWebApp } from "./lib/telegram";
-import { AUTH_EXPIRED_EVENT } from "@/lib/api/auth";
-import { toast } from "sonner";
+import { getTelegramWebApp } from "@/lib/telegram";
 
 const queryClient = new QueryClient();
 
@@ -65,168 +64,159 @@ const App = () => {
   const manifestUrl = `${window.location.origin}/tonconnect-manifest.json`;
   const [showSplash, setShowSplash] = useState(true);
 
-  useEffect(() => {
-    const handleAuthExpired = () => {
-      toast.error("Session expired. Please sign in again.");
-    };
-
-    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
-    return () => {
-      window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TonConnectUIProvider manifestUrl={manifestUrl}>
         <TelegramProvider>
-          <LanguageProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              {showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}
-              <BrowserRouter>
-                <NavigationHaptics />
-                <Routes>
-                  <Route element={<AppShell />}>
-                    <Route path="/" element={<Navigate to="/marketplace" replace />} />
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/marketplace/channels/:channelId" element={<ChannelDetails />} />
-                    <Route
-                      path="/marketplace/channels/:channelId/request"
-                      element={
-                        <RequireAuth>
-                          <CreateDeal />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/deals"
-                      element={
-                        <RequireAuth>
-                          <Deals />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/deals/:dealId"
-                      element={
-                        <RequireAuth>
-                          <DealDetails />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/escrow/:dealId"
-                      element={
-                        <RequireAuth>
-                          <EscrowPayment />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/funds-locked"
-                      element={
-                        <RequireAuth>
-                          <FundsLocked />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/channels"
-                      element={
-                        <RequireAuth>
-                          <Channels />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/channel-manage/:id"
-                      element={
-                        <RequireAuth>
-                          <ChannelDetailsManage />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/channel-manage/:id/listings/new"
-                      element={
-                        <RequireAuth>
-                          <CreateListing />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/channel-manage/:id/listings/preview"
-                      element={
-                        <RequireAuth>
-                          <ListingPreview />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/channel-manage/:id/listings/success"
-                      element={
-                        <RequireAuth>
-                          <ListingSuccess />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/channel-manage/:id/listings/:listingId/edit"
-                      element={
-                        <RequireAuth>
-                          <EditListing />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/add-channel"
-                      element={
-                        <RequireAuth>
-                          <AddChannel />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/add-channel-step1"
-                      element={
-                        <RequireAuth>
-                          <AddChannelStep1 />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/add-channel-step2"
-                      element={
-                        <RequireAuth>
-                          <AddChannelStep2 />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/add-channel-step3"
-                      element={
-                        <RequireAuth>
-                          <AddChannelStep3 />
-                        </RequireAuth>
-                      }
-                    />
-                    <Route
-                      path="/profile"
-                      element={
-                        <RequireAuth>
-                          <Profile />
-                        </RequireAuth>
-                      }
-                    />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </LanguageProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                {showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}
+                <BrowserRouter>
+                  <NavigationHaptics />
+                  <Routes>
+                    <Route element={<AppShell />}>
+                      <Route path="/" element={<Navigate to="/marketplace" replace />} />
+                      <Route path="/marketplace" element={<Marketplace />} />
+                      <Route path="/marketplace/channels/:channelId" element={<ChannelDetails />} />
+                      <Route
+                        path="/marketplace/channels/:channelId/request"
+                        element={
+                          <ProtectedRoute>
+                            <CreateDeal />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/deals"
+                        element={
+                          <ProtectedRoute>
+                            <Deals />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/deals/:dealId"
+                        element={
+                          <ProtectedRoute>
+                            <DealDetails />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/escrow/:dealId"
+                        element={
+                          <ProtectedRoute>
+                            <EscrowPayment />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/funds-locked"
+                        element={
+                          <ProtectedRoute>
+                            <FundsLocked />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/channels"
+                        element={
+                          <ProtectedRoute>
+                            <Channels />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/channel-manage/:id"
+                        element={
+                          <ProtectedRoute>
+                            <ChannelDetailsManage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/channel-manage/:id/listings/new"
+                        element={
+                          <ProtectedRoute>
+                            <CreateListing />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/channel-manage/:id/listings/preview"
+                        element={
+                          <ProtectedRoute>
+                            <ListingPreview />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/channel-manage/:id/listings/success"
+                        element={
+                          <ProtectedRoute>
+                            <ListingSuccess />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/channel-manage/:id/listings/:listingId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <EditListing />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/add-channel"
+                        element={
+                          <ProtectedRoute>
+                            <AddChannel />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/add-channel-step1"
+                        element={
+                          <ProtectedRoute>
+                            <AddChannelStep1 />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/add-channel-step2"
+                        element={
+                          <ProtectedRoute>
+                            <AddChannelStep2 />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/add-channel-step3"
+                        element={
+                          <ProtectedRoute>
+                            <AddChannelStep3 />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/profile"
+                        element={
+                          <ProtectedRoute>
+                            <Profile />
+                          </ProtectedRoute>
+                        }
+                      />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Route>
+                  </Routes>
+                </BrowserRouter>
+              </TooltipProvider>
+            </LanguageProvider>
+          </AuthProvider>
         </TelegramProvider>
       </TonConnectUIProvider>
     </QueryClientProvider>
