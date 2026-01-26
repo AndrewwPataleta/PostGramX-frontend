@@ -25,6 +25,7 @@ import ErrorState from "@/components/feedback/ErrorState";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import type { WalletTransaction } from "@/features/profile/types";
 import { getErrorMessage } from "@/lib/api/errors";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const statusStyles: Record<string, string> = {
   Confirmed: "bg-emerald-500/15 text-emerald-300",
@@ -37,6 +38,7 @@ const topUpChips = [10, 25, 50];
 
 export default function Profile() {
   const { user } = useTelegram();
+  const { t, language, setLanguage } = useLanguage();
   const [activeSection, setActiveSection] = useState<
     "history" | "topup" | "withdraw" | "escrow"
   >("history");
@@ -54,8 +56,8 @@ export default function Profile() {
   const { open: openWalletModal } = useTonConnectModal();
   const fullName = user
     ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`
-    : "FlowgramX User";
-  const username = user?.username ? `@${user.username}` : "@flowgramx";
+    : t("profile.displayNameFallback");
+  const username = user?.username ? `@${user.username}` : t("profile.usernameFallback");
   const initials = fullName
     .split(" ")
     .filter(Boolean)
@@ -82,13 +84,13 @@ export default function Profile() {
 
   const handleTopUp = async () => {
     if (!Number.isFinite(topUpAmount) || topUpAmount <= 0) {
-      toast.error("Select a valid top up amount");
+      toast.error(t("profile.toastSelectValidTopUp"));
       return;
     }
 
     if (!wallet) {
       openWalletModal();
-      toast.info("Connect a TON wallet to continue");
+      toast.info(t("profile.toastConnectWallet"));
       return;
     }
 
@@ -110,15 +112,17 @@ export default function Profile() {
           type: "Deposit",
           amount: `+${topUpAmount} TON`,
           status: "Confirmed",
-          time: `Today · ${timeLabel}`,
+          time: `${t("profile.today")} · ${timeLabel}`,
         },
         ...prev,
       ]);
       setTopUpStatus("confirmed");
-      toast.success("Mock top up confirmed");
+      toast.success(t("profile.toastTopUpConfirmed"));
     } catch (err) {
       setTopUpStatus("idle");
-      toast.error(err instanceof Error ? err.message : "Unable to process top up");
+      toast.error(
+        err instanceof Error ? err.message : t("profile.toastTopUpFailed")
+      );
     } finally {
       setIsTopUpLoading(false);
     }
@@ -129,12 +133,26 @@ export default function Profile() {
     amountTon: topUpAmount,
     memo: topUpMemo,
   });
+  const transactionTypeLabel = (type: string) =>
+    ({
+      Deposit: t("profile.transactionTypeDeposit"),
+      Withdrawal: t("profile.transactionTypeWithdrawal"),
+    })[type] ?? type;
+  const transactionStatusLabel = (status: string) =>
+    ({
+      Confirmed: t("profile.transactionStatusConfirmed"),
+      Pending: t("profile.transactionStatusPending"),
+      Processing: t("profile.transactionStatusProcessing"),
+      Failed: t("profile.transactionStatusFailed"),
+    })[status] ?? status;
 
   return (
     <div className="w-full max-w-6xl mx-auto">
       <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-glass border-b border-border/50">
         <div className="px-4 py-3">
-          <h1 className="text-base font-semibold text-foreground">Profile Wallet</h1>
+          <h1 className="text-base font-semibold text-foreground">
+            {t("profile.walletTitle")}
+          </h1>
         </div>
       </div>
 
@@ -162,7 +180,7 @@ export default function Profile() {
                   <p className="text-sm text-muted-foreground">{username}</p>
                   <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-1 text-[11px] font-medium text-muted-foreground">
                     <ShieldCheck size={14} className="text-primary/80" />
-                    Connected via Telegram
+                    {t("profile.connectedViaTelegram")}
                   </div>
                 </div>
               </div>
@@ -172,23 +190,33 @@ export default function Profile() {
               <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
                 <div className="relative rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
                   <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-foreground">Wallet Summary</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {t("profile.walletSummary")}
+                    </p>
                 <TonConnectButton className="shrink-0" />
                   </div>
                   <div className="px-5 py-5 space-y-4 pb-6">
                     <div className="glass p-4 space-y-3">
-                      <p className="text-xs text-muted-foreground">Balance</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("profile.balanceLabel")}
+                      </p>
                       <div className="space-y-2">
                         <p className="text-2xl font-semibold text-foreground">
-                          Available: {availableBalance.toFixed(2)} TON
+                          {t("profile.availableBalance")} {availableBalance.toFixed(2)} TON
                         </p>
                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                          <span>Locked in Escrow: {profileBalance?.locked ?? 0} TON</span>
-                          <span>Pending Release: {profileBalance?.pendingRelease ?? 0} TON</span>
+                          <span>
+                            {t("profile.lockedInEscrow")} {profileBalance?.locked ?? 0}{" "}
+                            TON
+                          </span>
+                          <span>
+                            {t("profile.pendingRelease")}{" "}
+                            {profileBalance?.pendingRelease ?? 0} TON
+                          </span>
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Locked funds release after ad delivery verification.
+                        {t("profile.lockedFundsNote")}
                       </p>
                     </div>
 
@@ -198,19 +226,21 @@ export default function Profile() {
                         className="button-primary rounded-2xl py-2 text-sm"
                         onClick={() => setActiveSection("topup")}
                       >
-                        Top Up
+                        {t("profile.topUp")}
                       </button>
                       <button
                         type="button"
                         className="button-primary rounded-2xl py-2 text-sm bg-primary/80 hover:bg-primary"
                         onClick={() => setActiveSection("withdraw")}
                       >
-                        Withdraw
+                        {t("profile.withdraw")}
                       </button>
                     </div>
 
                     <div className="glass p-4 space-y-2">
-                      <p className="text-xs text-muted-foreground">Instant withdraw</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("profile.instantWithdraw")}
+                      </p>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-foreground">
                           {profileBalance?.instantWithdraw?.toFixed(2) ?? "0.00"} TON
@@ -220,15 +250,51 @@ export default function Profile() {
                           className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
                           onClick={() => setActiveSection("withdraw")}
                         >
-                          Withdraw now
+                          {t("profile.withdrawNow")}
                         </button>
                       </div>
                       <p className="text-[11px] text-muted-foreground">
-                        Use saved wallet EQB7...m0fLr
+                        {t("profile.savedWallet")}
                       </p>
                     </div>
 
               </div>
+                </div>
+
+                <div className="glass p-4 space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {t("profile.language")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("profile.languageDescription")}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      {
+                        value: "en",
+                        label: t("profile.languageOptionEnglish"),
+                      },
+                      {
+                        value: "ru",
+                        label: t("profile.languageOptionRussian"),
+                      },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setLanguage(option.value as "en" | "ru")}
+                        className={`rounded-full border px-3 py-1 text-xs transition ${
+                          language === option.value
+                            ? "border-primary/60 bg-primary/20 text-primary"
+                            : "border-border/40 text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -236,8 +302,8 @@ export default function Profile() {
                 <div className="px-5 py-4 border-b border-border/40">
                   <div className="flex flex-wrap items-center gap-2">
                     {[
-                      { id: "history", label: "History", icon: History },
-                      { id: "escrow", label: "Escrow", icon: Lock },
+                      { id: "history", label: t("profile.sectionHistory"), icon: History },
+                      { id: "escrow", label: t("profile.sectionEscrow"), icon: Lock },
                     ].map(({ id, label, icon: Icon }) => (
                       <button
                         key={id}
@@ -263,10 +329,10 @@ export default function Profile() {
                     <div className="glass p-4">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold text-foreground">
-                          Transaction History
+                          {t("profile.transactionHistory")}
                         </p>
                         <span className="text-xs text-muted-foreground">
-                          Last 7 days
+                          {t("profile.last7Days")}
                         </span>
                       </div>
                       <div className="mt-4 space-y-3">
@@ -278,7 +344,7 @@ export default function Profile() {
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground">
-                                  {tx.type}
+                                  {transactionTypeLabel(tx.type)}
                                 </span>
                                 <span
                                   className={`rounded-full px-2 py-0.5 text-[11px] ${
@@ -286,7 +352,7 @@ export default function Profile() {
                                     "bg-muted text-muted-foreground"
                                   }`}
                                 >
-                                  {tx.status}
+                                  {transactionStatusLabel(tx.status)}
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground mt-1">
@@ -305,10 +371,14 @@ export default function Profile() {
                   {activeSection === "topup" && (
                     <>
                       <div className="glass p-4 space-y-3">
-                        <p className="text-xs text-muted-foreground">Top Up Balance</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("profile.topUpBalance")}
+                        </p>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm text-muted-foreground">TON amount</p>
+                            <p className="text-sm text-muted-foreground">
+                              {t("profile.tonAmount")}
+                            </p>
                             <p className="text-2xl font-semibold text-foreground">
                               {topUpAmount.toFixed(2)} TON
                             </p>
@@ -334,18 +404,20 @@ export default function Profile() {
                       </div>
 
                       <div className="glass p-4 space-y-2">
-                        <p className="text-xs text-muted-foreground">Payment Method</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("profile.paymentMethod")}
+                        </p>
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-foreground">
-                              TON Wallet
+                              {t("profile.tonWallet")}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Pay using Telegram Wallet or Tonkeeper
+                              {t("profile.payUsing")}
                             </p>
                           </div>
                           <span className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground">
-                            Selected
+                            {t("profile.selected")}
                           </span>
                         </div>
                       </div>
@@ -356,18 +428,22 @@ export default function Profile() {
                         onClick={handleTopUp}
                         disabled={isTopUpLoading}
                       >
-                        {isTopUpLoading ? "Processing..." : "Proceed to Payment"}
+                        {isTopUpLoading
+                          ? t("profile.processing")
+                          : t("profile.proceedToPayment")}
                       </button>
 
                       <div className="glass p-4 space-y-2">
-                        <p className="text-xs text-muted-foreground">Payment Instructions</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("profile.paymentInstructions")}
+                        </p>
                         <div className="space-y-1 text-sm text-foreground">
                           <p>{topUpTransferLink}</p>
                           <p className="text-xs text-muted-foreground">
-                            Address: {topUpAddress}
+                            {t("profile.address")} {topUpAddress}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Memo: {topUpMemo}
+                            {t("profile.memo")} {topUpMemo}
                           </p>
                         </div>
                       </div>
@@ -375,13 +451,13 @@ export default function Profile() {
                       {topUpStatus === "pending" ? (
                         <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-primary">
                           <Clock size={14} />
-                          Waiting for payment confirmation...
+                          {t("profile.waitingConfirmation")}
                         </div>
                       ) : null}
                       {topUpStatus === "confirmed" ? (
                         <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
                           <CheckCircle2 size={14} />
-                          Top up confirmed — balance updated.
+                          {t("profile.topUpConfirmed")}
                         </div>
                       ) : null}
                     </>
@@ -392,7 +468,9 @@ export default function Profile() {
                       <div className="glass p-4 space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-xs text-muted-foreground">Withdraw Funds</p>
+                            <p className="text-xs text-muted-foreground">
+                              {t("profile.withdrawFunds")}
+                            </p>
                             <p className="text-2xl font-semibold text-foreground">
                               18.00 TON
                             </p>
@@ -401,35 +479,37 @@ export default function Profile() {
                             type="button"
                             className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
                           >
-                            Max
+                            {t("profile.max")}
                           </button>
                         </div>
                       </div>
 
                       <div className="glass p-4 space-y-2">
-                        <p className="text-xs text-muted-foreground">Destination Wallet</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("profile.destinationWallet")}
+                        </p>
                         <p className="text-sm text-foreground">EQB7...m0fLr</p>
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Network fee estimate</span>
+                        <span>{t("profile.networkFeeEstimate")}</span>
                         <span>~0.05 TON</span>
                       </div>
 
                       <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-                        Withdrawals are irreversible. Make sure your address is correct.
+                        {t("profile.withdrawWarning")}
                       </div>
 
                       <button
                         type="button"
                         className="button-primary rounded-2xl py-4"
                       >
-                        Withdraw
+                        {t("profile.withdrawAction")}
                       </button>
 
                       <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
                         <CheckCircle2 size={14} />
-                        Withdrawal submitted — transaction processing
+                        {t("profile.withdrawSubmitted")}
                       </div>
                     </>
                   )}
@@ -439,23 +519,25 @@ export default function Profile() {
                       <div className="glass p-4 space-y-3">
                         <div className="flex items-center gap-2 text-foreground">
                           <Lock size={16} className="text-primary/80" />
-                          <p className="text-sm font-semibold">How escrow works</p>
+                          <p className="text-sm font-semibold">
+                            {t("profile.howEscrowWorks")}
+                          </p>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Advertiser payments are locked until ads are successfully
-                          published and verified. This protects both advertisers and
-                          channel owners.
+                          {t("profile.escrowDescription")}
                         </p>
                       </div>
 
                       <div className="glass p-4 space-y-2">
-                        <p className="text-xs text-muted-foreground">Trust indicators</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("profile.trustIndicators")}
+                        </p>
                         <div className="grid gap-2">
                           {[
-                            "TON Network",
-                            "On-chain verification",
-                            "Automated escrow",
-                            "Smart-contract transparency",
+                            t("profile.trustIndicatorTonNetwork"),
+                            t("profile.trustIndicatorOnChainVerification"),
+                            t("profile.trustIndicatorAutomatedEscrow"),
+                            t("profile.trustIndicatorSmartContractTransparency"),
                           ].map((item) => (
                             <div
                               key={item}
@@ -470,8 +552,7 @@ export default function Profile() {
 
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Send size={14} className="text-primary/70" />
-                        Automated releases keep balances synchronized with delivery
-                        status.
+                        {t("profile.automatedReleases")}
                       </div>
                     </>
                   )}
