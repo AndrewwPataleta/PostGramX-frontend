@@ -4,8 +4,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "vite --mode local",
+    "dev:stage": "vite --mode stage",
+    "dev:production": "vite --mode production",
     "start": "vite preview --host 0.0.0.0 --port 8080",
+    "start:local": "vite preview --host 0.0.0.0 --port 8080 --mode local",
+    "start:stage": "vite preview --host 0.0.0.0 --port 8080 --mode stage",
+    "start:production": "vite preview --host 0.0.0.0 --port 8080 --mode production",
     "build": "vite build",
+    "build:local": "vite build --mode local",
+    "build:stage": "vite build --mode stage",
+    "build:production": "vite build --mode production",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc"
