@@ -9,7 +9,7 @@ export default defineConfig(() => ({
     port: 8080,
     fs: {
       allow: [".", "./client"],
-      deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**"],
+      deny: [".env.local", ".env.local.*", "*.{crt,pem}", "**/.git/**"],
     },
   },
   preview: {
