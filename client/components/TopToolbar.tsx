@@ -25,15 +25,23 @@ const titleMatchers = [
   { path: "/profile", title: "Profile" },
 ];
 
-const flowCloseMatchers = [
+const actionBackMatchers = [
+  "/marketplace/channels/:channelId",
   "/marketplace/channels/:channelId/request",
+  "/deals/:dealId",
+  "/escrow/:dealId",
+  "/funds-locked",
+  "/channel-manage/:id",
+  "/channel-manage/:id/listings/new",
+  "/channel-manage/:id/listings/preview",
+  "/channel-manage/:id/listings/:listingId/edit",
+];
+
+const actionCloseMatchers = [
   "/add-channel",
   "/add-channel-step1",
   "/add-channel-step2",
   "/add-channel-step3",
-  "/channel-manage/:id/listings/new",
-  "/channel-manage/:id/listings/preview",
-  "/channel-manage/:id/listings/:listingId/edit",
 ];
 
 const getFallbackPath = (pathname: string) => {
@@ -74,7 +82,10 @@ const TopToolbar = () => {
   const showBack = !isMainNavRoute;
   const fallbackPath = getFallbackPath(pathname);
 
-  const showClose = flowCloseMatchers.some((pattern) =>
+  const showActionBack = actionBackMatchers.some((pattern) =>
+    matchPath({ path: pattern, end: true }, pathname),
+  );
+  const showActionClose = actionCloseMatchers.some((pattern) =>
     matchPath({ path: pattern, end: true }, pathname),
   );
 
@@ -115,7 +126,17 @@ const TopToolbar = () => {
             <p className="truncate text-sm font-semibold text-foreground">{title}</p>
           </div>
         </div>
-        {showClose ? (
+        {showActionBack ? (
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center justify-center rounded-full p-1 text-foreground transition-colors hover:bg-secondary/50"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={18} />
+          </button>
+        ) : null}
+        {showActionClose ? (
           <button
             type="button"
             onClick={handleClose}
