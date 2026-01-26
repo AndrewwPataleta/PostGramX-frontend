@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { MarketplaceChannel } from "@/features/marketplace/types/marketplace";
 
@@ -14,6 +15,7 @@ const formatDuration = (hours: number) => {
 };
 
 export default function ChannelCard({ channel }: ChannelCardProps) {
+  const [tagsExpanded, setTagsExpanded] = useState(false);
   const availabilityLabel = channel.listing
     ? (() => {
         const from = new Date(channel.listing.availabilityFrom);
@@ -24,8 +26,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       })()
     : null;
   const listingTags = channel.listing?.tags ?? [];
-  const visibleTags = listingTags.slice(0, 5);
-  const remainingTags = Math.max(0, listingTags.length - visibleTags.length);
+  const shouldShowTagToggle = listingTags.length > 3;
   const pinnedDurationLabel = channel.listing?.pinDurationHours
     ? formatDuration(channel.listing.pinDurationHours)
     : null;
@@ -59,17 +60,33 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             <span>·</span>
             <span>{channel.language}</span>
           </div>
-          {visibleTags.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-foreground">
-              {visibleTags.map((tag) => (
-                <span key={tag} className="rounded-full bg-secondary/60 px-2.5 py-1">
-                  {tag}
-                </span>
-              ))}
-              {remainingTags > 0 ? (
-                <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-muted-foreground">
-                  +{remainingTags} more
-                </span>
+          {listingTags.length > 0 ? (
+            <div className="mt-2 flex items-start gap-2 text-[11px] text-foreground">
+              <div
+                className={`flex flex-1 gap-2 ${
+                  tagsExpanded ? "flex-wrap" : "flex-nowrap overflow-hidden"
+                }`}
+              >
+                {listingTags.map((tag) => (
+                  <span key={tag} className="rounded-full bg-secondary/60 px-2.5 py-1">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              {shouldShowTagToggle ? (
+                <button
+                  type="button"
+                  aria-label={tagsExpanded ? "Collapse tags" : "Expand tags"}
+                  aria-expanded={tagsExpanded}
+                  className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition hover:text-foreground"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setTagsExpanded((prev) => !prev);
+                  }}
+                >
+                  {tagsExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                </button>
               ) : null}
             </div>
           ) : null}
