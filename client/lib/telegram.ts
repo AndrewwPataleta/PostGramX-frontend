@@ -74,6 +74,14 @@ export const mockTelegramUser: TelegramUser = {
   is_premium: false,
 };
 
+export const mockTelegramInitData =
+  "query_id=mock_query&user=%7B%22id%22%3A999999%2C%22first_name%22%3A%22Local%22%2C%22last_name%22%3A%22Tester%22%2C%22username%22%3A%22localtester%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Afalse%7D&auth_date=0&hash=mock_hash";
+
+export const mockTelegramAuth = {
+  initData: mockTelegramInitData,
+  user: mockTelegramUser,
+};
+
 export const getTelegramWebApp = (): TelegramWebApp | null => {
   if (typeof window === "undefined") {
     return null;
