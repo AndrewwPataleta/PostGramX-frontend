@@ -1,61 +1,58 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowLeft, Copy, Link as LinkIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import DetailHeader from "@/components/deals/DetailHeader";
 import InfoCard from "@/components/deals/InfoCard";
 import Timeline from "@/components/deals/Timeline";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  approveCreative,
-  getDeal,
-  requestEdits,
-  simulatePayment,
-  simulatePost,
-  simulateVerifyFail,
-  simulateVerifyPass,
   USE_MOCK_DEALS,
 } from "@/features/deals/api";
-import type { Deal } from "@/features/deals/types";
 import { buildTonConnectTransaction, buildTonTransferLink } from "@/features/deals/payment";
 import { formatCountdown, formatRelativeTime, formatScheduleDate } from "@/features/deals/time";
 import { getDealPresentation, getTimelineItems } from "@/features/deals/status";
 import { toast } from "sonner";
 import { useTonConnectModal, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
+import {
+  useApproveCreative,
+  useDeal,
+  useRequestEdits,
+  useSimulatePayment,
+  useSimulatePost,
+  useSimulateVerifyFail,
+  useSimulateVerifyPass,
+} from "@/features/deals/hooks";
+import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import ErrorState from "@/components/feedback/ErrorState";
+import { getErrorMessage } from "@/lib/api/errors";
 
 export default function DealDetails() {
   const { dealId } = useParams<{ dealId: string }>();
   const navigate = useNavigate();
-  const [deal, setDeal] = useState<Deal | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [showManualTransfer, setShowManualTransfer] = useState(false);
   const wallet = useTonWallet();
   const [tonConnectUI] = useTonConnectUI();
   const { open: openWalletModal } = useTonConnectModal();
-
-  const loadDeal = async () => {
-    if (!dealId) {
-      setError("Missing deal ID");
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const data = await getDeal(dealId);
-      setDeal(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load deal");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadDeal();
-  }, [dealId]);
+  const {
+    data: deal,
+    isLoading,
+    error,
+    refetch,
+  } = useDeal(dealId);
+  const approveCreativeMutation = useApproveCreative();
+  const requestEditsMutation = useRequestEdits();
+  const simulatePaymentMutation = useSimulatePayment();
+  const simulatePostMutation = useSimulatePost();
+  const simulateVerifyPassMutation = useSimulateVerifyPass();
+  const simulateVerifyFailMutation = useSimulateVerifyFail();
+  const actionInFlight =
+    isActionLoading ||
+    approveCreativeMutation.isPending ||
+    requestEditsMutation.isPending ||
+    simulatePaymentMutation.isPending ||
+    simulatePostMutation.isPending ||
+    simulateVerifyPassMutation.isPending ||
+    simulateVerifyFailMutation.isPending;
 
   const presentation = useMemo(() => (deal ? getDealPresentation(deal) : null), [deal]);
   const timelineItems = useMemo(() => (deal ? getTimelineItems(deal) : []), [deal]);
@@ -67,11 +64,7 @@ export default function DealDetails() {
     }
     setIsActionLoading(true);
     try {
-      const updated = await approveCreative(deal.id);
-      setDeal(updated);
-      toast.success("Creative approved");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Unable to approve creative");
+      await approveCreativeMutation.mutateAsync(deal.id);
     } finally {
       setIsActionLoading(false);
     }
@@ -83,11 +76,10 @@ export default function DealDetails() {
     }
     setIsActionLoading(true);
     try {
-      const updated = await requestEdits(deal.id, "Please tweak the CTA and shorten the headline.");
-      setDeal(updated);
-      toast.success("Edits requested");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Unable to request edits");
+      await requestEditsMutation.mutateAsync({
+        id: deal.id,
+        note: "Please tweak the CTA and shorten the headline.",
+      });
     } finally {
       setIsActionLoading(false);
     }
@@ -123,14 +115,12 @@ export default function DealDetails() {
       );
 
       if (USE_MOCK_DEALS) {
-        const updated = await simulatePayment(deal.id);
-        setDeal(updated);
-        toast.success("Payment confirmed");
+        await simulatePaymentMutation.mutateAsync(deal.id);
       } else {
         toast.success("Transaction sent. Awaiting confirmation.");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Unable to process payment");
+      toast.error(getErrorMessage(err, "Unable to process payment"));
     } finally {
       setIsActionLoading(false);
     }
@@ -142,11 +132,7 @@ export default function DealDetails() {
     }
     setIsActionLoading(true);
     try {
-      const updated = await simulatePost(deal.id);
-      setDeal(updated);
-      toast.success("Post published");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Unable to simulate post");
+      await simulatePostMutation.mutateAsync(deal.id);
     } finally {
       setIsActionLoading(false);
     }
@@ -158,11 +144,7 @@ export default function DealDetails() {
     }
     setIsActionLoading(true);
     try {
-      const updated = await simulateVerifyPass(deal.id);
-      setDeal(updated);
-      toast.success("Escrow released");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Unable to simulate release");
+      await simulateVerifyPassMutation.mutateAsync(deal.id);
     } finally {
       setIsActionLoading(false);
     }
@@ -174,11 +156,7 @@ export default function DealDetails() {
     }
     setIsActionLoading(true);
     try {
-      const updated = await simulateVerifyFail(deal.id);
-      setDeal(updated);
-      toast.success("Deal refunded");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Unable to simulate refund");
+      await simulateVerifyFailMutation.mutateAsync(deal.id);
     } finally {
       setIsActionLoading(false);
     }
@@ -208,15 +186,13 @@ export default function DealDetails() {
 
       <div className="px-4 py-6 space-y-4">
         {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-40 w-full rounded-2xl" />
-            <Skeleton className="h-32 w-full rounded-2xl" />
-            <Skeleton className="h-32 w-full rounded-2xl" />
-          </div>
+          <LoadingSkeleton items={3} />
         ) : error || !deal || !presentation ? (
-          <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-sm text-destructive">
-            {error ?? "Deal not found"}
-          </div>
+          <ErrorState
+            message={getErrorMessage(error, "Deal not found")}
+            description="We couldn't load this deal right now."
+            onRetry={() => refetch()}
+          />
         ) : (
           <>
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
@@ -248,7 +224,7 @@ export default function DealDetails() {
                   <button
                     type="button"
                     onClick={handlePayViaTelegram}
-                    disabled={isActionLoading}
+                    disabled={actionInFlight}
                     className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-70"
                   >
                     Pay via Telegram Wallet
@@ -320,7 +296,7 @@ export default function DealDetails() {
                   <button
                     type="button"
                     onClick={handleApproveCreative}
-                    disabled={isActionLoading}
+                    disabled={actionInFlight}
                     className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
                   >
                     Approve
@@ -328,7 +304,7 @@ export default function DealDetails() {
                   <button
                     type="button"
                     onClick={handleRequestEdits}
-                    disabled={isActionLoading}
+                    disabled={actionInFlight}
                     className="rounded-full border border-border/60 px-4 py-2 text-xs text-foreground"
                   >
                     Request edits
@@ -368,7 +344,7 @@ export default function DealDetails() {
                   <button
                     type="button"
                     onClick={handleSimulatePost}
-                    disabled={isActionLoading}
+                    disabled={actionInFlight}
                     className="rounded-full border border-border/60 px-3 py-1 text-xs"
                   >
                     Simulate Post Published
@@ -376,7 +352,7 @@ export default function DealDetails() {
                   <button
                     type="button"
                     onClick={handleSimulateVerifyPass}
-                    disabled={isActionLoading}
+                    disabled={actionInFlight}
                     className="rounded-full border border-border/60 px-3 py-1 text-xs"
                   >
                     Simulate Verify Pass
@@ -384,7 +360,7 @@ export default function DealDetails() {
                   <button
                     type="button"
                     onClick={handleSimulateVerifyFail}
-                    disabled={isActionLoading}
+                    disabled={actionInFlight}
                     className="rounded-full border border-border/60 px-3 py-1 text-xs"
                   >
                     Simulate Verify Fail

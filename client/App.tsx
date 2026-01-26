@@ -34,6 +34,8 @@ import FundsLocked from "./pages/FundsLocked";
 import NotFound from "./pages/NotFound";
 import SplashScreen from "./components/SplashScreen";
 import { getTelegramWebApp } from "./lib/telegram";
+import { AUTH_EXPIRED_EVENT } from "@/lib/api/auth";
+import { toast } from "sonner";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,17 @@ const NavigationHaptics = () => {
 const App = () => {
   const manifestUrl = `${window.location.origin}/tonconnect-manifest.json`;
   const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      toast.error("Session expired. Please sign in again.");
+    };
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

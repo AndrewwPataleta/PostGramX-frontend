@@ -1,49 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useRef, useState } from "react";
 import DealCard from "@/components/deals/DealCard";
 import { Link, useNavigate } from "react-router-dom";
-import { getDeals } from "@/features/deals/api";
-import type { Deal } from "@/features/deals/types";
 import { formatRelativeTime } from "@/features/deals/time";
-import { getDealCategory, getDealPresentation } from "@/features/deals/status";
+import { getDealPresentation } from "@/features/deals/status";
+import { useDeals } from "@/features/deals/hooks";
+import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import ErrorState from "@/components/feedback/ErrorState";
+import { getErrorMessage } from "@/lib/api/errors";
 
 export default function Deals() {
   const [activeTab, setActiveTab] = useState("active");
-  const [isLoading, setIsLoading] = useState(true);
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let isMounted = true;
-    setIsLoading(true);
-    getDeals()
-      .then((data) => {
-        if (!isMounted) {
-          return;
-        }
-        setDeals(data);
-        setError(null);
-      })
-      .catch((err) => {
-        if (!isMounted) {
-          return;
-        }
-        setError(err instanceof Error ? err.message : "Unable to load deals");
-      })
-      .finally(() => {
-        if (!isMounted) {
-          return;
-        }
-        setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const {
+    data: deals = [],
+    isLoading,
+    error,
+    refetch,
+  } = useDeals(activeTab as "active" | "pending" | "completed");
 
   useEffect(() => {
     const header = headerRef.current;
@@ -67,19 +42,8 @@ export default function Deals() {
     };
   }, []);
 
-  const dealsByTab = useMemo(() => {
-    return deals.reduce(
-      (acc, deal) => {
-        const tab = getDealCategory(deal);
-        acc[tab].push(deal);
-        return acc;
-      },
-      { active: [] as Deal[], pending: [] as Deal[], completed: [] as Deal[] },
-    );
-  }, [deals]);
-
-  const currentDeals = dealsByTab[activeTab as keyof typeof dealsByTab] ?? [];
-  const showEmptyState = !isLoading && deals.length === 0;
+  const currentDeals = deals;
+  const showEmptyState = !isLoading && currentDeals.length === 0 && !error;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -116,13 +80,13 @@ export default function Deals() {
 
       <div style={{ paddingTop: headerHeight }} className="px-4 py-6 space-y-4">
         {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={`deal-skeleton-${index}`} className="rounded-2xl border border-border/50 bg-card/80 p-4">
-                <Skeleton className="h-24 rounded-xl" />
-              </div>
-            ))}
-          </div>
+          <LoadingSkeleton items={3} />
+        ) : error ? (
+          <ErrorState
+            message={getErrorMessage(error, "Unable to load deals")}
+            description="Please check your connection and try again."
+            onRetry={() => refetch()}
+          />
         ) : showEmptyState ? (
           <div className="rounded-2xl border border-border/60 bg-card/80 p-8 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">
@@ -141,7 +105,6 @@ export default function Deals() {
           </div>
         ) : (
           <div className="space-y-4">
-            {error ? <div className="rounded-2xl border border-border/60 bg-card/80 p-4 text-sm text-destructive">{error}</div> : null}
             {currentDeals.map((deal) => {
               const presentation = getDealPresentation(deal);
               return (

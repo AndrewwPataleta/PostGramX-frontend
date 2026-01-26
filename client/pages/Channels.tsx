@@ -1,89 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Check } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Sparkline } from "@/components/Sparkline";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface MyChannel {
-  id: string;
-  name: string;
-  username: string;
-  avatar: string;
-  verified: boolean;
-  verificationStatus: "verified" | "pending" | "failed";
-  subscribers: number;
-  averageViews: number;
-  engagement: number;
-  activeListings: number;
-  earnings: number;
-  lastUpdated: string;
-  viewsTrend: number[];
-}
-
-// Mock data - user's verified channels
-const myChannels: MyChannel[] = [
-  {
-    id: "1",
-    name: "My Crypto Channel",
-    username: "@mycryptocha",
-    avatar: "📰",
-    verified: true,
-    verificationStatus: "verified",
-    subscribers: 45000,
-    averageViews: 18000,
-    engagement: 40,
-    activeListings: 1,
-    earnings: 230,
-    lastUpdated: "2h",
-    viewsTrend: [17000, 17800, 18200, 18500, 18100, 18900, 18500, 18200, 18800, 18000],
-  },
-  {
-    id: "2",
-    name: "Tech News Daily",
-    username: "@technewsdaily",
-    avatar: "💻",
-    verified: true,
-    verificationStatus: "verified",
-    subscribers: 32000,
-    averageViews: 12000,
-    engagement: 38,
-    activeListings: 0,
-    earnings: 145,
-    lastUpdated: "4h",
-    viewsTrend: [11500, 12000, 11800, 12300, 12100, 12500, 12200, 12000, 12400, 12000],
-  },
-  {
-    id: "3",
-    name: "Web3 Hub",
-    username: "@web3hub",
-    avatar: "🔗",
-    verified: false,
-    verificationStatus: "pending",
-    subscribers: 18000,
-    averageViews: 6500,
-    engagement: 36,
-    activeListings: 0,
-    earnings: 0,
-    lastUpdated: "6h",
-    viewsTrend: [6000, 6300, 6500, 6200, 6400, 6600, 6300, 6500, 6400, 6500],
-  },
-];
+import { useMyChannels } from "@/features/channels/hooks";
+import ErrorState from "@/components/feedback/ErrorState";
+import { getErrorMessage } from "@/lib/api/errors";
 
 export default function Channels() {
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"verified" | "pending">(
     "verified"
   );
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setIsLoading(false);
-    }, 1600);
-
-    return () => window.clearTimeout(timer);
-  }, []);
+  const {
+    data: myChannels = [],
+    isLoading,
+    error,
+    refetch,
+  } = useMyChannels();
 
   useEffect(() => {
     const header = headerRef.current;
@@ -107,11 +41,13 @@ export default function Channels() {
     };
   }, []);
 
-  const verifiedChannels = myChannels.filter(
-    (ch) => ch.verificationStatus === "verified"
+  const verifiedChannels = useMemo(
+    () => myChannels.filter((ch) => ch.verificationStatus === "verified"),
+    [myChannels]
   );
-  const pendingChannels = myChannels.filter(
-    (ch) => ch.verificationStatus === "pending"
+  const pendingChannels = useMemo(
+    () => myChannels.filter((ch) => ch.verificationStatus === "pending"),
+    [myChannels]
   );
   const activeChannels =
     activeTab === "verified" ? verifiedChannels : pendingChannels;
@@ -201,6 +137,12 @@ export default function Channels() {
               )
             )}
           </div>
+        ) : error ? (
+          <ErrorState
+            message={getErrorMessage(error, "Unable to load channels")}
+            description="Please try again in a moment."
+            onRetry={() => refetch()}
+          />
         ) : (
           <>
             {myChannels.length === 0 && (

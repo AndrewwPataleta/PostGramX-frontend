@@ -3,9 +3,11 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import ChannelCard from "@/components/marketplace/ChannelCard";
 import { ActiveFiltersChips } from "@/components/ActiveFiltersChips";
 import { FilterModal, type FilterState } from "@/components/FilterModal";
-import { getChannels, onMockListingsUpdate } from "@/features/marketplace/api";
-import type { MarketplaceChannel } from "@/features/marketplace/types";
+import { onMockListingsUpdate } from "@/features/marketplace/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMarketplaceChannels } from "@/features/marketplace/hooks";
+import ErrorState from "@/components/feedback/ErrorState";
+import { getErrorMessage } from "@/lib/api/errors";
 
 const defaultFilters: FilterState = {
   priceRange: [0, 100],
@@ -22,40 +24,23 @@ const defaultFilters: FilterState = {
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [channels, setChannels] = useState<MarketplaceChannel[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLDivElement | null>(null);
+  const {
+    data: channels = [],
+    isLoading,
+    error,
+    refetch,
+  } = useMarketplaceChannels();
 
   useEffect(() => {
-    let mounted = true;
-    setIsLoading(true);
-    const loadChannels = () => {
-      setIsLoading(true);
-      getChannels()
-        .then((data) => {
-          if (!mounted) {
-            return;
-          }
-          setChannels(data);
-        })
-        .finally(() => {
-          if (!mounted) {
-            return;
-          }
-          setIsLoading(false);
-        });
-    };
-
-    loadChannels();
-    const unsubscribe = onMockListingsUpdate(() => loadChannels());
+    const unsubscribe = onMockListingsUpdate(() => refetch());
 
     return () => {
-      mounted = false;
       unsubscribe();
     };
-  }, []);
+  }, [refetch]);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -201,7 +186,15 @@ export default function Marketplace() {
             ))
           : filteredChannels.map((channel) => <ChannelCard key={channel.id} channel={channel} />)}
 
-        {!isLoading && filteredChannels.length === 0 ? (
+        {!isLoading && error ? (
+          <ErrorState
+            message={getErrorMessage(error, "Unable to load channels")}
+            description="Please try again when you have a stable connection."
+            onRetry={() => refetch()}
+          />
+        ) : null}
+
+        {!isLoading && !error && filteredChannels.length === 0 ? (
           <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center text-sm text-muted-foreground">
             No channels found. Try a new search.
           </div>
