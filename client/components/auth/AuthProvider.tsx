@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const payload = buildAuthPayload(initData, telegramUser);
-      const response = await apiClient.post<unknown>("/auth/init", payload);
+      const response = await apiClient.post<unknown>("/auth", payload);
       const { accessToken: nextToken, user: profile } = extractAuthResult(response.data);
 
       if (nextToken) {
