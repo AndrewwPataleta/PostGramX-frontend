@@ -1,4 +1,4 @@
-const fallbackBaseUrl = "https://postgramx.com/api";
+const fallbackBaseUrl = "https://backend-stage.postgramx.com/api";
 
 const resolvedBaseUrl =
   typeof import.meta.env.VITE_API_BASE_URL === "string" &&
