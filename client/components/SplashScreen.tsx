@@ -5,7 +5,7 @@ interface SplashScreenProps {
   onComplete: () => void;
 }
 
-const STEP_DURATION_MS = 1500;
+const TOTAL_SPLASH_DURATION_MS = 500;
 
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const { t } = useLanguage();
@@ -30,13 +30,14 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   );
 
   useEffect(() => {
+    const stepDurationMs = Math.max(1, Math.floor(TOTAL_SPLASH_DURATION_MS / steps.length));
     const intervalId = window.setInterval(() => {
       setActiveStep((current) => (current + 1) % steps.length);
-    }, STEP_DURATION_MS);
+    }, stepDurationMs);
 
     const timeoutId = window.setTimeout(() => {
       onComplete();
-    }, steps.length * STEP_DURATION_MS);
+    }, TOTAL_SPLASH_DURATION_MS);
 
     return () => {
       window.clearInterval(intervalId);
