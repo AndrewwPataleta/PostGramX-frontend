@@ -1,18 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import ChannelCard from "@/features/channels/components/ChannelCard";
-import ChannelsFilters, {
-  ChannelsFiltersState,
-} from "@/features/channels/components/ChannelsFilters";
 import { useChannelsList } from "@/features/channels/hooks/useChannelsList";
 import ErrorState from "@/components/feedback/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TELEGRAM_MOCK } from "@/config/env";
 import { getErrorMessage } from "@/lib/api/errors";
 import type {
-  ChannelRole,
   ChannelStatus,
   ChannelsListOrder,
   ChannelsListParams,
@@ -22,29 +18,12 @@ import type {
 const DEFAULT_SORT: ChannelsListSort = "recent";
 const DEFAULT_ORDER: ChannelsListOrder = "desc";
 
-const roleValues: ChannelRole[] = ["OWNER", "MANAGER"];
-const statusValues: ChannelStatus[] = [
+const pendingStatuses: ChannelStatus[] = [
   "DRAFT",
   "PENDING_VERIFY",
-  "VERIFIED",
   "FAILED",
   "REVOKED",
 ];
-const sortValues: ChannelsListSort[] = ["recent", "title", "subscribers"];
-const orderValues: ChannelsListOrder[] = ["asc", "desc"];
-
-const parseEnum = <T extends string>(
-  value: string | null,
-  allowed: readonly T[]
-): T | undefined => {
-  if (!value) {
-    return undefined;
-  }
-
-  return (allowed as readonly string[]).includes(value)
-    ? (value as T)
-    : undefined;
-};
 
 const ChannelCardSkeleton = () => (
   <div className="rounded-2xl border border-border/50 bg-card/80 p-4">
@@ -68,90 +47,12 @@ const ChannelCardSkeleton = () => (
 );
 
 export default function Channels() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const qParam = searchParams.get("q") ?? "";
-  const roleParam = parseEnum(searchParams.get("role"), roleValues);
-  const statusParam = parseEnum(searchParams.get("status"), statusValues);
-  const sortParam = parseEnum(searchParams.get("sort"), sortValues) ?? DEFAULT_SORT;
-  const orderParam =
-    parseEnum(searchParams.get("order"), orderValues) ?? DEFAULT_ORDER;
-  const verifiedOnlyParam = searchParams.get("verifiedOnly") === "true";
-
-  const [searchValue, setSearchValue] = useState(qParam);
-
-  useEffect(() => {
-    setSearchValue(qParam);
-  }, [qParam]);
-
-  const updateSearchParams = useCallback(
-    (updates: Partial<ChannelsFiltersState>) => {
-      const next = new URLSearchParams(searchParams);
-
-      const applyValue = (
-        key: keyof ChannelsFiltersState,
-        value: string | boolean | undefined
-      ) => {
-        if (value === undefined || value === "" || value === false) {
-          next.delete(key);
-          return;
-        }
-
-        next.set(key, String(value));
-      };
-
-      if (Object.prototype.hasOwnProperty.call(updates, "q")) {
-        applyValue("q", updates.q ?? "");
-      }
-      if (Object.prototype.hasOwnProperty.call(updates, "verifiedOnly")) {
-        applyValue("verifiedOnly", updates.verifiedOnly);
-      }
-      if (Object.prototype.hasOwnProperty.call(updates, "role")) {
-        applyValue("role", updates.role);
-      }
-      if (Object.prototype.hasOwnProperty.call(updates, "status")) {
-        applyValue("status", updates.status);
-      }
-      if (Object.prototype.hasOwnProperty.call(updates, "sort")) {
-        if (updates.sort === DEFAULT_SORT) {
-          next.delete("sort");
-        } else {
-          applyValue("sort", updates.sort);
-        }
-      }
-      if (Object.prototype.hasOwnProperty.call(updates, "order")) {
-        if (updates.order === DEFAULT_ORDER) {
-          next.delete("order");
-        } else {
-          applyValue("order", updates.order);
-        }
-      }
-
-      setSearchParams(next, { replace: true });
-    },
-    [searchParams, setSearchParams]
-  );
-
-  useEffect(() => {
-    const handle = window.setTimeout(() => {
-      const trimmed = searchValue.trim();
-      updateSearchParams({ q: trimmed.length ? trimmed : undefined });
-    }, 300);
-
-    return () => {
-      window.clearTimeout(handle);
-    };
-  }, [searchValue, updateSearchParams]);
-
   const filters = useMemo<ChannelsListParams>(
     () => ({
-      q: qParam.trim() || undefined,
-      role: roleParam,
-      status: statusParam,
-      verifiedOnly: verifiedOnlyParam || undefined,
-      sort: sortParam,
-      order: orderParam,
+      sort: DEFAULT_SORT,
+      order: DEFAULT_ORDER,
     }),
-    [qParam, roleParam, statusParam, verifiedOnlyParam, sortParam, orderParam]
+    []
   );
 
   const {
@@ -176,35 +77,13 @@ export default function Channels() {
     }
   }, [error]);
 
-  const handleFiltersChange = useCallback(
-    (next: Partial<ChannelsFiltersState>) => {
-      if (Object.prototype.hasOwnProperty.call(next, "q")) {
-        setSearchValue(next.q ?? "");
-        return;
-      }
-
-      updateSearchParams(next);
-    },
-    [updateSearchParams]
+  const verifiedChannels = useMemo(
+    () => items.filter((channel) => channel.status === "VERIFIED"),
+    [items]
   );
-
-  const filterState = useMemo<ChannelsFiltersState>(
-    () => ({
-      q: searchValue,
-      verifiedOnly: verifiedOnlyParam,
-      role: roleParam,
-      status: statusParam,
-      sort: sortParam,
-      order: orderParam,
-    }),
-    [
-      searchValue,
-      verifiedOnlyParam,
-      roleParam,
-      statusParam,
-      sortParam,
-      orderParam,
-    ]
+  const pendingChannels = useMemo(
+    () => items.filter((channel) => pendingStatuses.includes(channel.status)),
+    [items]
   );
 
   return (
@@ -231,8 +110,6 @@ export default function Channels() {
           </Link>
         </div>
       </div>
-
-      <ChannelsFilters filters={filterState} onChange={handleFiltersChange} />
 
       {isLoading ? (
         <div className="space-y-3">
@@ -263,10 +140,41 @@ export default function Channels() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
-          {items.map((channel) => (
-            <ChannelCard key={channel.id} channel={channel} />
-          ))}
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <span>Pending</span>
+              <span>{pendingChannels.length}</span>
+            </div>
+            {pendingChannels.length > 0 ? (
+              <div className="space-y-3">
+                {pendingChannels.map((channel) => (
+                  <ChannelCard key={channel.id} channel={channel} />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
+                No pending channels right now.
+              </p>
+            )}
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <span>Verified</span>
+              <span>{verifiedChannels.length}</span>
+            </div>
+            {verifiedChannels.length > 0 ? (
+              <div className="space-y-3">
+                {verifiedChannels.map((channel) => (
+                  <ChannelCard key={channel.id} channel={channel} />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
+                No verified channels yet.
+              </p>
+            )}
+          </div>
         </div>
       )}
 
