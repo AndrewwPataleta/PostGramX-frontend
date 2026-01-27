@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Info } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
 import { managedChannelData } from "@/features/channels/managedChannels";
 import { createListing, isMockListingsEnabled } from "@/features/listings/mockStore";
 import { listingTagCategories } from "@/features/listings/tagOptions";
+import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
 const availabilityOptions = [
   { label: "1 day", days: 1 },
@@ -49,7 +50,8 @@ const resolveHours = (choice: string, customValue: string, fallback: number) => 
 
 export default function CreateListing() {
   const { id } = useParams<{ id: string }>();
-  const channel = id ? managedChannelData[id] : null;
+  const outletContext = useOutletContext<ChannelManageContext | null>();
+  const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
   const navigate = useNavigate();
   const [priceTon, setPriceTon] = useState("25");
   const [availabilityChoice, setAvailabilityChoice] = useState(7);

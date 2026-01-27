@@ -1,11 +1,13 @@
-import { useParams } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
 import { managedChannelData } from "@/features/channels/managedChannels";
 import { getActiveListingForChannel, isMockListingsEnabled } from "@/features/listings/mockStore";
+import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
 export default function ListingPreview() {
   const { id } = useParams<{ id: string }>();
-  const channel = id ? managedChannelData[id] : null;
+  const outletContext = useOutletContext<ChannelManageContext | null>();
+  const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
   const listing = id ? getActiveListingForChannel(id) : undefined;
   const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
   const availabilityLabel = listing
