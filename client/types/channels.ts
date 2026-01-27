@@ -84,11 +84,12 @@ export type PreviewChannelResponse = {
 };
 
 export type LinkChannelResponse = {
-  id: string;
-  username: string;
+  id?: string;
+  channelId?: string;
+  username?: string;
   status: ChannelStatus | string;
   membership?: ChannelListItem["membership"] | null;
-  // TODO: Confirm link response payload with backend.
+  // TODO: Align link response payload with backend.
 };
 
 export type VerifyChannelResponse = {
