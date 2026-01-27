@@ -50,12 +50,26 @@ const extractAuthResult = (payload: unknown) => {
     (root?.token as string | undefined) ??
     null;
 
-  const user =
+  let user =
     (nested?.user as unknown) ??
     (nested?.profile as unknown) ??
     (root?.user as unknown) ??
     (root?.profile as unknown) ??
     null;
+
+  if (!user) {
+    const candidate = (nested ?? root) as Record<string, unknown> | null;
+    if (
+      candidate &&
+      (typeof candidate.id === "string" ||
+        typeof candidate.id === "number" ||
+        typeof candidate.telegramId === "string" ||
+        typeof candidate.telegramId === "number" ||
+        typeof candidate.username === "string")
+    ) {
+      user = candidate;
+    }
+  }
 
   return { accessToken, user };
 };
