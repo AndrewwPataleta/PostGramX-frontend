@@ -2,6 +2,9 @@ import { post } from "@/api/core/apiClient";
 import type {
   ChannelsListParams,
   ChannelsListResponse,
+  ChannelItem,
+  ListChannelsParams,
+  Paginated,
   LinkChannelResponse,
   PreviewChannelResponse,
   UnlinkChannelResponse,
@@ -12,6 +15,11 @@ export const postChannelsList = async (
   params: ChannelsListParams
 ): Promise<ChannelsListResponse> =>
   post<ChannelsListResponse, ChannelsListParams>("/channels/list", params);
+
+export const listChannels = async (
+  params: ListChannelsParams
+): Promise<Paginated<ChannelItem>> =>
+  post<Paginated<ChannelItem>, ListChannelsParams>("/channels/list", params);
 
 export const previewChannel = async (params: {
   usernameOrLink: string;
@@ -50,6 +58,7 @@ export const updateChannelDisabledStatus = async (params: {
 
 export const channelsApi = {
   postChannelsList,
+  listChannels,
   previewChannel,
   linkChannel,
   verifyChannel,

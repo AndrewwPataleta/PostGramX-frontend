@@ -1,9 +1,8 @@
 import { Check } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
-import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import { Link, useLocation, useParams } from "react-router-dom";
 import ErrorState from "@/components/feedback/ErrorState";
-import { getErrorMessage } from "@/lib/api/errors";
-import { useMarketplaceChannelViewModel } from "@/features/marketplace/viewmodels/useMarketplaceChannelViewModel";
+import { formatTonString, nanoToTonString } from "@/lib/ton";
+import type { ChannelItem } from "@/types/channels";
 
 const formatDuration = (hours: number) => {
   if (hours >= 168 && hours % 24 === 0) {
@@ -14,42 +13,65 @@ const formatDuration = (hours: number) => {
 
 export default function ChannelDetailsView() {
   const { channelId } = useParams<{ channelId: string }>();
-  const { state, actions } = useMarketplaceChannelViewModel(channelId);
+  const location = useLocation();
+  const channel = (location.state as { channel?: ChannelItem } | null)?.channel;
+  const activeListings = (channel?.listings ?? []).filter(
+    (listing) => listing.isActive !== false
+  );
+  const minPriceNano = activeListings.reduce<bigint | null>((currentMin, listing) => {
+    const price = BigInt(listing.priceNano);
+    if (currentMin === null) {
+      return price;
+    }
+    return price < currentMin ? price : currentMin;
+  }, null);
+  const minPriceTon = minPriceNano ? formatTonString(nanoToTonString(minPriceNano)) : null;
+  const primaryListing = activeListings[0];
+  const hasPinnedOptions = activeListings.some((listing) => listing.pinDurationHours !== null);
+  const aggregatedTags = Array.from(
+    new Set(
+      activeListings.flatMap((listing) =>
+        listing.tags.map((tag) => tag.trim()).filter(Boolean)
+      )
+    )
+  );
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="px-4 py-6 space-y-4">
-        {state.isLoading ? (
-          <LoadingSkeleton items={3} />
-        ) : state.error || !state.channel ? (
+        {!channel || channel.id !== channelId ? (
           <ErrorState
-            message={getErrorMessage(state.error, "Channel not found")}
+            message="Channel not found"
             description="We couldn't load this channel."
-            onRetry={actions.refetch}
           />
         ) : (
           <>
             <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-2xl">
-                  {state.channel.avatarUrl}
+                  {channel.avatarUrl ? (
+                    <img
+                      src={channel.avatarUrl}
+                      alt={channel.name}
+                      className="h-16 w-16 rounded-2xl object-cover"
+                    />
+                  ) : (
+                    channel.name?.[0]?.toUpperCase()
+                  )}
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-foreground">
-                      {state.channel.title}
+                      {channel.name}
                     </h2>
-                    {state.channel.verified ? (
+                    {channel.verified ? (
                       <span className="inline-flex items-center justify-center rounded-full bg-primary/20 p-1">
                         <Check size={14} className="text-primary" />
                       </span>
                     ) : null}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    @{state.channel.username}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {state.channel.description}
+                    @{channel.username}
                   </p>
                 </div>
               </div>
@@ -59,19 +81,19 @@ export default function ChannelDetailsView() {
               <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
                 <p className="text-xs text-muted-foreground">Subscribers</p>
                 <p className="mt-1 text-lg font-semibold text-foreground">
-                  {(state.channel.subscribers / 1000).toFixed(0)}K
+                  {channel.subscribers ? `${Math.round(channel.subscribers / 1000)}K` : "--"}
                 </p>
               </div>
               <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
-                <p className="text-xs text-muted-foreground">Avg views</p>
+                <p className="text-xs text-muted-foreground">Placements</p>
                 <p className="mt-1 text-lg font-semibold text-foreground">
-                  {(state.channel.averageViews / 1000).toFixed(0)}K
+                  {activeListings.length}
                 </p>
               </div>
               <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
-                <p className="text-xs text-muted-foreground">Engagement</p>
+                <p className="text-xs text-muted-foreground">Pinned options</p>
                 <p className="mt-1 text-lg font-semibold text-foreground">
-                  {state.channel.engagementRate}%
+                  {hasPinnedOptions ? "Yes" : "No"}
                 </p>
               </div>
             </div>
@@ -80,7 +102,7 @@ export default function ChannelDetailsView() {
               <p className="text-xs text-muted-foreground">Pricing</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-semibold text-foreground">
-                  {state.channel.priceTon}
+                  {minPriceTon ?? "--"}
                 </span>
                 <span className="text-sm text-muted-foreground">TON per post</span>
               </div>
@@ -88,57 +110,55 @@ export default function ChannelDetailsView() {
                 Pricing includes escrow protection and bot-assisted messaging.
               </p>
               <Link
-                to={`/marketplace/channels/${state.channel.id}/request`}
-                state={{ listingId: state.channel.listing?.id }}
+                to={`/marketplace/channels/${channel.id}/request`}
+                state={{ listingId: primaryListing?.id }}
                 className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
               >
                 Request Placement
               </Link>
             </div>
 
-            {state.channel.listing ? (
+            {activeListings.length > 0 ? (
               <div className="rounded-2xl border border-border/60 bg-card/80 p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      Active listing
-                    </p>
+                    <p className="text-sm font-semibold text-foreground">Active listings</p>
                     <p className="text-xs text-muted-foreground">
-                      Listing active
+                      {activeListings.length} placements available
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Price</p>
+                    <p className="text-xs text-muted-foreground">From</p>
                     <p className="text-lg font-semibold text-primary">
-                      {state.channel.listing.priceTon} TON
+                      {minPriceTon ?? "--"} TON
                     </p>
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-                    <p className="text-xs text-muted-foreground">Pinned</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">
-                      {state.channel.listing.pinDurationHours
-                        ? formatDuration(state.channel.listing.pinDurationHours)
-                        : "Not pinned"}
-                    </p>
+                {primaryListing ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+                      <p className="text-xs text-muted-foreground">Pinned</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {primaryListing.pinDurationHours
+                          ? formatDuration(primaryListing.pinDurationHours)
+                          : "Not pinned"}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+                      <p className="text-xs text-muted-foreground">Visible</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {formatDuration(primaryListing.visibilityDurationHours ?? 24)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-                    <p className="text-xs text-muted-foreground">Visible</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">
-                      {formatDuration(
-                        state.channel.listing.visibilityDurationHours ?? 24,
-                      )}
-                    </p>
-                  </div>
-                </div>
+                ) : null}
 
-                {state.channel.listing.tags.length > 0 ? (
+                {aggregatedTags.length > 0 ? (
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground">Tags</p>
                     <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
-                      {state.channel.listing.tags.map((tag) => (
+                      {aggregatedTags.map((tag) => (
                         <span
                           key={tag}
                           className="rounded-full border border-border/60 bg-card px-2.5 py-1"
@@ -149,13 +169,6 @@ export default function ChannelDetailsView() {
                     </div>
                   </div>
                 ) : null}
-
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                  <p className="text-xs font-semibold text-primary">Content rules</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {state.channel.listing.contentRulesText || "No extra rules"}
-                  </p>
-                </div>
               </div>
             ) : (
               <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center">
