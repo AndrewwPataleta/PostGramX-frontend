@@ -24,6 +24,7 @@ const AppShell = () => {
     () => ["/", "/deals", "/channels"].includes(location.pathname),
     [location.pathname],
   );
+  const isAddChannelRoute = location.pathname.startsWith("/add-channel");
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -97,20 +98,28 @@ const AppShell = () => {
 
   const shellStyle: CSSProperties = {
     "--bottom-nav-height": `${bottomNavHeight}px`,
+    "--app-toolbar-height": isAddChannelRoute ? "0px" : "52px",
   } as CSSProperties;
 
-  const contentStyle: CSSProperties = {
-    paddingTop:
-      "calc(max(var(--tg-safe-top), var(--tg-content-safe-area-inset-top)) + var(--app-toolbar-height))",
-    paddingBottom:
-      "calc(max(var(--tg-safe-bottom), var(--tg-content-safe-area-inset-bottom)) + var(--bottom-nav-height))",
-    paddingLeft: "max(var(--tg-safe-left), var(--tg-content-safe-area-inset-left))",
-    paddingRight: "max(var(--tg-safe-right), var(--tg-content-safe-area-inset-right))",
-  };
+  const contentStyle: CSSProperties = isAddChannelRoute
+    ? {
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+      }
+    : {
+        paddingTop:
+          "calc(max(var(--tg-safe-top), var(--tg-content-safe-area-inset-top)) + var(--app-toolbar-height))",
+        paddingBottom:
+          "calc(max(var(--tg-safe-bottom), var(--tg-content-safe-area-inset-bottom)) + var(--bottom-nav-height))",
+        paddingLeft: "max(var(--tg-safe-left), var(--tg-content-safe-area-inset-left))",
+        paddingRight: "max(var(--tg-safe-right), var(--tg-content-safe-area-inset-right))",
+      };
 
   return (
     <div className="flex h-full flex-col bg-background" style={shellStyle}>
-      <TopToolbar />
+      {isAddChannelRoute ? null : <TopToolbar />}
       <main className="flex-1 overflow-y-auto touch-pan-y" ref={mainRef} style={contentStyle}>
         {showWalletBanner ? <WalletConnectBanner /> : null}
         <Outlet />

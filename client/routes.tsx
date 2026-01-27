@@ -18,10 +18,10 @@ const ListingPreview = lazy(() => import("./pages/ListingPreview"));
 const ListingSuccess = lazy(() => import("./pages/ListingSuccess"));
 const EditListing = lazy(() => import("./pages/EditListing"));
 const Profile = lazy(() => import("./pages/Profile"));
-const AddChannelStep1 = lazy(() => import("./pages/AddChannelStep1"));
-const AddChannelStep2 = lazy(() => import("./pages/AddChannelStep2"));
-const AddChannelStep3 = lazy(() => import("./pages/AddChannelStep3"));
 const AddChannelLayout = lazy(() => import("./pages/add-channel/AddChannelLayout"));
+const AddChannelStep1 = lazy(() => import("./pages/add-channel/Step1"));
+const AddChannelStep2 = lazy(() => import("./pages/add-channel/Step2"));
+const AddChannelStep3 = lazy(() => import("./pages/add-channel/Step3"));
 const ChannelManageLayout = lazy(
   () => import("./pages/channel-manage/ChannelManageLayout"),
 );
