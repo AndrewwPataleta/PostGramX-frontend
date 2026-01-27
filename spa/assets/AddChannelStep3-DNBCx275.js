@@ -1,0 +1,16 @@
+import{c as s,j as e,L as t}from"./index-_r0t-zdo.js";import{F as a}from"./FlowLayout-CpzwvIjo.js";/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const r=[["path",{d:"M5 12h14",key:"1ays0h"}],["path",{d:"m12 5 7 7-7 7",key:"xquz4c"}]],n=s("arrow-right",r);/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const c=[["path",{d:"M12 8V4H8",key:"hb8ula"}],["rect",{width:"16",height:"12",x:"4",y:"8",rx:"2",key:"enze0r"}],["path",{d:"M2 14h2",key:"vft8re"}],["path",{d:"M20 14h2",key:"4cs60a"}],["path",{d:"M15 13v2",key:"1xurst"}],["path",{d:"M9 13v2",key:"rq6x2g"}]],d=s("bot",c);/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const i=[["path",{d:"M10 15H6a4 4 0 0 0-4 4v2",key:"1nfge6"}],["path",{d:"m14.305 16.53.923-.382",key:"1itpsq"}],["path",{d:"m15.228 13.852-.923-.383",key:"eplpkm"}],["path",{d:"m16.852 12.228-.383-.923",key:"13v3q0"}],["path",{d:"m16.852 17.772-.383.924",key:"1i8mnm"}],["path",{d:"m19.148 12.228.383-.923",key:"1q8j1v"}],["path",{d:"m19.53 18.696-.382-.924",key:"vk1qj3"}],["path",{d:"m20.772 13.852.924-.383",key:"n880s0"}],["path",{d:"m20.772 16.148.924.383",key:"1g6xey"}],["circle",{cx:"18",cy:"15",r:"3",key:"gjjjvw"}],["circle",{cx:"9",cy:"7",r:"4",key:"nufk8"}]],l=s("user-cog",i);function x(){return e.jsx(a,{title:"Grant Access",footerPaddingClassName:"pb-[calc(140px+var(--tg-content-safe-area-inset-bottom))]",footer:e.jsxs("div",{className:"space-y-2",children:[e.jsx(t,{to:"/channels",className:"button-primary block text-center text-base font-semibold",children:"I added the bot"}),e.jsx(t,{to:"/channels",className:"button-secondary block text-center text-base font-semibold",children:"Open Telegram Settings"})]}),children:e.jsxs("div",{className:"glass p-4 space-y-3",children:[e.jsxs("div",{className:"flex items-center justify-center gap-2 text-primary",children:[e.jsx(l,{className:"h-5 w-5"}),e.jsx(n,{className:"h-4 w-4"}),e.jsx(d,{className:"h-5 w-5"})]}),e.jsxs("div",{className:"space-y-3 text-sm text-foreground",children:[e.jsxs("div",{className:"flex gap-3",children:[e.jsx("span",{className:"flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary",children:"1"}),e.jsx("p",{children:"Open channel settings → Administrators."})]}),e.jsxs("div",{className:"flex gap-3",children:[e.jsx("span",{className:"flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary",children:"2"}),e.jsx("p",{children:"Add @FlowgramXBot as admin."})]}),e.jsxs("div",{className:"flex gap-3",children:[e.jsx("span",{className:"flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary",children:"3"}),e.jsx("p",{children:"Enable “Post Messages” permission."})]})]}),e.jsx("p",{className:"text-xs text-muted-foreground",children:"We only post verified ads that you approve. No spam or edits."})]})})}export{x as default};
