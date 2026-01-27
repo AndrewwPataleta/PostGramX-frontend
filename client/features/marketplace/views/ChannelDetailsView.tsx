@@ -1,5 +1,4 @@
 import { Check } from "lucide-react";
-import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import ErrorState from "@/components/feedback/ErrorState";
@@ -16,18 +15,6 @@ const formatDuration = (hours: number) => {
 export default function ChannelDetailsView() {
   const { channelId } = useParams<{ channelId: string }>();
   const { state, actions } = useMarketplaceChannelViewModel(channelId);
-
-  const availabilityLabel = useMemo(() => {
-    if (!state.channel?.listing) {
-      return null;
-    }
-    const { availabilityFrom, availabilityTo } = state.channel.listing;
-    const from = new Date(availabilityFrom);
-    const to = new Date(availabilityTo);
-    const diffMs = to.getTime() - from.getTime();
-    const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-    return `Available next ${diffDays} day${diffDays === 1 ? "" : "s"}`;
-  }, [state.channel?.listing]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -116,7 +103,7 @@ export default function ChannelDetailsView() {
                       Active listing
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {availabilityLabel ?? "Availability updated recently"}
+                      Listing active
                     </p>
                   </div>
                   <div className="text-right">

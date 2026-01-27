@@ -7,14 +7,6 @@ import { createListing, isMockListingsEnabled } from "@/features/listings/mockSt
 import { listingTagCategories } from "@/features/listings/tagOptions";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
-const availabilityOptions = [
-  { label: "1 day", days: 1 },
-  { label: "3 days", days: 3 },
-  { label: "7 days", days: 7 },
-  { label: "14 days", days: 14 },
-  { label: "Custom range", days: null },
-];
-
 const pinDurationOptions = [
   { label: "Not pinned", value: "none" },
   { label: "6 hours", value: "6" },
@@ -32,13 +24,6 @@ const visibilityDurationOptions = [
   { label: "Custom", value: "custom" },
 ];
 
-const getRangeDays = (from: string, to: string) => {
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-  const diffMs = toDate.getTime() - fromDate.getTime();
-  return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-};
-
 const resolveHours = (choice: string, customValue: string, fallback: number) => {
   if (choice === "custom") {
     const parsed = Number(customValue);
@@ -54,9 +39,6 @@ export default function CreateListing() {
   const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
   const navigate = useNavigate();
   const [priceTon, setPriceTon] = useState("25");
-  const [availabilityChoice, setAvailabilityChoice] = useState(7);
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
   const [pinDurationChoice, setPinDurationChoice] = useState("none");
   const [pinCustomHours, setPinCustomHours] = useState("");
   const [visibilityDurationChoice, setVisibilityDurationChoice] = useState("24");
@@ -69,16 +51,6 @@ export default function CreateListing() {
   const [selectedTags, setSelectedTags] = useState<string[]>(["Must be pre-approved"]);
 
   const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
-  const availabilityLabel = (() => {
-    if (availabilityChoice) {
-      return `Available next ${availabilityChoice} day${availabilityChoice === 1 ? "" : "s"}`;
-    }
-    if (customFrom && customTo) {
-      const diffDays = getRangeDays(customFrom, customTo);
-      return `Available ${diffDays} days`;
-    }
-    return "Availability pending";
-  })();
   const pinDurationHours =
     pinDurationChoice === "none" ? null : resolveHours(pinDurationChoice, pinCustomHours, 24);
   const visibilityDurationHours = resolveHours(
@@ -97,16 +69,11 @@ export default function CreateListing() {
 
   const handlePublish = () => {
     const today = new Date();
-    const availabilityFrom = availabilityChoice
-      ? today
-      : customFrom
-        ? new Date(customFrom)
-        : today;
-    const availabilityTo = availabilityChoice
-      ? new Date(today.getTime() + availabilityChoice * 24 * 60 * 60 * 1000)
-      : customTo
-        ? new Date(customTo)
-        : today;
+    const defaultAvailabilityDays = 7;
+    const availabilityFrom = today;
+    const availabilityTo = new Date(
+      today.getTime() + defaultAvailabilityDays * 24 * 60 * 60 * 1000,
+    );
     const ensuredTags = selectedTags.includes("Must be pre-approved")
       ? selectedTags
       : [...selectedTags, "Must be pre-approved"];
@@ -198,48 +165,6 @@ export default function CreateListing() {
               </button>
             ))}
           </div>
-        </section>
-
-        <section className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Availability</h2>
-            <p className="text-xs text-muted-foreground">
-              Advertisers will only be able to schedule posts inside this range.
-            </p>
-          </div>
-          <select
-            value={availabilityChoice}
-            onChange={(event) => setAvailabilityChoice(Number(event.target.value))}
-            className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
-          >
-            {availabilityOptions.map((option) => (
-              <option key={option.label} value={option.days ?? 0}>
-                Available for next: {option.label}
-              </option>
-            ))}
-          </select>
-          {availabilityChoice === 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">From date</label>
-                <input
-                  type="date"
-                  value={customFrom}
-                  onChange={(event) => setCustomFrom(event.target.value)}
-                  className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">To date</label>
-                <input
-                  type="date"
-                  value={customTo}
-                  onChange={(event) => setCustomTo(event.target.value)}
-                  className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
-                />
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <section className="space-y-4">
@@ -544,7 +469,6 @@ export default function CreateListing() {
           <ListingSummaryCard
             channel={channel}
             priceTon={Number(priceTon || 0)}
-            availabilityLabel={availabilityLabel}
             pinDurationHours={pinDurationHours}
             visibilityDurationHours={visibilityDurationHours}
             tags={selectedTags}

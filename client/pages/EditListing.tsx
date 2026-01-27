@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Info } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
@@ -22,14 +22,6 @@ import {
 } from "@/features/listings/mockStore";
 import { listingTagCategories } from "@/features/listings/tagOptions";
 
-const availabilityOptions = [
-  { label: "1 day", days: 1 },
-  { label: "3 days", days: 3 },
-  { label: "7 days", days: 7 },
-  { label: "14 days", days: 14 },
-  { label: "Custom range", days: null },
-];
-
 const pinDurationOptions = [
   { label: "Not pinned", value: "none" },
   { label: "6 hours", value: "6" },
@@ -47,13 +39,6 @@ const visibilityDurationOptions = [
   { label: "Custom", value: "custom" },
 ];
 
-const getRangeDays = (from: string, to: string) => {
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-  const diffMs = toDate.getTime() - fromDate.getTime();
-  return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-};
-
 const resolveHours = (choice: string, customValue: string, fallback: number) => {
   if (choice === "custom") {
     const parsed = Number(customValue);
@@ -69,12 +54,6 @@ export default function EditListing() {
   const listing = listingId ? getListingById(listingId) : undefined;
   const navigate = useNavigate();
 
-  const initialRangeDays = listing
-    ? getRangeDays(listing.availabilityFrom, listing.availabilityTo)
-    : 7;
-  const initialChoice = [1, 3, 7, 14].includes(initialRangeDays)
-    ? initialRangeDays
-    : 0;
   const initialPinDuration = listing?.pinDurationHours ?? null;
   const initialPinChoice = initialPinDuration
     ? [6, 12, 24, 48].includes(initialPinDuration)
@@ -94,13 +73,6 @@ export default function EditListing() {
     : String(initialVisibilityDuration);
 
   const [priceTon, setPriceTon] = useState(listing ? String(listing.priceTon) : "25");
-  const [availabilityChoice, setAvailabilityChoice] = useState(initialChoice);
-  const [customFrom, setCustomFrom] = useState(
-    listing ? listing.availabilityFrom.split("T")[0] : "",
-  );
-  const [customTo, setCustomTo] = useState(
-    listing ? listing.availabilityTo.split("T")[0] : "",
-  );
   const [pinDurationChoice, setPinDurationChoice] = useState(initialPinChoice);
   const [pinCustomHours, setPinCustomHours] = useState(initialPinCustom);
   const [visibilityDurationChoice, setVisibilityDurationChoice] = useState(
@@ -128,16 +100,6 @@ export default function EditListing() {
 
   const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
 
-  const availabilityLabel = useMemo(() => {
-    if (availabilityChoice) {
-      return `Available next ${availabilityChoice} day${availabilityChoice === 1 ? "" : "s"}`;
-    }
-    if (customFrom && customTo) {
-      const diffDays = getRangeDays(customFrom, customTo);
-      return `Available ${diffDays} days`;
-    }
-    return "Availability pending";
-  }, [availabilityChoice, customFrom, customTo]);
   const pinDurationHours =
     pinDurationChoice === "none" ? null : resolveHours(pinDurationChoice, pinCustomHours, 24);
   const visibilityDurationHours = resolveHours(
@@ -155,25 +117,14 @@ export default function EditListing() {
   }
 
   const applySave = () => {
-    const today = new Date();
-    const availabilityFrom = availabilityChoice
-      ? today
-      : customFrom
-        ? new Date(customFrom)
-        : today;
-    const availabilityTo = availabilityChoice
-      ? new Date(today.getTime() + availabilityChoice * 24 * 60 * 60 * 1000)
-      : customTo
-        ? new Date(customTo)
-        : today;
     const ensuredTags = selectedTags.includes("Must be pre-approved")
       ? selectedTags
       : [...selectedTags, "Must be pre-approved"];
 
     updateListing(listing.id, {
       priceTon: Number(priceTon || 0),
-      availabilityFrom: availabilityFrom.toISOString(),
-      availabilityTo: availabilityTo.toISOString(),
+      availabilityFrom: listing.availabilityFrom,
+      availabilityTo: listing.availabilityTo,
       pinDurationHours,
       visibilityDurationHours,
       allowEdits,
@@ -247,51 +198,6 @@ export default function EditListing() {
         </section>
 
         <section className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Availability</h2>
-            <p className="text-xs text-muted-foreground">
-              Advertisers will only be able to schedule posts inside this range.
-            </p>
-          </div>
-          <select
-            value={availabilityChoice}
-            onChange={(event) => setAvailabilityChoice(Number(event.target.value))}
-            className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
-          >
-            {availabilityOptions.map((option) => (
-              <option
-                key={option.label}
-                value={option.days ?? 0}
-              >
-                Available for next: {option.label}
-              </option>
-            ))}
-          </select>
-          {availabilityChoice === 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">From date</label>
-                <input
-                  type="date"
-                  value={customFrom}
-                  onChange={(event) => setCustomFrom(event.target.value)}
-                  className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">To date</label>
-                <input
-                  type="date"
-                  value={customTo}
-                  onChange={(event) => setCustomTo(event.target.value)}
-                  className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
-                />
-              </div>
-            </div>
-          ) : null}
-        </section>
-
-        <section className="space-y-4">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Post visibility requirements</h2>
             <p className="text-xs text-muted-foreground">
@@ -586,7 +492,6 @@ export default function EditListing() {
           <ListingSummaryCard
             channel={channel}
             priceTon={Number(priceTon || 0)}
-            availabilityLabel={availabilityLabel}
             pinDurationHours={pinDurationHours}
             visibilityDurationHours={visibilityDurationHours}
             tags={selectedTags}

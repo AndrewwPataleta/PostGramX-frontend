@@ -10,15 +10,6 @@ export default function ListingPreview() {
   const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
   const listing = id ? getActiveListingForChannel(id) : undefined;
   const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
-  const availabilityLabel = listing
-    ? (() => {
-        const from = new Date(listing.availabilityFrom);
-        const to = new Date(listing.availabilityTo);
-        const diffMs = to.getTime() - from.getTime();
-        const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-        return `Available next ${diffDays} day${diffDays === 1 ? "" : "s"}`;
-      })()
-    : "Available next 7 days";
   const pinDurationHours = listing?.pinDurationHours ?? null;
   const visibilityDurationHours = listing?.visibilityDurationHours ?? 24;
 
@@ -42,7 +33,6 @@ export default function ListingPreview() {
         <ListingSummaryCard
           channel={channel}
           priceTon={listing?.priceTon ?? 25}
-          availabilityLabel={availabilityLabel}
           pinDurationHours={pinDurationHours}
           visibilityDurationHours={visibilityDurationHours}
           tags={listing?.tags ?? []}

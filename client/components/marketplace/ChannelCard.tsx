@@ -16,15 +16,6 @@ const formatDuration = (hours: number) => {
 
 export default function ChannelCard({ channel }: ChannelCardProps) {
   const [tagsExpanded, setTagsExpanded] = useState(false);
-  const availabilityLabel = channel.listing
-    ? (() => {
-        const from = new Date(channel.listing.availabilityFrom);
-        const to = new Date(channel.listing.availabilityTo);
-        const diffMs = to.getTime() - from.getTime();
-        const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-        return `Available next ${diffDays} day${diffDays === 1 ? "" : "s"}`;
-      })()
-    : null;
   const listingTags = channel.listing?.tags ?? [];
   const maxCollapsedTags = 3;
   const shouldShowTagToggle = listingTags.length > maxCollapsedTags;
@@ -111,11 +102,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         <div className="text-right">
           <p className="text-xs text-muted-foreground">From</p>
           <p className="text-sm font-semibold text-primary">{channel.priceTon} TON</p>
-          {availabilityLabel ? (
-            <span className="mt-2 inline-flex rounded-full bg-primary/10 px-2 py-1 text-[10px] text-primary">
-              {availabilityLabel}
-            </span>
-          ) : null}
         </div>
       </div>
     </Link>
