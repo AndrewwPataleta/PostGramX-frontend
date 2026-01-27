@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAddChannelFlow } from "@/pages/add-channel/useAddChannelFlow";
+import type { ChannelListItem } from "@/types/channels";
 
 const AddChannelStep3 = () => {
   const navigate = useNavigate();
@@ -30,6 +31,27 @@ const AddChannelStep3 = () => {
   const isSuccess = state.verifyStatus === "success";
   const message =
     state.lastError || "We could not verify your admin rights. Please try again.";
+  const linkedChannelId = state.linkedChannelId;
+
+  const channelState: ChannelListItem | null =
+    preview && linkedChannelId
+      ? {
+          id: linkedChannelId,
+          username: (preview.username || preview.normalizedUsername || "").replace(/^@/, ""),
+          title: preview.title || "Untitled channel",
+          status: "VERIFIED",
+          telegramChatId: preview.telegramChatId ?? null,
+          memberCount: preview.memberCount ?? null,
+          avgViews: preview.avgViews ?? null,
+          verifiedAt: new Date().toISOString(),
+          lastCheckedAt: new Date().toISOString(),
+          membership: {
+            role: "OWNER",
+            telegramAdminStatus: "administrator",
+            lastRecheckAt: new Date().toISOString(),
+          },
+        }
+      : null;
 
   if (!preview) {
     return null;
@@ -74,10 +96,14 @@ const AddChannelStep3 = () => {
             <Button
               variant="secondary"
               onClick={() =>
-                navigate(`/channel-manage/${state.linkedChannelId}/overview`)
+                linkedChannelId
+                  ? navigate(`/channel-manage/${linkedChannelId}/overview`, {
+                      state: channelState ? { channel: channelState } : undefined,
+                    })
+                  : undefined
               }
               className="w-full text-sm font-semibold"
-              disabled={!state.linkedChannelId}
+              disabled={!linkedChannelId}
             >
               Manage channel
             </Button>
