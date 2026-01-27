@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { BadgeCheck, Shield, Users2 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { ChannelListItem, ChannelStatus } from "@/types/channels";
 
@@ -51,15 +50,19 @@ const formatTitle = (text: string) => text || "Untitled channel";
 
 interface ChannelCardProps {
   channel: ChannelListItem;
+  onClick?: () => void;
+  onVerify?: () => void;
 }
 
-const ChannelCard = ({ channel }: ChannelCardProps) => {
+const ChannelCard = ({ channel, onClick, onVerify }: ChannelCardProps) => {
   const status = statusStyles[channel.status];
+  const showVerifyAction = channel.status === "PENDING_VERIFY" && onVerify;
 
   return (
-    <Link
-      to={`/channel-manage/${channel.id}`}
-      className="block rounded-2xl border border-border/50 bg-card/80 p-4 shadow-sm transition hover:border-border/80 hover:bg-card"
+    <button
+      type="button"
+      onClick={onClick}
+      className="block w-full rounded-2xl border border-border/50 bg-card/80 p-4 text-left shadow-sm transition hover:border-border/80 hover:bg-card"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -110,11 +113,26 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
         <span className="uppercase tracking-wide">
           {channel.membership.telegramAdminStatus}
         </span>
-        <span className="text-[11px] text-muted-foreground/80">
-          Last checked {channel.lastCheckedAt ? new Date(channel.lastCheckedAt).toLocaleDateString() : "–"}
-        </span>
+        <div className="flex items-center gap-2">
+          {showVerifyAction ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onVerify();
+              }}
+              className="rounded-full border border-yellow-500/40 bg-yellow-500/15 px-2 py-0.5 text-[11px] font-semibold text-yellow-200 transition hover:bg-yellow-500/25"
+            >
+              Verify
+            </button>
+          ) : null}
+          <span className="text-[11px] text-muted-foreground/80">
+            Last checked{" "}
+            {channel.lastCheckedAt ? new Date(channel.lastCheckedAt).toLocaleDateString() : "–"}
+          </span>
+        </div>
       </div>
-    </Link>
+    </button>
   );
 };
 

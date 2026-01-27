@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import ChannelCard from "@/features/channels/components/ChannelCard";
@@ -48,6 +48,7 @@ const ChannelCardSkeleton = () => (
 
 export default function Channels() {
   const [activeTab, setActiveTab] = useState<"pending" | "verified">("pending");
+  const navigate = useNavigate();
   const filters = useMemo<ChannelsListParams>(
     () => ({
       sort: DEFAULT_SORT,
@@ -91,6 +92,15 @@ export default function Channels() {
     activeTab === "pending"
       ? "No pending channels right now."
       : "No verified channels yet.";
+
+  const handleChannelClick = (channel: (typeof items)[number]) => {
+    if (channel.status === "PENDING_VERIFY") {
+      navigate(`/channels/pending/${channel.id}`, { state: { channel } });
+      return;
+    }
+
+    navigate(`/channel-manage/${channel.id}/overview`, { state: { channel } });
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pb-16 pt-4">
@@ -170,7 +180,12 @@ export default function Channels() {
           {tabbedChannels.length > 0 ? (
             <div className="space-y-3">
               {tabbedChannels.map((channel) => (
-                <ChannelCard key={channel.id} channel={channel} />
+                <ChannelCard
+                  key={channel.id}
+                  channel={channel}
+                  onClick={() => handleChannelClick(channel)}
+                  onVerify={() => navigate(`/channels/pending/${channel.id}`, { state: { channel } })}
+                />
               ))}
             </div>
           ) : (
@@ -201,6 +216,15 @@ export default function Channels() {
           ) : null}
         </div>
       ) : null}
+
+      <button
+        type="button"
+        onClick={() => navigate("/add-channel/step-1")}
+        className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
+        aria-label="Add channel"
+      >
+        <Plus size={18} />
+      </button>
     </div>
   );
 }
