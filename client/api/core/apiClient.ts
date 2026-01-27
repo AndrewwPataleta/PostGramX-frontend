@@ -1,7 +1,8 @@
-import { AUTH_EXPIRED_EVENT, getAuthToken } from "@/lib/api/auth";
+import { AUTH_EXPIRED_EVENT } from "@/lib/api/auth";
 import { ApiError, parseBackendError } from "@/api/core/apiErrors";
+import { buildTelegramEnvelope } from "@/api/core/envelope";
 
-const BASE_URL = "http://localhost:8080"
+// NOTE: Do not import fetch directly in client/api/**. Use post() from this module.
 
 const SENSITIVE_KEYS = new Set([
   "token",
@@ -66,7 +67,7 @@ const logResponse = (url: string, status: number, payload: unknown) => {
 const normalizeBaseUrl = (baseUrl: string) => baseUrl.replace(/\/+$/, "");
 
 const buildUrl = (path: string) => {
-  const baseUrl = normalizeBaseUrl(BASE_URL ?? "");
+  const baseUrl = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL ?? "");
   if (!path.startsWith("/")) {
     return `${baseUrl}/${path}`;
   }
@@ -97,27 +98,22 @@ const parseResponseBody = async (response: Response): Promise<unknown> => {
 
 export const post = async <TResponse, TData>(
   path: string,
-  data?: TData,
+  data: TData,
   options?: { headers?: Record<string, string> }
 ): Promise<TResponse> => {
   const url = buildUrl(path);
-  const payload = {  data  };
+  const envelope = buildTelegramEnvelope(data);
   const headers = new Headers({
     "Content-Type": "application/json",
     ...options?.headers,
   });
 
-  const token = getAuthToken();
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  logRequest(url, payload, headers);
+  logRequest(url, envelope, headers);
 
   const response = await fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify(data),
+    body: JSON.stringify(envelope),
     credentials: "include",
   });
 
