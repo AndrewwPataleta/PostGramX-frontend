@@ -67,7 +67,7 @@ const logResponse = (url: string, status: number, payload: unknown) => {
 const normalizeBaseUrl = (baseUrl: string) => baseUrl.replace(/\/+$/, "");
 
 const buildUrl = (path: string) => {
-  const baseUrl = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL ?? "");
+  const baseUrl = normalizeBaseUrl(import.meta.env.BACKEND_API_BASE_URL ?? "");
   if (!path.startsWith("/")) {
     return `${baseUrl}/${path}`;
   }

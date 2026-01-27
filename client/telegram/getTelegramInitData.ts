@@ -1,6 +1,6 @@
 import { getTelegramWebApp, mockTelegramAuth } from "@/lib/telegram";
 
-const TELEGRAM_MOCK = import.meta.env.VITE_TELEGRAM_MOCK === "true";
+const TELEGRAM_MOCK = import.meta.env.TELEGRAM_MOCK === "true";
 
 export const getTelegramInitDataToken = (): string => {
   const webApp = getTelegramWebApp();
