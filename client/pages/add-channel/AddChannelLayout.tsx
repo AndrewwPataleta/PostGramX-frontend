@@ -1,26 +1,50 @@
 import { X } from "lucide-react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
+import { cn } from "@/lib/utils";
+import { AddChannelFlowProvider } from "@/pages/add-channel/useAddChannelFlow";
 
 const AddChannelLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const stepMatch = location.pathname.match(/step-(\d+)/);
+  const stepNumber = stepMatch ? Number(stepMatch[1]) : null;
+  const stepLabel = stepNumber ? `Step ${stepNumber}/3` : null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="flex items-center justify-between px-4 pt-4">
-        <h1 className="text-sm font-semibold text-foreground">Add channel</h1>
-        <button
-          type="button"
-          onClick={() => navigate("/channels", { replace: true })}
-          className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
-          aria-label="Close add channel flow"
+    <AddChannelFlowProvider>
+      <SafeAreaLayout className="flex min-h-screen flex-col bg-background">
+        <header
+          className={cn(
+            "sticky top-0 z-30 border-b border-border/50 bg-background/90 backdrop-blur-glass"
+          )}
         >
-          <X size={18} />
-        </button>
-      </div>
-      <div className="pt-2">
-        <Outlet />
-      </div>
-    </div>
+          <div className="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">
+                Connect Channel
+              </p>
+              {stepLabel ? (
+                <p className="text-[10px] font-medium text-muted-foreground">
+                  {stepLabel}
+                </p>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/channels", { replace: true })}
+              className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+              aria-label="Close add channel flow"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </header>
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-6 pt-4">
+          <Outlet />
+        </div>
+      </SafeAreaLayout>
+    </AddChannelFlowProvider>
   );
 };
 
