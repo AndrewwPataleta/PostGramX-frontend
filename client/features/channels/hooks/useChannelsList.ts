@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { postChannelsList } from "@/lib/api/endpoints/channels";
+import { postChannelsList } from "@/api/features/channelsApi";
 import type { ChannelsListParams, ChannelsListResponse } from "@/types/channels";
 
 const channelsListKey = (filters: ChannelsListParams) => [

@@ -5,54 +5,22 @@ import type {
   DealsListParams,
   DealsListResponse,
 } from "@/types/deals";
+import { post } from "@/api/core/apiClient";
+import type { DealCardData } from "@/components/deals/DealCard";
+import type { TimelineItem } from "@/components/deals/Timeline";
 
-const resolveBaseUrl = () => {
-  const baseUrl =
-    typeof import.meta.env.POSTGRAMX_BACKEND_URL === "string"
-      ? import.meta.env.POSTGRAMX_BACKEND_URL.trim()
-      : "";
+export interface DealsOverviewResponse {
+  active: DealCardData[];
+  pending: DealCardData[];
+  completed: DealCardData[];
+  timeline: TimelineItem[];
+  timelineVerifying: TimelineItem[];
+  quickFilters: string[];
+}
 
-  return baseUrl.replace(/\/+$/, "");
-};
-
-const API_BASE_URL = resolveBaseUrl();
 const isMockMode = import.meta.env.VITE_API_MOCK === "true";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const logDev = (label: string, payload: unknown) => {
-  if (!import.meta.env.DEV) {
-    return;
-  }
-  console.info(`[DealsAPI] ${label}`, payload);
-};
-
-const extractErrorMessage = (data: unknown, fallback: string) => {
-  if (!data || typeof data !== "object") {
-    return fallback;
-  }
-
-  const candidate = data as { message?: string; error?: { message?: string } | string };
-
-  if (typeof candidate.message === "string" && candidate.message.trim().length > 0) {
-    return candidate.message;
-  }
-
-  if (typeof candidate.error === "string" && candidate.error.trim().length > 0) {
-    return candidate.error;
-  }
-
-  if (
-    candidate.error &&
-    typeof candidate.error === "object" &&
-    typeof candidate.error.message === "string" &&
-    candidate.error.message.trim().length > 0
-  ) {
-    return candidate.error.message;
-  }
-
-  return fallback;
-};
 
 const normalizeDealsGroup = (
   group?: Partial<DealsListResponse["pending"]>
@@ -275,55 +243,163 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
   };
 };
 
+export const dealsOverviewMock: DealsOverviewResponse = {
+  active: [
+    {
+      id: "FGX-10291",
+      name: "FlowgramX Daily",
+      username: "@flowgramx",
+      verified: true,
+      status: "Funds Locked",
+      statusKey: "fundsLocked",
+      icon: "🔒",
+      price: "35 TON",
+      meta: "Updated 2h ago",
+      secondary: "Posting: Jan 30, 18:00",
+      action: "View Schedule",
+    },
+    {
+      id: "FGX-10292",
+      name: "Crypto Atlas",
+      username: "@cryptoatlas",
+      verified: false,
+      status: "Post Live — Verifying",
+      statusKey: "verifying",
+      icon: "👁️",
+      price: "48 TON",
+      meta: "Updated 32m ago",
+      secondary: "Release in: 45m",
+      action: "View Post",
+    },
+    {
+      id: "FGX-10293",
+      name: "Signal Stream",
+      username: "@signalstream",
+      verified: true,
+      status: "Scheduled",
+      statusKey: "scheduled",
+      icon: "📅",
+      price: "22 TON",
+      meta: "Updated 1h ago",
+      secondary: "Posting: Feb 2, 09:00",
+      action: "View Schedule",
+    },
+  ],
+  pending: [
+    {
+      id: "FGX-10294",
+      name: "Market Pulse",
+      username: "@marketpulse",
+      verified: false,
+      status: "Awaiting Channel Approval",
+      statusKey: "awaitingApproval",
+      icon: "⏳",
+      price: "18 TON",
+      meta: "Updated 10m ago",
+      secondary: "Awaiting approval",
+      action: "Open",
+    },
+    {
+      id: "FGX-10295",
+      name: "TON Launchpad",
+      username: "@tonlaunchpad",
+      verified: true,
+      status: "Payment Required",
+      statusKey: "paymentRequired",
+      icon: "💳",
+      price: "40 TON",
+      meta: "Updated 3h ago",
+      secondary: "Awaiting payment",
+      action: "Pay Now",
+    },
+    {
+      id: "FGX-10296",
+      name: "Founder Notes",
+      username: "@foundernotes",
+      verified: false,
+      status: "Creative Review",
+      statusKey: "creativeReview",
+      icon: "✏️",
+      price: "27 TON",
+      meta: "Updated 15m ago",
+      secondary: "Creative submitted",
+      action: "Review",
+    },
+  ],
+  completed: [
+    {
+      id: "FGX-10288",
+      name: "Web3 Horizon",
+      username: "@web3horizon",
+      verified: true,
+      status: "Completed",
+      statusKey: "completed",
+      icon: "✅",
+      price: "52 TON",
+      meta: "Updated yesterday",
+      secondary: "Receipt available",
+      action: "Receipt",
+    },
+    {
+      id: "FGX-10287",
+      name: "Chain Updates",
+      username: "@chainupdates",
+      verified: false,
+      status: "Refunded",
+      statusKey: "refunded",
+      icon: "↩️",
+      price: "14 TON",
+      meta: "Updated 2d ago",
+      secondary: "Refund sent",
+      action: "Details",
+    },
+  ],
+  timeline: [
+    { label: "Accepted", state: "completed" },
+    { label: "Payment", state: "current" },
+    { label: "Creative", state: "upcoming" },
+    { label: "Scheduled", state: "upcoming" },
+    { label: "Posted", state: "upcoming" },
+    { label: "Released", state: "upcoming" },
+    { label: "Completed", state: "upcoming" },
+  ],
+  timelineVerifying: [
+    { label: "Accepted", state: "completed" },
+    { label: "Payment", state: "completed" },
+    { label: "Creative", state: "completed" },
+    { label: "Scheduled", state: "completed" },
+    { label: "Posted", state: "current" },
+    { label: "Released", state: "upcoming" },
+    { label: "Completed", state: "upcoming" },
+  ],
+  quickFilters: ["Payment Required", "Creative Review", "Scheduled", "Verifying"],
+};
+
+export const getDealsOverview = async (): Promise<DealsOverviewResponse> =>
+  Promise.resolve(dealsOverviewMock);
+
 export const createDeal = async (
   payload: CreateDealPayload
 ): Promise<CreateDealResponse> => {
-  try {
-    if (isMockMode) {
-      await wait(800);
-      const response: CreateDealResponse = {
-        id: `deal_${Date.now()}`,
-        status: "PENDING",
-        escrowStatus: "NEGOTIATING",
-        listingId: payload.listingId,
-        channelId: "channel_mock",
-        initiatorSide: "ADVERTISER",
-      };
-      logDev("createDeal(mock) response", response);
-      return response;
-    }
-
-    const requestBody = { data: payload };
-    logDev("createDeal request", requestBody);
-
-    const response = await fetch(`${API_BASE_URL}/deals/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    const data = (await response.json()) as CreateDealResponse;
-    logDev("createDeal response", data);
-
-    if (!response.ok) {
-      throw new Error(extractErrorMessage(data, "Unable to create deal"));
-    }
-
-    return data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("Unable to create deal");
+  if (isMockMode) {
+    await wait(800);
+    return {
+      id: `deal_${Date.now()}`,
+      status: "PENDING",
+      escrowStatus: "NEGOTIATING",
+      listingId: payload.listingId,
+      channelId: "channel_mock",
+      initiatorSide: "ADVERTISER",
+    };
   }
+
+  return post<CreateDealResponse, CreateDealPayload>("/deals/create", payload);
 };
 
 export const fetchDealsList = async (
   params: DealsListParams = {}
 ): Promise<DealsListResponse> => {
-  const payload = {
+  const payload: DealsListParams = {
     role: params.role ?? "all",
     pendingPage: params.pendingPage,
     pendingLimit: params.pendingLimit,
@@ -333,41 +409,21 @@ export const fetchDealsList = async (
     completedLimit: params.completedLimit,
   };
 
-  try {
-    if (isMockMode) {
-      await wait(800);
-      const response = mockDealsList(payload);
-      logDev("fetchDealsList(mock) response", response);
-      return response;
-    }
-
-    const requestBody = { data: payload };
-    logDev("fetchDealsList request", requestBody);
-
-    const response = await fetch(`${API_BASE_URL}/deals/list`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    const data = (await response.json()) as DealsListResponse;
-    logDev("fetchDealsList response", data);
-
-    if (!response.ok) {
-      throw new Error(extractErrorMessage(data, "Unable to load deals"));
-    }
-
-    return {
-      pending: normalizeDealsGroup(data.pending),
-      active: normalizeDealsGroup(data.active),
-      completed: normalizeDealsGroup(data.completed),
-    };
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("Unable to load deals");
+  if (isMockMode) {
+    await wait(800);
+    return mockDealsList(payload);
   }
+
+  const data = await post<DealsListResponse, DealsListParams>("/deals/list", payload);
+  return {
+    pending: normalizeDealsGroup(data.pending),
+    active: normalizeDealsGroup(data.active),
+    completed: normalizeDealsGroup(data.completed),
+  };
+};
+
+export const dealsApi = {
+  createDeal,
+  fetchDealsList,
+  getDealsOverview,
 };

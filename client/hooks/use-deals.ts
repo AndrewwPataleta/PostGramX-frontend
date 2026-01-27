@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createDeal, fetchDealsList } from "@/api/dealsApi";
+import { createDeal, fetchDealsList } from "@/api/features/dealsApi";
 import type {
   CreateDealPayload,
   CreateDealResponse,

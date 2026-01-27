@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { verifyChannel } from "@/lib/api/endpoints/channels";
+import { verifyChannel } from "@/api/features/channelsApi";
 import type { VerifyChannelResponse } from "@/types/channels";
-import type { ApiError } from "@/types/api";
+import type { ApiError } from "@/api/core/apiErrors";
 
 const VERIFY_ERROR_MESSAGES: Record<string, string> = {
   BOT_NOT_ADMIN: "Please add the bot as admin in channel settings",

@@ -1,4 +1,4 @@
-import type { ApiError } from "@/types/api";
+import { ApiError } from "@/api/core/apiErrors";
 
 const CHANNEL_ERROR_MESSAGES: Record<string, string> = {
   CHANNEL_NOT_FOUND: "Channel not found",
@@ -14,8 +14,8 @@ const extractErrorDetails = (error: unknown) => {
     return {};
   }
 
-  const apiError = error as ApiError;
-  const details = apiError.details ?? {};
+  const apiError = error instanceof ApiError ? error : null;
+  const details = apiError?.raw ?? {};
   return { apiError, details };
 };
 
@@ -28,7 +28,6 @@ export const getChannelErrorMessage = (
   const nestedError = (detailsRecord?.error ?? {}) as Record<string, unknown>;
 
   const code =
-    (apiError?.code as string | undefined) ||
     (detailsRecord?.code as string | undefined) ||
     (nestedError?.code as string | undefined);
   const message =

@@ -8,18 +8,18 @@ import {
   useRef,
   useState,
 } from "react";
-import { apiClient } from "@/lib/api/client";
 import { AUTH_EXPIRED_EVENT, clearAuthToken, setAuthToken } from "@/lib/api/auth";
 import {
   getTelegramUser,
   getTelegramWebApp,
   mockTelegramAuth,
-  TelegramUser,
 } from "@/lib/telegram";
 import { TELEGRAM_MOCK } from "@/config/env";
-import type { ApiError } from "@/types/api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { authTelegram } from "@/api/features/authApi";
+import type { ApiError } from "@/api/core/apiErrors";
+import type { TelegramUserLike } from "@/types/auth";
 
 type AuthError = {
   type: "missing_telegram" | "auth_failed";
@@ -38,20 +38,6 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-const buildAuthPayload = (initData: string, user: TelegramUser) => ({
-  platformType: "telegram",
-  authType: "telegram",
-  token: initData,
-  data: {
-    id: user.id,
-    username: user.username ?? "",
-    firstName: user.first_name ?? "",
-    lastName: user.last_name ?? "",
-    lang: user.language_code ?? "en",
-    isPremium: user.is_premium ?? false,
-  },
-});
 
 const extractAuthResult = (payload: unknown) => {
   const root = payload as Record<string, unknown> | null;
@@ -100,21 +86,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ? mockTelegramAuth.user
         : getTelegramUser(webApp);
 
-      if (!mockTelegramAuth.initData || !mockTelegramAuth.user) {
-        setIsReady(false);
-        setUser(null);
-        setAccessToken(null);
-        clearAuthToken();
-        setError({
-          type: "missing_telegram",
-          message: "Open inside Telegram to continue.",
-        });
-        return { ok: false };
-      }
-
-      const payload = buildAuthPayload(initData, telegramUser);
-      const response = await apiClient.post<unknown>("/auth", payload);
-      const { accessToken: nextToken, user: profile } = extractAuthResult(response.data);
+      const response = await authTelegram(
+        initData ?? mockTelegramAuth.initData,
+        (telegramUser ?? mockTelegramAuth.user) as TelegramUserLike
+      );
+      const { accessToken: nextToken, user: profile } = extractAuthResult(response);
 
       if (nextToken) {
         setAuthToken(nextToken);
@@ -128,17 +104,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
       return { ok: true };
     } catch (err) {
-      // const apiError = err as ApiError;
-      // setIsReady(false);
-      // setUser(null);
-      // setAccessToken(null);
-      // clearAuthToken();
-      // setError({
-      //   type: "auth_failed",
-      //   message: apiError.message || "Could not connect to the server.",
-      //   debug: apiError.code ? `${apiError.code} (${apiError.status})` : undefined,
-      // });
-      // return { ok: false };
+      const apiError = err as ApiError;
+      setIsReady(false);
+      setUser(null);
+      setAccessToken(null);
+      clearAuthToken();
+      setError({
+        type: "auth_failed",
+        message: apiError.message || "Could not connect to the server.",
+        debug: apiError.statusCode ? `${apiError.statusCode}` : undefined,
+      });
+      toast.error(apiError.message || "Could not connect to the server.");
+      return { ok: false };
     } finally {
       setIsLoading(false);
       inFlightRef.current = false;

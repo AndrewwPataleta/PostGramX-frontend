@@ -1,5 +1,5 @@
 import type { ProfileOverview, WalletBalance } from "./types";
-import { apiClient } from "@/lib/api/client";
+import { post } from "@/api/core/apiClient";
 
 const USE_MOCK_PROFILE = import.meta.env.VITE_USE_MOCK_PROFILE !== "false";
 
@@ -62,8 +62,7 @@ export const getProfileOverview = async (): Promise<ProfileOverview> => {
   }
 
   try {
-    const response = await apiClient.get<ProfileOverview>("/profile");
-    return response.data;
+    return post<ProfileOverview, Record<string, never>>("/profile", {});
   } catch (error) {
     console.warn("Falling back to mock profile.", error);
     await delay();
@@ -78,8 +77,7 @@ export const getBalance = async (): Promise<WalletBalance> => {
   }
 
   try {
-    const response = await apiClient.get<WalletBalance>("/profile/balance");
-    return response.data;
+    return post<WalletBalance, Record<string, never>>("/profile/balance", {});
   } catch (error) {
     console.warn("Falling back to mock balance.", error);
     await delay();

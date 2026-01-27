@@ -1,14 +1,18 @@
 import type { MarketplaceChannelDto } from "@/features/marketplace/types/marketplace";
-import { httpClient } from "@/shared/api/httpClient";
+import { post } from "@/api/core/apiClient";
 
 export const fetchMarketplaceChannels = async (): Promise<MarketplaceChannelDto[]> => {
-  const response = await httpClient.get<MarketplaceChannelDto[]>("/marketplace/channels");
-  return response.data;
+  return post<MarketplaceChannelDto[], Record<string, never>>(
+    "/marketplace/channels",
+    {}
+  );
 };
 
 export const fetchMarketplaceChannel = async (id: string): Promise<MarketplaceChannelDto> => {
-  const response = await httpClient.get<MarketplaceChannelDto>(`/marketplace/channels/${id}`);
-  return response.data;
+  return post<MarketplaceChannelDto, { id: string }>(
+    `/marketplace/channels/${id}`,
+    { id }
+  );
 };
 
 export const marketplaceApi = {

@@ -10,7 +10,7 @@ import {
   simulateMockVerifyFail,
   simulateMockVerifyPass,
 } from "./mockDeals";
-import { apiClient } from "@/lib/api/client";
+import { post } from "@/api/core/apiClient";
 
 export const USE_MOCK_DEALS = import.meta.env.VITE_USE_MOCK_DEALS !== "false";
 
@@ -30,8 +30,7 @@ export const getDeals = async (): Promise<Deal[]> => {
   }
 
   try {
-    const response = await apiClient.get<Deal[]>("/deals");
-    return response.data;
+    return post<Deal[], Record<string, never>>("/deals", {});
   } catch (error) {
     console.warn("Falling back to mock deals.", error);
     await delay();
@@ -50,8 +49,7 @@ export const getDeal = async (id: string): Promise<Deal> => {
   }
 
   try {
-    const response = await apiClient.get<Deal>(`/deals/${id}`);
-    return response.data;
+    return post<Deal, { id: string }>(`/deals/${id}`, { id });
   } catch (error) {
     console.warn("Falling back to mock deal.", error);
     await delay();
@@ -70,8 +68,7 @@ export const createDeal = async (payload: CreateDealPayload): Promise<Deal> => {
   }
 
   try {
-    const response = await apiClient.post<Deal>("/deals", payload);
-    return response.data;
+    return post<Deal, CreateDealPayload>("/deals", payload);
   } catch (error) {
     console.warn("Falling back to mock deal creation.", error);
     await delay();
@@ -90,8 +87,7 @@ export const approveCreative = async (id: string): Promise<Deal> => {
   }
 
   try {
-    const response = await apiClient.post<Deal>(`/deals/${id}/creative/approve`);
-    return response.data;
+    return post<Deal, { id: string }>(`/deals/${id}/creative/approve`, { id });
   } catch (error) {
     console.warn("Falling back to mock creative approval.", error);
     await delay();
@@ -114,8 +110,10 @@ export const requestEdits = async (id: string, note?: string): Promise<Deal> => 
   }
 
   try {
-    const response = await apiClient.post<Deal>(`/deals/${id}/creative/edits`, { note });
-    return response.data;
+    return post<Deal, { id: string; note?: string }>(`/deals/${id}/creative/edits`, {
+      id,
+      note,
+    });
   } catch (error) {
     console.warn("Falling back to mock edit request.", error);
     await delay();
