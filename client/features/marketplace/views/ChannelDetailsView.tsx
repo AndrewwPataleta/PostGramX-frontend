@@ -89,6 +89,7 @@ export default function ChannelDetailsView() {
               </p>
               <Link
                 to={`/marketplace/channels/${state.channel.id}/request`}
+                state={{ listingId: state.channel.listing?.id }}
                 className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
               >
                 Request Placement

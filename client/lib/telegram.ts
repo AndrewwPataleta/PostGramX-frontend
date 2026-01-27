@@ -20,6 +20,10 @@ export interface TelegramWebApp {
   initDataUnsafe?: {
     user?: TelegramUser;
   };
+  MainButton?: {
+    showProgress?: (leaveActive?: boolean) => void;
+    hideProgress?: () => void;
+  };
   HapticFeedback?: TelegramHapticFeedback;
   CloudStorage?: TelegramCloudStorage;
   safeAreaInset?: Partial<TelegramInsets>;
