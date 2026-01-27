@@ -60,6 +60,7 @@ const AddChannelStep2 = () => {
       setLinkedChannelId(response.id);
       setVerifyStatus("idle");
       toast.success("Channel linked");
+      verifyMutation.mutate(response.id);
     },
     onError: (error) => {
       const message = getChannelErrorMessage(error);
@@ -89,14 +90,12 @@ const AddChannelStep2 = () => {
       setVerifyStatus("error");
       setLastError(message);
       toast.error(message);
-      navigate("/add-channel/step-3");
     },
     onError: (error) => {
       const message = getChannelErrorMessage(error);
       setVerifyStatus("error");
       setLastError(message);
       toast.error(message);
-      navigate("/add-channel/step-3");
     },
   });
 
