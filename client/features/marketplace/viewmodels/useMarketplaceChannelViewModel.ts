@@ -1,18 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
-import { marketplaceRepository } from "@/features/marketplace/repositories/marketplaceRepository";
+import { channelsApi } from "@/api/features/channelsApi";
+import type { ChannelItem, Paginated } from "@/types/channels";
 
 const marketplaceKeys = {
   channel: (id: string) => ["marketplace", "channels", id] as const,
 };
 
 export const useMarketplaceChannelViewModel = (id?: string) => {
-  const query = useQuery({
+  const query = useQuery<ChannelItem>({
     queryKey: id ? marketplaceKeys.channel(id) : marketplaceKeys.channel("unknown"),
-    queryFn: () => {
+    queryFn: async () => {
       if (!id) {
         throw new Error("Missing channel ID");
       }
-      return marketplaceRepository.getMarketplaceChannel(id);
+      const response: Paginated<ChannelItem> = await channelsApi.listChannels({
+        includeListings: true,
+        page: 1,
+        limit: 50,
+      });
+      const channel = response.items.find((item) => item.id === id);
+      if (!channel) {
+        throw new Error("Channel not found");
+      }
+      return channel;
     },
     enabled: Boolean(id),
   });

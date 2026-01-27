@@ -109,3 +109,30 @@ export type UnlinkChannelResponse = {
   channelId: string;
   unlinked: boolean;
 };
+
+export type Paginated<T> = {
+  items: T[];
+  page: number;
+  limit: number;
+  total: number;
+};
+
+export type ListChannelsParams = {
+  verifiedOnly?: boolean;
+  q?: string;
+  page?: number;
+  limit?: number;
+  sort?: "recent";
+  order?: "asc" | "desc";
+  includeListings?: boolean;
+};
+
+export type ChannelItem = {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+  verified: boolean;
+  subscribers?: number;
+  listings?: import("./listings").ListingListItem[];
+};

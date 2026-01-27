@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { FilterState } from "@/components/FilterModal";
-import { marketplaceRepository } from "@/features/marketplace/repositories/marketplaceRepository";
+import { channelsApi } from "@/api/features/channelsApi";
+import { getErrorMessage } from "@/lib/api/errors";
+import type { ChannelItem, ListChannelsParams, Paginated } from "@/types/channels";
 
 const defaultFilters: FilterState = {
   priceRange: [0, 100],
@@ -11,72 +14,67 @@ const defaultFilters: FilterState = {
   languages: [],
   categories: [],
   tags: [],
-  verifiedOnly: false,
+  verifiedOnly: true,
   dateRange: ["", ""],
 };
 
 const marketplaceKeys = {
-  channels: () => ["marketplace", "channels"] as const,
+  channels: (filters: ListChannelsParams) => ["channels", filters] as const,
 };
 
 export const useMarketplaceViewModel = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-
-  const query = useQuery({
-    queryKey: marketplaceKeys.channels(),
-    queryFn: marketplaceRepository.getMarketplaceChannels,
-  });
-  const { refetch } = query;
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [sort] = useState<ListChannelsParams["sort"]>("recent");
+  const [order] = useState<ListChannelsParams["order"]>("desc");
 
   useEffect(() => {
-    const unsubscribe = marketplaceRepository.subscribeToMarketplaceListings(() => {
-      void refetch();
-    });
+    const handler = window.setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 300);
 
     return () => {
-      unsubscribe();
+      window.clearTimeout(handler);
     };
-  }, [refetch]);
+  }, [searchQuery]);
+
+  const queryFilters = useMemo<ListChannelsParams>(
+    () => ({
+      q: debouncedQuery || undefined,
+      verifiedOnly: filters.verifiedOnly || undefined,
+      page,
+      limit,
+      sort,
+      order,
+      includeListings: true,
+    }),
+    [debouncedQuery, filters.verifiedOnly, limit, order, page, sort]
+  );
+
+  const query = useQuery<Paginated<ChannelItem>>({
+    queryKey: marketplaceKeys.channels(queryFilters),
+    queryFn: () => channelsApi.listChannels(queryFilters),
+  });
+
+  useEffect(() => {
+    if (query.error) {
+      toast.error(getErrorMessage(query.error, "Unable to load channels"));
+    }
+  }, [query.error]);
 
   const filteredChannels = useMemo(() => {
-    const channels = query.data ?? [];
+    const channels = query.data?.items ?? [];
     return channels.filter((channel) => {
-      const matchesQuery =
-        channel.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        channel.username.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesPrice =
-        channel.priceTon >= filters.priceRange[0] && channel.priceTon <= filters.priceRange[1];
-      const matchesSubscribers =
-        channel.subscribers >= filters.subscribersRange[0] &&
-        channel.subscribers <= filters.subscribersRange[1];
-      const matchesViews =
-        channel.averageViews >= filters.viewsRange[0] &&
-        channel.averageViews <= filters.viewsRange[1];
-      const engagementRange = filters.engagementRange ?? [0, 100];
-      const matchesEngagement =
-        channel.engagementRate >= engagementRange[0] &&
-        channel.engagementRate <= engagementRange[1];
-      const matchesLanguage =
-        filters.languages.length === 0 || filters.languages.includes(channel.language);
-      const matchesVerified = !filters.verifiedOnly || channel.verified;
-      const channelTags = channel.listing?.tags ?? [];
-      const matchesTags =
-        filters.tags.length === 0 || channelTags.some((tag) => filters.tags.includes(tag));
-
-      return (
-        matchesQuery &&
-        matchesPrice &&
-        matchesSubscribers &&
-        matchesViews &&
-        matchesEngagement &&
-        matchesLanguage &&
-        matchesVerified &&
-        matchesTags
+      const activeListings = (channel.listings ?? []).filter(
+        (listing) => listing.isActive !== false
       );
+      return activeListings.length > 0;
     });
-  }, [filters, query.data, searchQuery]);
+  }, [query.data?.items]);
 
   const handleRemoveFilter = (filterType: string, value?: string) => {
     setFilters((prev) => {
@@ -135,7 +133,8 @@ export const useMarketplaceViewModel = () => {
       applyFilters,
       resetFilters,
       removeFilter: handleRemoveFilter,
-      refetch: () => refetch(),
+      refetch: () => query.refetch(),
+      setPage,
     },
   };
 };
