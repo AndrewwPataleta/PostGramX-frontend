@@ -1,13 +1,36 @@
 import { Check } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import ErrorState from "@/components/feedback/ErrorState";
 import { getErrorMessage } from "@/lib/api/errors";
 import { useMarketplaceChannelViewModel } from "@/features/marketplace/viewmodels/useMarketplaceChannelViewModel";
 
+const formatDuration = (hours: number) => {
+  if (hours >= 168 && hours % 24 === 0) {
+    return `${hours / 24}d`;
+  }
+  return `${hours}h`;
+};
+
 export default function ChannelDetailsView() {
   const { channelId } = useParams<{ channelId: string }>();
   const { state, actions } = useMarketplaceChannelViewModel(channelId);
+  const [activeTab, setActiveTab] = useState<"details" | "listings" | "settings">(
+    "details",
+  );
+
+  const availabilityLabel = useMemo(() => {
+    if (!state.channel?.listing) {
+      return null;
+    }
+    const { availabilityFrom, availabilityTo } = state.channel.listing;
+    const from = new Date(availabilityFrom);
+    const to = new Date(availabilityTo);
+    const diffMs = to.getTime() - from.getTime();
+    const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    return `Available next ${diffDays} day${diffDays === 1 ? "" : "s"}`;
+  }, [state.channel?.listing]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -40,45 +63,162 @@ export default function ChannelDetailsView() {
               <p className="mt-3 text-sm text-muted-foreground">{state.channel.description}</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
-                <p className="text-xs text-muted-foreground">Subscribers</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {(state.channel.subscribers / 1000).toFixed(0)}K
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
-                <p className="text-xs text-muted-foreground">Avg views</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {(state.channel.averageViews / 1000).toFixed(0)}K
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
-                <p className="text-xs text-muted-foreground">Engagement</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {state.channel.engagementRate}%
-                </p>
+            <div className="border-b border-border/50 bg-card/80 backdrop-blur-glass px-4">
+              <div className="flex gap-6">
+                {[
+                  { id: "details", label: "Details" },
+                  { id: "listings", label: "Listings" },
+                  { id: "settings", label: "Settings" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() =>
+                      setActiveTab(tab.id as "details" | "listings" | "settings")
+                    }
+                    className={`py-3 font-medium text-sm border-b-2 transition-colors ${
+                      activeTab === tab.id
+                        ? "text-primary border-b-primary"
+                        : "text-muted-foreground border-b-transparent hover:text-foreground"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/60 bg-card/80 p-6">
-              <p className="text-xs text-muted-foreground">Pricing</p>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-semibold text-foreground">
-                  {state.channel.priceTon}
-                </span>
-                <span className="text-sm text-muted-foreground">TON per post</span>
+            {activeTab === "details" ? (
+              <>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
+                    <p className="text-xs text-muted-foreground">Subscribers</p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">
+                      {(state.channel.subscribers / 1000).toFixed(0)}K
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
+                    <p className="text-xs text-muted-foreground">Avg views</p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">
+                      {(state.channel.averageViews / 1000).toFixed(0)}K
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
+                    <p className="text-xs text-muted-foreground">Engagement</p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">
+                      {state.channel.engagementRate}%
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-border/60 bg-card/80 p-6">
+                  <p className="text-xs text-muted-foreground">Pricing</p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-3xl font-semibold text-foreground">
+                      {state.channel.priceTon}
+                    </span>
+                    <span className="text-sm text-muted-foreground">TON per post</span>
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Pricing includes escrow protection and bot-assisted messaging.
+                  </p>
+                  <Link
+                    to={`/marketplace/channels/${state.channel.id}/request`}
+                    className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
+                  >
+                    Request Placement
+                  </Link>
+                </div>
+              </>
+            ) : null}
+
+            {activeTab === "listings" ? (
+              state.channel.listing ? (
+                <div className="rounded-2xl border border-border/60 bg-card/80 p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        Active listing
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {availabilityLabel ?? "Availability updated recently"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">Price</p>
+                      <p className="text-lg font-semibold text-primary">
+                        {state.channel.listing.priceTon} TON
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+                      <p className="text-xs text-muted-foreground">Pinned</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {state.channel.listing.pinDurationHours
+                          ? formatDuration(state.channel.listing.pinDurationHours)
+                          : "Not pinned"}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+                      <p className="text-xs text-muted-foreground">Visible</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {formatDuration(
+                          state.channel.listing.visibilityDurationHours ?? 24,
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {state.channel.listing.tags.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground">Tags</p>
+                      <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
+                        {state.channel.listing.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full border border-border/60 bg-card px-2.5 py-1"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                    <p className="text-xs font-semibold text-primary">Content rules</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {state.channel.listing.contentRulesText || "No extra rules"}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center">
+                  <p className="text-sm font-semibold text-foreground">
+                    No listings yet
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Create a listing to start receiving marketplace requests.
+                  </p>
+                </div>
+              )
+            ) : null}
+
+            {activeTab === "settings" ? (
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  className="w-full glass p-4 rounded-lg flex items-center justify-between hover:bg-destructive/20 transition-colors text-left"
+                >
+                  <span className="text-destructive font-medium">
+                    Remove channel from marketplace
+                  </span>
+                  <span className="text-destructive">→</span>
+                </button>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Pricing includes escrow protection and bot-assisted messaging.
-              </p>
-              <Link
-                to={`/marketplace/channels/${state.channel.id}/request`}
-                className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
-              >
-                Request Placement
-              </Link>
-            </div>
+            ) : null}
           </>
         )}
       </div>
