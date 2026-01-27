@@ -26,7 +26,9 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       })()
     : null;
   const listingTags = channel.listing?.tags ?? [];
-  const shouldShowTagToggle = listingTags.length > 3;
+  const maxCollapsedTags = 3;
+  const shouldShowTagToggle = listingTags.length > maxCollapsedTags;
+  const visibleTags = tagsExpanded ? listingTags : listingTags.slice(0, maxCollapsedTags);
   const pinnedDurationLabel = channel.listing?.pinDurationHours
     ? formatDuration(channel.listing.pinDurationHours)
     : null;
@@ -67,8 +69,11 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                   tagsExpanded ? "flex-wrap" : "flex-nowrap overflow-hidden"
                 }`}
               >
-                {listingTags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-secondary/60 px-2.5 py-1">
+                {visibleTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="flex-none whitespace-nowrap rounded-full bg-secondary/60 px-2.5 py-1"
+                  >
                     {tag}
                   </span>
                 ))}
