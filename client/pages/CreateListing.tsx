@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Info } from "lucide-react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/api/errors";
 import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
 import { managedChannelData } from "@/features/channels/managedChannels";
-import { createListing, isMockListingsEnabled } from "@/features/listings/mockStore";
+import { createListing as createMockListing, isMockListingsEnabled } from "@/features/listings/mockStore";
 import { listingTagCategories } from "@/features/listings/tagOptions";
+import { createListing } from "@/api/features/listingsApi";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
 const pinDurationOptions = [
@@ -49,6 +52,7 @@ export default function CreateListing() {
   const [tagQuery, setTagQuery] = useState("");
   const [customTag, setCustomTag] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>(["Must be pre-approved"]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
   const pinDurationHours =
@@ -67,7 +71,11 @@ export default function CreateListing() {
     );
   }
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
     const today = new Date();
     const defaultAvailabilityDays = 7;
     const availabilityFrom = today;
@@ -78,7 +86,7 @@ export default function CreateListing() {
       ? selectedTags
       : [...selectedTags, "Must be pre-approved"];
 
-    createListing({
+    const payload = {
       channelId: channel.id,
       format: "POST",
       priceTon: Number(priceTon || 0),
@@ -93,9 +101,21 @@ export default function CreateListing() {
       isActive: true,
       allowLinkTracking,
       allowPinnedPlacement: pinDurationHours !== null,
-    });
+    };
 
-    navigate(`/channel-manage/${channel.id}/listings/success`);
+    try {
+      setIsSubmitting(true);
+      if (mockModeEnabled) {
+        createMockListing(payload);
+      } else {
+        await createListing(payload);
+      }
+      navigate(`/channel-manage/${channel.id}/listings/success`);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to publish listing"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -479,9 +499,10 @@ export default function CreateListing() {
           <button
             type="button"
             onClick={handlePublish}
-            className="w-full button-primary py-3 text-base font-semibold"
+            disabled={isSubmitting}
+            className="w-full button-primary py-3 text-base font-semibold disabled:opacity-70"
           >
-            Publish Listing
+            {isSubmitting ? "Publishing..." : "Publish Listing"}
           </button>
           <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-card px-3 py-3 text-xs text-muted-foreground">
             <Info size={16} className="text-primary" />
