@@ -1,3 +1,3 @@
-import { getDealsOverview } from "@/api/deals.api";
+import { getDealsOverview } from "@/api/features/dealsApi";
 
 export const fetchDealsOverview = () => getDealsOverview();

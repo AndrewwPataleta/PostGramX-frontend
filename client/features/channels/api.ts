@@ -1,5 +1,5 @@
 import type { Channel } from "./types";
-import { apiClient } from "@/lib/api/client";
+import { post } from "@/api/core/apiClient";
 
 const USE_MOCK_CHANNELS = import.meta.env.VITE_USE_MOCK_CHANNELS !== "false";
 
@@ -67,8 +67,7 @@ export const getMyChannels = async (): Promise<Channel[]> => {
   }
 
   try {
-    const response = await apiClient.get<Channel[]>("/channels");
-    return response.data;
+    return post<Channel[], Record<string, never>>("/channels", {});
   } catch (error) {
     console.warn("Falling back to mock channels.", error);
     await delay();
@@ -83,8 +82,10 @@ export const linkChannel = async (payload: { username: string }) => {
   }
 
   try {
-    const response = await apiClient.post<{ success: boolean }>("/channels/link", payload);
-    return response.data;
+    return post<{ success: boolean }, { username: string }>(
+      "/channels/link",
+      payload
+    );
   } catch (error) {
     console.warn("Falling back to mock link channel.", error);
     await delay();
@@ -99,8 +100,9 @@ export const verifyChannel = async (id: string) => {
   }
 
   try {
-    const response = await apiClient.post<{ success: boolean }>(`/channels/${id}/verify`);
-    return response.data;
+    return post<{ success: boolean }, { id: string }>(`/channels/${id}/verify`, {
+      id,
+    });
   } catch (error) {
     console.warn("Falling back to mock channel verification.", error);
     await delay();

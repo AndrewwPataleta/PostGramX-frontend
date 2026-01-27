@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { dealsOverviewMock } from "@/api/deals.api";
+import { dealsOverviewMock } from "@/api/features/dealsApi";
 import { fetchDealsOverview } from "@/services/deals.service";
 
 export const dealsOverviewQueryKey = ["deals-overview"];

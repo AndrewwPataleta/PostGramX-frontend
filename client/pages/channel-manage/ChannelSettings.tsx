@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
-import { updateChannelDisabledStatus } from "@/lib/api/endpoints/channels";
+import { updateChannelDisabledStatus } from "@/api/features/channelsApi";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
 const ChannelSettings = () => {

@@ -8,7 +8,7 @@ import ErrorState from "@/components/feedback/ErrorState";
 import BottomSheet from "@/components/BottomSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TELEGRAM_MOCK } from "@/config/env";
-import { unlinkChannel } from "@/lib/api/endpoints/channels";
+import { unlinkChannel } from "@/api/features/channelsApi";
 import { getErrorMessage } from "@/lib/api/errors";
 import type {
   ChannelStatus,
