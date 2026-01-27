@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { createDeal, fetchDealsList } from "@/api/features/dealsApi";
+import { getTelegramWebApp } from "@/lib/telegram";
 import type {
   CreateDealPayload,
   CreateDealResponse,
@@ -23,11 +26,19 @@ export const useDealsListQuery = (params: DealsListParams) =>
 
 export const useCreateDealMutation = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   return useMutation<CreateDealResponse, Error, CreateDealPayload>({
     mutationFn: (payload) => createDeal(payload),
     onSuccess: () => {
+      toast.success("Deal created");
+      const webApp = getTelegramWebApp();
+      webApp?.HapticFeedback?.notificationOccurred?.("success");
       queryClient.invalidateQueries({ queryKey: ["deals"] });
+      navigate("/deals", { state: { activeTab: "pending" }, replace: true });
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 };
