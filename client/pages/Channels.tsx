@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -47,6 +47,7 @@ const ChannelCardSkeleton = () => (
 );
 
 export default function Channels() {
+  const [activeTab, setActiveTab] = useState<"pending" | "verified">("pending");
   const filters = useMemo<ChannelsListParams>(
     () => ({
       sort: DEFAULT_SORT,
@@ -85,6 +86,11 @@ export default function Channels() {
     () => items.filter((channel) => pendingStatuses.includes(channel.status)),
     [items]
   );
+  const tabbedChannels = activeTab === "pending" ? pendingChannels : verifiedChannels;
+  const emptyCopy =
+    activeTab === "pending"
+      ? "No pending channels right now."
+      : "No verified channels yet.";
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pb-16 pt-4">
@@ -141,40 +147,37 @@ export default function Channels() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              <span>Pending</span>
-              <span>{pendingChannels.length}</span>
+          <div className="border-t border-border/50">
+            <div className="flex gap-6 bg-background/90 backdrop-blur-glass">
+              {(["pending", "verified"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === tab
+                      ? "text-primary border-b-primary"
+                      : "text-muted-foreground border-b-transparent"
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}{" "}
+                  <span className="text-xs text-muted-foreground">
+                    ({tab === "pending" ? pendingChannels.length : verifiedChannels.length})
+                  </span>
+                </button>
+              ))}
             </div>
-            {pendingChannels.length > 0 ? (
-              <div className="space-y-3">
-                {pendingChannels.map((channel) => (
-                  <ChannelCard key={channel.id} channel={channel} />
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
-                No pending channels right now.
-              </p>
-            )}
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              <span>Verified</span>
-              <span>{verifiedChannels.length}</span>
+          {tabbedChannels.length > 0 ? (
+            <div className="space-y-3">
+              {tabbedChannels.map((channel) => (
+                <ChannelCard key={channel.id} channel={channel} />
+              ))}
             </div>
-            {verifiedChannels.length > 0 ? (
-              <div className="space-y-3">
-                {verifiedChannels.map((channel) => (
-                  <ChannelCard key={channel.id} channel={channel} />
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
-                No verified channels yet.
-              </p>
-            )}
-          </div>
+          ) : (
+            <p className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
+              {emptyCopy}
+            </p>
+          )}
         </div>
       )}
 
