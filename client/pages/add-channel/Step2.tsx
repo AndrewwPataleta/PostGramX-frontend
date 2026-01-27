@@ -56,11 +56,19 @@ const AddChannelStep2 = () => {
       setLastError(null);
     },
     onSuccess: (response) => {
+      const linkedChannelId = response.channelId ?? response.id;
+      if (!linkedChannelId) {
+        const message = "Channel link response is missing an id.";
+        setLinkStatus("error");
+        setLastError(message);
+        toast.error(message);
+        return;
+      }
       setLinkStatus("success");
-      setLinkedChannelId(response.id);
+      setLinkedChannelId(linkedChannelId);
       setVerifyStatus("idle");
       toast.success("Channel linked");
-      verifyMutation.mutate(response.id);
+      verifyMutation.mutate(linkedChannelId);
     },
     onError: (error) => {
       const message = getChannelErrorMessage(error);
