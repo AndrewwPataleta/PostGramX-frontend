@@ -1,0 +1,1 @@
+const e={1:{id:"1",name:"My Crypto Channel",username:"@mycryptocha",avatar:"📰",status:"VERIFIED",verified:!0,subscribers:45e3,averageViews:18e3,engagement:40,postsPerWeek:3.5,earnings:230,activeDeals:1,lastVerified:"2h",viewsTrend:[17e3,17800,18200,18500,18100,18900,18500,18200,18800,18e3]}};export{e as m};
