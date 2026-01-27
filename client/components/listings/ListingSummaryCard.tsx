@@ -4,7 +4,6 @@ import type { ManagedChannel } from "@/features/channels/managedChannels";
 interface ListingSummaryCardProps {
   channel: ManagedChannel;
   priceTon: number;
-  availabilityLabel: string;
   pinDurationHours: number | null;
   visibilityDurationHours: number;
   tags?: string[];
@@ -20,19 +19,12 @@ const formatDuration = (hours: number) => {
 export function ListingSummaryCard({
   channel,
   priceTon,
-  availabilityLabel,
   pinDurationHours,
   visibilityDurationHours,
   tags = [],
 }: ListingSummaryCardProps) {
   const pinnedLabel = pinDurationHours ? formatDuration(pinDurationHours) : "Not pinned";
   const visibleLabel = formatDuration(visibilityDurationHours);
-  const availabilityValue = availabilityLabel
-    .replace(/^Available\s*/i, "")
-    .replace(/^Availability\s*/i, "");
-  const availabilityValueLabel = availabilityValue
-    ? availabilityValue[0].toUpperCase() + availabilityValue.slice(1)
-    : availabilityValue;
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm">
@@ -61,18 +53,10 @@ export function ListingSummaryCard({
           <p className="text-sm font-semibold text-primary">{priceTon} TON / post</p>
         </div>
       </div>
-      <div className="mt-4 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-primary">
-        <span>{availabilityLabel}</span>
-        <span className="rounded-full bg-primary/20 px-2 py-1 text-[10px] font-semibold">Active</span>
-      </div>
       <div className="mt-3 space-y-1 text-xs text-muted-foreground">
         <p className="text-[13px] font-semibold text-foreground">
           Post • {priceTon} TON
         </p>
-        <div className="flex items-center justify-between">
-          <span>Available</span>
-          <span className="text-foreground">{availabilityValueLabel}</span>
-        </div>
         <div className="flex items-center justify-between">
           <span>Pinned</span>
           <span className="text-foreground">{pinnedLabel}</span>
