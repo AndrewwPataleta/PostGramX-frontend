@@ -58,7 +58,30 @@ const ChannelManageLayout = () => {
     () => (fallbackListItem ? mapChannelFromListItem(fallbackListItem) : null),
     [fallbackListItem],
   );
-  const channel = fallbackChannel ?? (id ? managedChannelData[id] : null);
+  const [channel, setChannel] = useState<ManagedChannel | null>(() => {
+    if (!id) {
+      return null;
+    }
+    return fallbackChannel ?? managedChannelData[id] ?? null;
+  });
+  useEffect(() => {
+    if (!id) {
+      setChannel(null);
+      return;
+    }
+
+    const resolvedChannel = fallbackChannel ?? managedChannelData[id] ?? null;
+    setChannel((prev) => {
+      if (resolvedChannel) {
+        return resolvedChannel;
+      }
+      if (prev?.id === id) {
+        return prev;
+      }
+      return null;
+    });
+  }, [fallbackChannel, id]);
+
   const isPendingVerification = channel?.status === "PENDING_VERIFY";
   const [listings, setListings] = useState<Listing[]>([]);
   const [listingFilter, setListingFilter] = useState<"active" | "disabled">("active");
