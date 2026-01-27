@@ -95,13 +95,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const webApp = getTelegramWebApp();
-      const initData = TELEGRAM_MOCK ? mockTelegramAuth.initData : webApp?.initData;
       const telegramUser = TELEGRAM_MOCK
         ? mockTelegramAuth.user
         : getTelegramUser(webApp);
 
       const response = await authTelegram(
-        initData ?? mockTelegramAuth.initData,
         (telegramUser ?? mockTelegramAuth.user) as TelegramUserLike
       );
       const { accessToken: nextToken, user: profile } = extractAuthResult(response);
