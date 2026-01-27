@@ -58,3 +58,14 @@ export const verifyChannel = async (params: {
 
   return response.data;
 };
+
+export const updateChannelDisabledStatus = async (params: {
+  id: string;
+  disabled: boolean;
+}): Promise<void> => {
+  const auth = getTelegramAuthContext();
+  await apiClient.post<void>(
+    `/channels/${params.id}/disabled`,
+    withTelegramEnvelope({ disabled: params.disabled }, auth)
+  );
+};
