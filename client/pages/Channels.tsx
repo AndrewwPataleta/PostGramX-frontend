@@ -50,7 +50,7 @@ const ChannelCardSkeleton = () => (
 );
 
 export default function Channels() {
-  const [activeTab, setActiveTab] = useState<"pending" | "verified">("pending");
+  const [activeTab, setActiveTab] = useState<"pending" | "verified">("verified");
   const [unlinkTarget, setUnlinkTarget] = useState<ChannelListItem | null>(null);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [removedChannelIds, setRemovedChannelIds] = useState<Set<string>>(() => new Set());
@@ -60,7 +60,7 @@ export default function Channels() {
       sort: DEFAULT_SORT,
       order: DEFAULT_ORDER,
     }),
-    []
+    [],
   );
 
   const {
@@ -75,11 +75,11 @@ export default function Channels() {
 
   const items = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
-    [data]
+    [data],
   );
   const visibleItems = useMemo(
     () => items.filter((channel) => !removedChannelIds.has(channel.id)),
-    [items, removedChannelIds]
+    [items, removedChannelIds],
   );
   const total = data?.pages?.[0]?.total ?? 0;
 
@@ -91,14 +91,14 @@ export default function Channels() {
 
   const verifiedChannels = useMemo(
     () => visibleItems.filter((channel) => channel.status === "VERIFIED"),
-    [visibleItems]
+    [visibleItems],
   );
   const pendingChannels = useMemo(
     () =>
       visibleItems.filter((channel) => pendingStatuses.includes(channel.status)),
-    [visibleItems]
+    [visibleItems],
   );
-  const tabbedChannels = activeTab === "pending" ? pendingChannels : verifiedChannels;
+  const tabbedChannels = activeTab === "verified" ? verifiedChannels : pendingChannels;
   const emptyCopy =
     activeTab === "pending"
       ? "No pending channels right now."
@@ -174,7 +174,7 @@ export default function Channels() {
         <div className="space-y-6">
           <div className="border-t border-border/50">
             <div className="flex gap-6 bg-background/90 backdrop-blur-glass">
-              {(["verified","pending", ] as const).map((tab) => (
+              {(["verified", "pending"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -200,15 +200,16 @@ export default function Channels() {
                   onUnlink={
                     activeTab === "pending"
                       ? () => {
-                          setUnlinkTarget(channel);
-                        }
+                        setUnlinkTarget(channel);
+                      }
                       : undefined
                   }
                 />
               ))}
             </div>
           ) : (
-            <p className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
+            <p
+              className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
               {emptyCopy}
             </p>
           )}
