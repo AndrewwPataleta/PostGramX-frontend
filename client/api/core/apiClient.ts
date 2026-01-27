@@ -1,7 +1,7 @@
 import { AUTH_EXPIRED_EVENT, getAuthToken } from "@/lib/api/auth";
 import { ApiError, parseBackendError } from "@/api/core/apiErrors";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = "http://localhost:8080"
 
 const SENSITIVE_KEYS = new Set([
   "token",
@@ -101,7 +101,7 @@ export const post = async <TResponse, TData>(
   options?: { headers?: Record<string, string> }
 ): Promise<TResponse> => {
   const url = buildUrl(path);
-  const payload = { data: data ?? {} };
+  const payload = {  data  };
   const headers = new Headers({
     "Content-Type": "application/json",
     ...options?.headers,
@@ -117,7 +117,7 @@ export const post = async <TResponse, TData>(
   const response = await fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify(payload),
+    body: JSON.stringify(data),
     credentials: "include",
   });
 
