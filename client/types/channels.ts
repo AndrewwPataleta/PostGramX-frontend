@@ -68,6 +68,12 @@ export type VerifyChannelRequest = {
   };
 };
 
+export type UnlinkChannelRequest = {
+  data: {
+    channelId: string;
+  };
+};
+
 export type PreviewChannelResponse = {
   normalizedUsername: string;
   title: string;
@@ -96,4 +102,9 @@ export type VerifyChannelResponse = {
   verifiedAt?: string | null;
   error?: { code?: string; message?: string } | string | null;
   // TODO: Confirm verify response payload with backend.
+};
+
+export type UnlinkChannelResponse = {
+  channelId: string;
+  unlinked: boolean;
 };

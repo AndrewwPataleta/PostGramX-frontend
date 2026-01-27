@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BadgeCheck, Shield, Users2 } from "lucide-react";
+import { BadgeCheck, Shield, Users2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChannelListItem, ChannelStatus } from "@/types/channels";
 
@@ -52,11 +52,13 @@ interface ChannelCardProps {
   channel: ChannelListItem;
   onClick?: () => void;
   onVerify?: () => void;
+  onUnlink?: () => void;
 }
 
-const ChannelCard = ({ channel, onClick, onVerify }: ChannelCardProps) => {
+const ChannelCard = ({ channel, onClick, onVerify, onUnlink }: ChannelCardProps) => {
   const status = statusStyles[channel.status];
   const showVerifyAction = channel.status === "PENDING_VERIFY" && onVerify;
+  const showUnlinkAction = Boolean(onUnlink);
 
   return (
     <button
@@ -71,15 +73,30 @@ const ChannelCard = ({ channel, onClick, onVerify }: ChannelCardProps) => {
           </h3>
           <p className="text-xs text-muted-foreground">@{channel.username}</p>
         </div>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
-            status.className
-          )}
-        >
-          {status.icon}
-          {status.label}
-        </span>
+        <div className="flex items-center gap-2">
+          {showUnlinkAction ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onUnlink?.();
+              }}
+              className="rounded-full border border-border/60 bg-background/70 p-1.5 text-muted-foreground transition hover:text-foreground"
+              aria-label="Unlink channel"
+            >
+              <X size={14} />
+            </button>
+          ) : null}
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
+              status.className
+            )}
+          >
+            {status.icon}
+            {status.label}
+          </span>
+        </div>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">

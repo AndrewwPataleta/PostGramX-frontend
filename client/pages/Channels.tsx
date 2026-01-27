@@ -5,14 +5,17 @@ import { toast } from "sonner";
 import ChannelCard from "@/features/channels/components/ChannelCard";
 import { useChannelsList } from "@/features/channels/hooks/useChannelsList";
 import ErrorState from "@/components/feedback/ErrorState";
+import BottomSheet from "@/components/BottomSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TELEGRAM_MOCK } from "@/config/env";
+import { unlinkChannel } from "@/lib/api/endpoints/channels";
 import { getErrorMessage } from "@/lib/api/errors";
 import type {
   ChannelStatus,
   ChannelsListOrder,
   ChannelsListParams,
   ChannelsListSort,
+  ChannelListItem,
 } from "@/types/channels";
 
 const DEFAULT_SORT: ChannelsListSort = "recent";
@@ -48,6 +51,9 @@ const ChannelCardSkeleton = () => (
 
 export default function Channels() {
   const [activeTab, setActiveTab] = useState<"pending" | "verified">("pending");
+  const [unlinkTarget, setUnlinkTarget] = useState<ChannelListItem | null>(null);
+  const [isUnlinking, setIsUnlinking] = useState(false);
+  const [removedChannelIds, setRemovedChannelIds] = useState<Set<string>>(() => new Set());
   const navigate = useNavigate();
   const filters = useMemo<ChannelsListParams>(
     () => ({
@@ -71,6 +77,10 @@ export default function Channels() {
     () => data?.pages.flatMap((page) => page.items) ?? [],
     [data]
   );
+  const visibleItems = useMemo(
+    () => items.filter((channel) => !removedChannelIds.has(channel.id)),
+    [items, removedChannelIds]
+  );
   const total = data?.pages?.[0]?.total ?? 0;
 
   useEffect(() => {
@@ -80,12 +90,13 @@ export default function Channels() {
   }, [error]);
 
   const verifiedChannels = useMemo(
-    () => items.filter((channel) => channel.status === "VERIFIED"),
-    [items]
+    () => visibleItems.filter((channel) => channel.status === "VERIFIED"),
+    [visibleItems]
   );
   const pendingChannels = useMemo(
-    () => items.filter((channel) => pendingStatuses.includes(channel.status)),
-    [items]
+    () =>
+      visibleItems.filter((channel) => pendingStatuses.includes(channel.status)),
+    [visibleItems]
   );
   const tabbedChannels = activeTab === "pending" ? pendingChannels : verifiedChannels;
   const emptyCopy =
@@ -100,6 +111,33 @@ export default function Channels() {
     }
 
     navigate(`/channel-manage/${channel.id}/overview`, { state: { channel } });
+  };
+
+  const handleUnlinkConfirm = async () => {
+    if (!unlinkTarget) {
+      return;
+    }
+
+    setIsUnlinking(true);
+
+    try {
+      const response = await unlinkChannel({ channelId: unlinkTarget.id });
+      if (response.unlinked) {
+        setRemovedChannelIds((prev) => {
+          const next = new Set(prev);
+          next.add(response.channelId);
+          return next;
+        });
+        toast.success("Channel unlinked.");
+      } else {
+        toast.error("Unable to unlink channel.");
+      }
+      setUnlinkTarget(null);
+    } catch (unlinkError) {
+      toast.error(getErrorMessage(unlinkError, "Unable to unlink channel."));
+    } finally {
+      setIsUnlinking(false);
+    }
   };
 
   return (
@@ -139,7 +177,7 @@ export default function Channels() {
           description="Please try again in a moment."
           onRetry={() => refetch()}
         />
-      ) : items.length === 0 ? (
+      ) : visibleItems.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/60 bg-card/70 p-8 text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
             📡
@@ -185,6 +223,13 @@ export default function Channels() {
                   channel={channel}
                   onClick={() => handleChannelClick(channel)}
                   onVerify={() => navigate(`/channels/pending/${channel.id}`, { state: { channel } })}
+                  onUnlink={
+                    activeTab === "pending"
+                      ? () => {
+                          setUnlinkTarget(channel);
+                        }
+                      : undefined
+                  }
                 />
               ))}
             </div>
@@ -196,10 +241,10 @@ export default function Channels() {
         </div>
       )}
 
-      {items.length > 0 ? (
+      {visibleItems.length > 0 ? (
         <div className="flex flex-col items-center gap-3">
           <p className="text-xs text-muted-foreground">
-            Showing {items.length} of {total}
+            Showing {visibleItems.length} of {total}
           </p>
           {hasNextPage ? (
             <button
@@ -225,6 +270,42 @@ export default function Channels() {
       >
         <Plus size={18} />
       </button>
+
+      <BottomSheet
+        open={Boolean(unlinkTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setUnlinkTarget(null);
+          }
+        }}
+        title="Открепить канал?"
+      >
+        <p className="text-sm text-muted-foreground">
+          Вы хотите открепить канал{" "}
+          <span className="font-semibold text-foreground">
+            @{unlinkTarget?.username}
+          </span>
+          ?
+        </p>
+        <div className="mt-4 flex gap-3">
+          <button
+            type="button"
+            onClick={() => setUnlinkTarget(null)}
+            className="flex-1 rounded-full border border-border/60 bg-background px-4 py-2 text-sm font-semibold text-foreground"
+            disabled={isUnlinking}
+          >
+            Отмена
+          </button>
+          <button
+            type="button"
+            onClick={handleUnlinkConfirm}
+            className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={isUnlinking}
+          >
+            {isUnlinking ? "Открепляем..." : "Открепить"}
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

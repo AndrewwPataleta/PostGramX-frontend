@@ -8,6 +8,7 @@ import type {
   ChannelsListResponse,
   LinkChannelResponse,
   PreviewChannelResponse,
+  UnlinkChannelResponse,
   VerifyChannelResponse,
 } from "@/types/channels";
 
@@ -54,6 +55,18 @@ export const verifyChannel = async (params: {
   const response = await apiClient.post<VerifyChannelResponse>(
     "/channels/verify",
     withTelegramEnvelope(params, auth)
+  );
+
+  return response.data;
+};
+
+export const unlinkChannel = async (params: {
+  channelId: string;
+}): Promise<UnlinkChannelResponse> => {
+  const auth = getTelegramAuthContext();
+  const response = await apiClient.post<UnlinkChannelResponse>(
+    "/channels/unlink",
+    withTelegramEnvelope({ channelId: params.channelId }, auth)
   );
 
   return response.data;
