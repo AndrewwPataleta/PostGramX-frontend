@@ -13,6 +13,9 @@ const DealDetails = lazy(() => import("./pages/DealDetails"));
 const EscrowPayment = lazy(() => import("./pages/EscrowPayment"));
 const FundsLocked = lazy(() => import("./pages/FundsLocked"));
 const Channels = lazy(() => import("./pages/Channels"));
+const ChannelPendingVerification = lazy(
+  () => import("./pages/channels/ChannelPendingVerification"),
+);
 const CreateListing = lazy(() => import("./pages/CreateListing"));
 const ListingPreview = lazy(() => import("./pages/ListingPreview"));
 const ListingSuccess = lazy(() => import("./pages/ListingSuccess"));
@@ -60,6 +63,10 @@ export const AppRoutes = () => {
           <Route path="/escrow/:dealId" element={<EscrowPayment />} />
           <Route path="/funds-locked" element={<FundsLocked />} />
           <Route path="/channels" element={<Channels />} />
+          <Route
+            path="/channels/pending/:id"
+            element={<ChannelPendingVerification />}
+          />
           <Route path="/profile" element={<Profile />} />
 
           <Route path="/add-channel" element={<AddChannelLayout />}>

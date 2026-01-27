@@ -3,6 +3,7 @@ export interface ManagedChannel {
   name: string;
   username: string;
   avatar: string;
+  status: "PENDING_VERIFY" | "VERIFIED" | "FAILED" | "REVOKED" | "DRAFT";
   verified: boolean;
   subscribers: number;
   averageViews: number;
@@ -20,6 +21,7 @@ export const managedChannelData: Record<string, ManagedChannel> = {
     name: "My Crypto Channel",
     username: "@mycryptocha",
     avatar: "📰",
+    status: "VERIFIED",
     verified: true,
     subscribers: 45000,
     averageViews: 18000,
