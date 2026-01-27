@@ -197,6 +197,7 @@ const ChannelManageLayout = () => {
             <NavLink
               key={tab.id}
               to={`${basePath}/${tab.id}`}
+              state={fallbackListItem ? { channel: fallbackListItem } : undefined}
               className={({ isActive }) =>
                 `py-3 font-medium text-sm border-b-2 transition-colors ${
                   isActive
