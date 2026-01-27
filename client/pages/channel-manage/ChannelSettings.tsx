@@ -26,20 +26,9 @@ const ChannelSettings = () => {
   return (
     <div className="space-y-2">
       <button className="w-full glass p-4 rounded-lg flex items-center justify-between hover:bg-card/60 transition-colors text-left">
-        <span className="text-foreground font-medium">Re-check admin rights</span>
-        <span className="text-muted-foreground">→</span>
-      </button>
-
-      <button className="w-full glass p-4 rounded-lg flex items-center justify-between hover:bg-card/60 transition-colors text-left">
         <span className="text-foreground font-medium">Manage channel managers</span>
         <span className="text-muted-foreground">→</span>
       </button>
-
-      <button className="w-full glass p-4 rounded-lg flex items-center justify-between hover:bg-card/60 transition-colors text-left">
-        <span className="text-foreground font-medium">Notification preferences</span>
-        <span className="text-muted-foreground">→</span>
-      </button>
-
       <div className="glass rounded-lg p-4 space-y-2">
         <button
           type="button"

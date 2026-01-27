@@ -6,7 +6,7 @@ import path from "path";
 export default defineConfig(() => ({
   server: {
     host: "::",
-    port: 8080,
+    port: 8081,
     fs: {
       allow: [".", "./client"],
       deny: [".env.local", ".env.local.*", "*.{crt,pem}", "**/.git/**"],

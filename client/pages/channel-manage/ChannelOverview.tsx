@@ -49,47 +49,11 @@ const ChannelOverview = () => {
         </div>
       </div>
 
-      <div className="glass p-4 space-y-3">
-        <h3 className="font-semibold text-foreground">Last 10 Posts Performance</h3>
-        <div className="h-32 text-primary/60">
-          <Sparkline data={channel.viewsTrend} height={100} />
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Views trend from your last 10 posts
-        </p>
-      </div>
-
-      <div className="glass p-4 border-2 border-primary/30 space-y-3">
-        <h3 className="font-semibold text-foreground">Revenue</h3>
-        <div className="bg-primary/10 rounded-lg px-3 py-3 text-center">
-          <p className="text-xs text-muted-foreground mb-1">Total Earned</p>
-          <p className="text-3xl font-bold text-primary">{channel.earnings} TON</p>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Active deals:</span>
-          <span className="font-semibold text-foreground">{channel.activeDeals}</span>
-        </div>
-      </div>
-
       <div className="glass p-4 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="font-semibold text-foreground">Listings</h3>
             <p className="text-xs text-muted-foreground">Your active ad offers</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to={`/channel-manage/${channel.id}/listings`}
-              className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-primary"
-            >
-              Manage
-            </Link>
-            <Link
-              to={`/channel-manage/${channel.id}/listings/create`}
-              className="text-xs font-semibold text-primary"
-            >
-              Create listing
-            </Link>
           </div>
         </div>
 

@@ -438,15 +438,6 @@ export default function EditListing() {
               </span>
               <input type="checkbox" checked disabled className="h-4 w-4" />
             </label>
-            <label className="flex items-center justify-between rounded-xl border border-border/40 bg-card/60 px-3 py-3 text-sm opacity-60">
-              <span className="text-foreground">
-                Allow pinned post placement
-                <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Coming soon
-                </span>
-              </span>
-              <input type="checkbox" disabled className="h-4 w-4" />
-            </label>
           </div>
         </section>
 

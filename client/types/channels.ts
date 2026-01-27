@@ -5,7 +5,7 @@ export type ChannelStatus =
   | "FAILED"
   | "REVOKED";
 
-export type ChannelRole = "OWNER" | "MANAGER";
+export type ChannelRole = "OWNER" | "MANAGER" | "UNKNOWN";
 
 export type ChannelsListSort = "recent" | "title" | "subscribers";
 

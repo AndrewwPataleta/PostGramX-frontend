@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ? mockTelegramAuth.user
         : getTelegramUser(webApp);
 
-      if (!initData || !telegramUser) {
+      if (!mockTelegramAuth.initData || !mockTelegramAuth.user) {
         setIsReady(false);
         setUser(null);
         setAccessToken(null);
@@ -128,17 +128,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
       return { ok: true };
     } catch (err) {
-      const apiError = err as ApiError;
-      setIsReady(false);
-      setUser(null);
-      setAccessToken(null);
-      clearAuthToken();
-      setError({
-        type: "auth_failed",
-        message: apiError.message || "Could not connect to the server.",
-        debug: apiError.code ? `${apiError.code} (${apiError.status})` : undefined,
-      });
-      return { ok: false };
+      // const apiError = err as ApiError;
+      // setIsReady(false);
+      // setUser(null);
+      // setAccessToken(null);
+      // clearAuthToken();
+      // setError({
+      //   type: "auth_failed",
+      //   message: apiError.message || "Could not connect to the server.",
+      //   debug: apiError.code ? `${apiError.code} (${apiError.status})` : undefined,
+      // });
+      // return { ok: false };
     } finally {
       setIsLoading(false);
       inFlightRef.current = false;

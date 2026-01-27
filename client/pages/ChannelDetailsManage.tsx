@@ -67,7 +67,7 @@ export default function ChannelDetailsManage() {
             </div>
             <p className="text-sm text-muted-foreground mb-2">{channel.username}</p>
             <p className="text-xs text-muted-foreground">
-              Last verified {channel.lastVerified} ago
+              Last verified {channel.lastVerified}
             </p>
           </div>
         </div>

@@ -79,7 +79,7 @@ const TopToolbar = () => {
         return matcher.title;
       }
     }
-    return "PostGramX";
+    return "PostgramX";
   }, [pathname]);
 
   const isMainNavRoute = mainNavPaths.includes(pathname);

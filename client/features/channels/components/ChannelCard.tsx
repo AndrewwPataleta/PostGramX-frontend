@@ -121,15 +121,12 @@ const ChannelCard = ({ channel, onClick, onVerify, onUnlink }: ChannelCardProps)
         <div className="rounded-xl bg-muted/30 p-3">
           <div className="text-xs text-muted-foreground">Role</div>
           <p className="mt-1 text-sm font-semibold text-foreground">
-            {channel.membership.role}
+            {channel.membership.telegramAdminStatus}
           </p>
         </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-        <span className="uppercase tracking-wide">
-          {channel.membership.telegramAdminStatus}
-        </span>
         <div className="flex items-center gap-2">
           {showVerifyAction ? (
             <button
@@ -143,10 +140,6 @@ const ChannelCard = ({ channel, onClick, onVerify, onUnlink }: ChannelCardProps)
               Verify
             </button>
           ) : null}
-          <span className="text-[11px] text-muted-foreground/80">
-            Last checked{" "}
-            {channel.lastCheckedAt ? new Date(channel.lastCheckedAt).toLocaleDateString() : "–"}
-          </span>
         </div>
       </div>
     </button>
