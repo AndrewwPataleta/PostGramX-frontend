@@ -1,6 +1,8 @@
-import { Check } from "lucide-react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { useMemo, useRef, useState } from "react";
+import { Check, Loader2 } from "lucide-react";
+import { useLocation, useParams } from "react-router-dom";
 import ErrorState from "@/components/feedback/ErrorState";
+import { useCreateDealMutation } from "@/hooks/use-deals";
 import { formatTonString, nanoToTonString } from "@/lib/ton";
 import type { ChannelItem } from "@/types/channels";
 
@@ -15,6 +17,9 @@ export default function ChannelDetailsView() {
   const { channelId } = useParams<{ channelId: string }>();
   const location = useLocation();
   const channel = (location.state as { channel?: ChannelItem } | null)?.channel;
+  const listingsSectionRef = useRef<HTMLDivElement | null>(null);
+  const [activeListingId, setActiveListingId] = useState<string | null>(null);
+  const createDealMutation = useCreateDealMutation();
   const activeListings = (channel?.listings ?? []).filter(
     (listing) => listing.isActive !== false
   );
@@ -28,13 +33,40 @@ export default function ChannelDetailsView() {
   const minPriceTon = minPriceNano ? formatTonString(nanoToTonString(minPriceNano)) : null;
   const primaryListing = activeListings[0];
   const hasPinnedOptions = activeListings.some((listing) => listing.pinDurationHours !== null);
-  const aggregatedTags = Array.from(
-    new Set(
-      activeListings.flatMap((listing) =>
-        listing.tags.map((tag) => tag.trim()).filter(Boolean)
-      )
-    )
+  const isSubmitting = createDealMutation.isPending;
+
+  const handleCreateDeal = async (listingId: string) => {
+    if (isSubmitting) {
+      return;
+    }
+    setActiveListingId(listingId);
+    try {
+      await createDealMutation.mutateAsync({ listingId });
+    } finally {
+      setActiveListingId(null);
+    }
+  };
+
+  const formattedListings = useMemo(
+    () =>
+      activeListings.map((listing) => ({
+        ...listing,
+        priceTon: `${formatTonString(nanoToTonString(listing.priceNano))} TON`,
+        tags: listing.tags.map((tag) => tag.trim()).filter(Boolean),
+      })),
+    [activeListings]
   );
+
+  const handlePrimaryCta = () => {
+    if (!primaryListing) {
+      return;
+    }
+    if (activeListings.length === 1) {
+      void handleCreateDeal(primaryListing.id);
+    } else {
+      listingsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -109,20 +141,29 @@ export default function ChannelDetailsView() {
               <p className="mt-3 text-sm text-muted-foreground">
                 Pricing includes escrow protection and bot-assisted messaging.
               </p>
-              <Link
-                to={`/marketplace/channels/${channel.id}/request`}
-                state={{ listingId: primaryListing?.id }}
-                className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
+              <button
+                type="button"
+                onClick={handlePrimaryCta}
+                disabled={!primaryListing || isSubmitting}
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
               >
-                Request Placement
-              </Link>
+                {isSubmitting && activeListingId === primaryListing?.id ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : null}
+                Create Deal
+              </button>
             </div>
 
             {activeListings.length > 0 ? (
-              <div className="rounded-2xl border border-border/60 bg-card/80 p-6 space-y-4">
+              <div
+                ref={listingsSectionRef}
+                className="rounded-2xl border border-border/60 bg-card/80 p-6 space-y-4"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Active listings</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      Available placements
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {activeListings.length} placements available
                     </p>
@@ -135,40 +176,75 @@ export default function ChannelDetailsView() {
                   </div>
                 </div>
 
-                {primaryListing ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-                      <p className="text-xs text-muted-foreground">Pinned</p>
-                      <p className="mt-1 text-sm font-semibold text-foreground">
-                        {primaryListing.pinDurationHours
-                          ? formatDuration(primaryListing.pinDurationHours)
-                          : "Not pinned"}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-                      <p className="text-xs text-muted-foreground">Visible</p>
-                      <p className="mt-1 text-sm font-semibold text-foreground">
-                        {formatDuration(primaryListing.visibilityDurationHours ?? 24)}
-                      </p>
-                    </div>
-                  </div>
-                ) : null}
-
-                {aggregatedTags.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">Tags</p>
-                    <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
-                      {aggregatedTags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full border border-border/60 bg-card px-2.5 py-1"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
+                <div className="space-y-3">
+                  {formattedListings.map((listing) => {
+                    const isListingSubmitting =
+                      isSubmitting && activeListingId === listing.id;
+                    return (
+                      <div
+                        key={listing.id}
+                        className="rounded-xl border border-border/60 bg-card/70 p-4 space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Price</p>
+                            <p className="mt-1 text-lg font-semibold text-foreground">
+                              {listing.priceTon}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCreateDeal(listing.id)}
+                            disabled={isSubmitting}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                          >
+                            {isListingSubmitting ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : null}
+                            Create Deal
+                          </button>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-3">
+                          <div className="rounded-lg border border-border/60 bg-card/60 p-3">
+                            <p className="text-[11px] text-muted-foreground">Placement</p>
+                            <p className="mt-1 text-xs font-semibold text-foreground">
+                              {listing.format}
+                            </p>
+                          </div>
+                          <div className="rounded-lg border border-border/60 bg-card/60 p-3">
+                            <p className="text-[11px] text-muted-foreground">Pinned</p>
+                            <p className="mt-1 text-xs font-semibold text-foreground">
+                              {listing.pinDurationHours
+                                ? formatDuration(listing.pinDurationHours)
+                                : "Not pinned"}
+                            </p>
+                          </div>
+                          <div className="rounded-lg border border-border/60 bg-card/60 p-3">
+                            <p className="text-[11px] text-muted-foreground">Visible</p>
+                            <p className="mt-1 text-xs font-semibold text-foreground">
+                              {formatDuration(listing.visibilityDurationHours ?? 24)}
+                            </p>
+                          </div>
+                        </div>
+                        {listing.tags.length > 0 ? (
+                          <div className="space-y-2">
+                            <p className="text-[11px] text-muted-foreground">Tags</p>
+                            <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
+                              {listing.tags.map((tag) => (
+                                <span
+                                  key={`${listing.id}-${tag}`}
+                                  className="rounded-full border border-border/60 bg-card px-2.5 py-1"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
               <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center">
@@ -176,7 +252,7 @@ export default function ChannelDetailsView() {
                   No listings yet
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Create a listing to start receiving marketplace requests.
+                  This channel has no active placements available right now.
                 </p>
               </div>
             )}

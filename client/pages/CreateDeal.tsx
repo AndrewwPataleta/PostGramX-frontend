@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { getErrorMessage } from "@/lib/api/errors";
 import { getTelegramWebApp } from "@/lib/telegram";
 import { useCreateDealMutation } from "@/hooks/use-deals";
 import ErrorState from "@/components/feedback/ErrorState";
@@ -49,7 +47,6 @@ export default function CreateDeal() {
 
   const handleSubmit = async () => {
     if (!listingId) {
-      toast.error("Listing not found.");
       return;
     }
 
@@ -59,9 +56,8 @@ export default function CreateDeal() {
         brief: brief.trim() || undefined,
         scheduledAt: scheduledIso,
       });
-      navigate("/deals", { state: { activeTab: "pending" }, replace: true });
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Unable to create deal"));
+    } catch {
+      return;
     }
   };
 
