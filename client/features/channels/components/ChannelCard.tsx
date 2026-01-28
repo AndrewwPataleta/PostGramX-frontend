@@ -1,5 +1,7 @@
-import { memo, type ReactNode } from "react";
+import { memo, useMemo, useState, type ReactNode } from "react";
 import { BadgeCheck, ChevronDown, Users2, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { formatTonString, nanoToTonString } from "@/lib/ton";
 import { cn } from "@/lib/utils";
 import type { ChannelListItem, ChannelStatus } from "@/types/channels";
 
@@ -50,6 +52,8 @@ const formatTitle = (text: string) => text || "Untitled channel";
 
 interface ChannelCardProps {
   channel: ChannelListItem;
+  placementsCount?: number | null;
+  minPriceNano?: string | null;
   onClick?: () => void;
   onVerify?: () => void;
   onUnlink?: () => void;
@@ -58,10 +62,14 @@ interface ChannelCardProps {
   expandDisabled?: boolean;
   expandTooltip?: string;
   expandedContent?: ReactNode;
+  createListingTo?: string;
+  createListingState?: Record<string, unknown>;
 }
 
 const ChannelCard = ({
   channel,
+  placementsCount,
+  minPriceNano,
   onClick,
   onVerify,
   onUnlink,
@@ -70,11 +78,27 @@ const ChannelCard = ({
   expandDisabled = false,
   expandTooltip,
   expandedContent,
+  createListingTo,
+  createListingState,
 }: ChannelCardProps) => {
   const status = statusStyles[channel.status];
   const showVerifyAction = channel.status === "PENDING_VERIFY" && onVerify;
   const showUnlinkAction = Boolean(onUnlink);
   const showExpandAction = Boolean(onToggleExpand);
+  const [avatarError, setAvatarError] = useState(false);
+  const avatarFallback = channel.title?.[0]?.toUpperCase() ?? channel.username?.[0]?.toUpperCase();
+  const avatarSrc = !avatarError && channel.avatarUrl ? channel.avatarUrl : null;
+  const formattedSubscribers = formatMetric(channel.memberCount);
+  const formattedMinPrice = useMemo(() => {
+    if (!minPriceNano) {
+      return "—";
+    }
+    try {
+      return formatTonString(nanoToTonString(minPriceNano));
+    } catch {
+      return minPriceNano;
+    }
+  }, [minPriceNano]);
 
   return (
     <div
@@ -95,78 +119,99 @@ const ChannelCard = ({
         }
       }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">
-            {formatTitle(channel.title)}
-          </h3>
-          <p className="text-xs text-muted-foreground">@{channel.username}</p>
+      <div className="flex items-start gap-3">
+        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-muted/40 text-base text-foreground">
+          {avatarSrc ? (
+            <img
+              src={avatarSrc}
+              alt={channel.title}
+              className="h-12 w-12 rounded-full object-cover"
+              onError={() => setAvatarError(true)}
+            />
+          ) : (
+            <span>{avatarFallback ?? "?"}</span>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          {showUnlinkAction ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onUnlink?.();
-              }}
-              className="rounded-full border border-border/60 bg-background/70 p-1.5 text-muted-foreground transition hover:text-foreground"
-              aria-label="Unlink channel"
-            >
-              <X size={14} />
-            </button>
-          ) : null}
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
-              status.className
-            )}
-          >
-            {status.icon}
-            {status.label}
-          </span>
-          {showExpandAction ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onToggleExpand?.();
-              }}
-              disabled={expandDisabled}
-              title={expandTooltip}
-              aria-label={isExpanded ? "Collapse placements" : "Expand placements"}
-              aria-expanded={isExpanded}
-              className={cn(
-                "flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition",
-                !expandDisabled && "hover:text-foreground",
-                expandDisabled && "cursor-not-allowed opacity-60"
-              )}
-            >
-              <ChevronDown
-                size={16}
+        <div className="flex-1 space-y-2">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">
+                {formatTitle(channel.title)}
+              </h3>
+              <p className="text-xs text-muted-foreground">@{channel.username}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {showUnlinkAction ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onUnlink?.();
+                  }}
+                  className="rounded-full border border-border/60 bg-background/70 p-1.5 text-muted-foreground transition hover:text-foreground"
+                  aria-label="Unlink channel"
+                >
+                  <X size={14} />
+                </button>
+              ) : null}
+              <span
                 className={cn(
-                  "transition-transform duration-300",
-                  isExpanded && "rotate-180"
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
+                  status.className
                 )}
-              />
-            </button>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="rounded-xl bg-muted/30 p-3">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Users2 size={12} />
-            Subscribers
+              >
+                {status.icon}
+                {status.label}
+              </span>
+              {showExpandAction ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onToggleExpand?.();
+                  }}
+                  disabled={expandDisabled}
+                  title={expandTooltip}
+                  aria-label={isExpanded ? "Collapse placements" : "Expand placements"}
+                  aria-expanded={isExpanded}
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition",
+                    !expandDisabled && "hover:text-foreground",
+                    expandDisabled && "cursor-not-allowed opacity-60"
+                  )}
+                >
+                  <ChevronDown
+                    size={16}
+                    className={cn(
+                      "transition-transform duration-300",
+                      isExpanded && "rotate-180"
+                    )}
+                  />
+                </button>
+              ) : null}
+            </div>
           </div>
-          <p className="mt-1 text-sm font-semibold text-foreground">
-            {formatMetric(channel.memberCount)}
-          </p>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <Users2 size={12} />
+              {formattedSubscribers}
+            </span>
+            <span>·</span>
+            <span>
+              {typeof placementsCount === "number" ? `${placementsCount} placements` : "— placements"}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              From <span className="font-semibold text-primary">{formattedMinPrice} TON</span>
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+      <div className="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           {showVerifyAction ? (
             <button
@@ -181,6 +226,16 @@ const ChannelCard = ({
             </button>
           ) : null}
         </div>
+        {createListingTo ? (
+          <Link
+            to={createListingTo}
+            state={createListingState}
+            onClick={(event) => event.stopPropagation()}
+            className="rounded-full bg-primary px-4 py-1.5 text-[11px] font-semibold text-primary-foreground"
+          >
+            Create listing
+          </Link>
+        ) : null}
       </div>
 
       {expandedContent ? (

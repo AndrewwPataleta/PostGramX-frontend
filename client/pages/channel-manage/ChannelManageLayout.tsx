@@ -36,6 +36,7 @@ const ChannelManageLayout = () => {
     const state = location.state as { channel?: ChannelListItem } | null;
     return state?.channel ?? null;
   }, [location.state]);
+  const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
   const fallbackChannel = useMemo(
     () => (fallbackListItem ? mapChannelFromListItem(fallbackListItem) : null),
     [fallbackListItem],
@@ -85,9 +86,13 @@ const ChannelManageLayout = () => {
         const nextChannel = fallbackListItem
           ? { ...fallbackListItem, status: "VERIFIED" }
           : undefined;
-        navigate(`/channel-manage/${id}/overview`, {
+        navigate(`/channel-manage/${id}/listings`, {
           replace: true,
-          state: nextChannel ? { channel: nextChannel } : undefined,
+          state: nextChannel
+            ? { channel: nextChannel, rootBackTo }
+            : rootBackTo
+              ? { rootBackTo }
+              : undefined,
         });
         return;
       }
@@ -167,26 +172,28 @@ const ChannelManageLayout = () => {
 
       <div className="border-b border-border/50 bg-card/80 backdrop-blur-glass px-4">
         <div className="flex gap-6">
-          {[
-            { id: "overview", label: "Overview" },
-            { id: "listings", label: "Listings" },
-            { id: "settings", label: "Settings" },
-          ].map((tab) => (
-            <NavLink
-              key={tab.id}
-              to={`${basePath}/${tab.id}`}
-              state={fallbackListItem ? { channel: fallbackListItem } : undefined}
-              className={({ isActive }) =>
-                `py-3 font-medium text-sm border-b-2 transition-colors ${
-                  isActive
-                    ? "text-primary border-b-primary"
-                    : "text-muted-foreground border-b-transparent hover:text-foreground"
-                }`
-              }
-            >
-              {tab.label}
-            </NavLink>
-          ))}
+          {[{ id: "listings", label: "Listings" }, { id: "settings", label: "Settings" }].map(
+            (tab) => (
+              <NavLink
+                key={tab.id}
+                to={`${basePath}/${tab.id}`}
+                state={
+                  fallbackListItem || rootBackTo
+                    ? { channel: fallbackListItem ?? undefined, rootBackTo }
+                    : undefined
+                }
+                className={({ isActive }) =>
+                  `py-3 font-medium text-sm border-b-2 transition-colors ${
+                    isActive
+                      ? "text-primary border-b-primary"
+                      : "text-muted-foreground border-b-transparent hover:text-foreground"
+                  }`
+                }
+              >
+                {tab.label}
+              </NavLink>
+            ),
+          )}
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Info } from "lucide-react";
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/api/errors";
 import { ListingPreviewDetails } from "@/components/listings/ListingPreviewDetails";
@@ -38,10 +38,12 @@ const resolveHours = (choice: string, customValue: string, fallback: number) => 
 
 export default function CreateListing() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const outletContext = useOutletContext<ChannelManageContext | null>();
   const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
   const [priceTon, setPriceTon] = useState("25");
   const [pinDurationChoice, setPinDurationChoice] = useState("none");
   const [pinCustomHours, setPinCustomHours] = useState("");
@@ -112,7 +114,9 @@ export default function CreateListing() {
       });
       queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
       queryClient.invalidateQueries({ queryKey: ["channelsList"] });
-      navigate(`/channel-manage/${channel.id}/listings`);
+      navigate(`/channel-manage/${channel.id}/listings`, {
+        state: rootBackTo ? { rootBackTo } : undefined,
+      });
     } catch (error) {
       toast.error(getErrorMessage(error, "Unable to publish listing"));
     } finally {

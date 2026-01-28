@@ -24,8 +24,15 @@ export interface TelegramWebApp {
     showProgress?: (leaveActive?: boolean) => void;
     hideProgress?: () => void;
   };
+  BackButton?: {
+    show?: () => void;
+    hide?: () => void;
+    onClick?: (handler: () => void) => void;
+    offClick?: (handler: () => void) => void;
+  };
   HapticFeedback?: TelegramHapticFeedback;
   CloudStorage?: TelegramCloudStorage;
+  openTelegramLink?: (url: string) => void;
   safeAreaInset?: Partial<TelegramInsets>;
   contentSafeAreaInset?: Partial<TelegramInsets>;
   onEvent?: (

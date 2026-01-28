@@ -96,8 +96,10 @@ const AddChannelStep3 = () => {
               variant="secondary"
               onClick={() =>
                 linkedChannelId
-                  ? navigate(`/channel-manage/${linkedChannelId}/overview`, {
-                      state: channelState ? { channel: channelState } : undefined,
+                  ? navigate(`/channel-manage/${linkedChannelId}/listings`, {
+                      state: channelState
+                        ? { channel: channelState, rootBackTo: "/channels" }
+                        : { rootBackTo: "/channels" },
                     })
                   : undefined
               }

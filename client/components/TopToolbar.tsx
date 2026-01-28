@@ -1,12 +1,14 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
+import { getTelegramWebApp } from "@/lib/telegram";
 
 const mainNavPaths = ["/marketplace", "/deals", "/channels", "/profile"];
 
 const titleMatchers = [
   { path: "/marketplace/channels/:channelId/request", title: "Request placement" },
   { path: "/marketplace/channels/:channelId", title: "Channel" },
+  { path: "/channels/:channelId", title: "Channel" },
   { path: "/marketplace", title: "Marketplace" },
   { path: "/deals/:dealId", title: "Deal" },
   { path: "/deals", title: "Deals" },
@@ -14,7 +16,6 @@ const titleMatchers = [
   { path: "/channel-manage/:id/listings/preview", title: "Listing preview" },
   { path: "/channel-manage/:id/listings/:listingId/edit", title: "Edit listing" },
   { path: "/channel-manage/:id/listings/success", title: "Listing published" },
-  { path: "/channel-manage/:id/overview", title: "Channel" },
   { path: "/channel-manage/:id/listings", title: "Listings" },
   { path: "/channel-manage/:id/settings", title: "Settings" },
   { path: "/add-channel", title: "Add channel" },
@@ -58,6 +59,7 @@ const TopToolbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
+  const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
 
   const title = useMemo(() => {
     for (const matcher of titleMatchers) {
@@ -76,17 +78,38 @@ const TopToolbar = () => {
     matchPath({ path: pattern, end: true }, pathname),
   );
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
+    if (rootBackTo) {
+      navigate(rootBackTo, { replace: true });
+      return;
+    }
     if (window.history.length > 1) {
       navigate(-1);
       return;
     }
     navigate(fallbackPath);
-  };
+  }, [fallbackPath, navigate, rootBackTo]);
 
   const handleClose = () => {
     navigate(fallbackPath, { replace: true });
   };
+
+  useEffect(() => {
+    const webApp = getTelegramWebApp();
+    const backButton = webApp?.BackButton;
+    if (!backButton) {
+      return;
+    }
+    if (showBack) {
+      backButton.show?.();
+      backButton.onClick?.(handleBack);
+    } else {
+      backButton.hide?.();
+    }
+    return () => {
+      backButton.offClick?.(handleBack);
+    };
+  }, [handleBack, showBack]);
 
   return (
     <header

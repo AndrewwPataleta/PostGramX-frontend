@@ -1,5 +1,5 @@
-import { memo, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { memo, useEffect, useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { PencilLine, RefreshCcw } from "lucide-react";
 import { listingsByChannel } from "@/api/features/listingsApi";
@@ -41,9 +41,10 @@ const buildTags = (tags: string[]) => {
 interface ListingPreviewRowProps {
   channelId: string;
   listing: ListingListItem;
+  rootBackTo?: string;
 }
 
-const ListingPreviewRow = memo(({ channelId, listing }: ListingPreviewRowProps) => {
+const ListingPreviewRow = memo(({ channelId, listing, rootBackTo }: ListingPreviewRowProps) => {
   const pinLabel = listing.pinDurationHours
     ? `Pinned ${listing.pinDurationHours}h`
     : "No pin";
@@ -96,6 +97,7 @@ const ListingPreviewRow = memo(({ channelId, listing }: ListingPreviewRowProps) 
 
       <Link
         to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
+        state={rootBackTo ? { rootBackTo } : undefined}
         className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition hover:text-foreground"
         aria-label="Edit listing"
       >
@@ -110,9 +112,13 @@ ListingPreviewRow.displayName = "ListingPreviewRow";
 interface ChannelListingsPreviewProps {
   channelId: string;
   isExpanded: boolean;
+  onSummaryChange?: (summary: { placementsCount: number; minPriceNano: string | null }) => void;
 }
 
-const ChannelListingsPreview = memo(({ channelId, isExpanded }: ChannelListingsPreviewProps) => {
+const ChannelListingsPreview = memo(
+  ({ channelId, isExpanded, onSummaryChange }: ChannelListingsPreviewProps) => {
+  const location = useLocation();
+  const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
   const query = useQuery<ListingsByChannelResponse>({
     queryKey: ["channelListingsPreview", channelId],
     queryFn: () =>
@@ -127,12 +133,34 @@ const ChannelListingsPreview = memo(({ channelId, isExpanded }: ChannelListingsP
     staleTime: 1000 * 60 * 5,
   });
 
+  const items = query.data?.items ?? [];
+  const totalCount = query.data?.total ?? items.length;
+
+  useEffect(() => {
+    if (!query.data) {
+      return;
+    }
+    const minPriceNano = items.reduce<bigint | null>((currentMin, listing) => {
+      try {
+        const price = BigInt(listing.priceNano);
+        if (currentMin === null || price < currentMin) {
+          return price;
+        }
+        return currentMin;
+      } catch {
+        return currentMin;
+      }
+    }, null);
+    onSummaryChange?.({
+      placementsCount: totalCount,
+      minPriceNano: minPriceNano ? minPriceNano.toString() : null,
+    });
+  }, [items, onSummaryChange, query.data, totalCount]);
+
   const previewItems = useMemo(
-    () => query.data?.items?.slice(0, PREVIEW_COUNT) ?? [],
-    [query.data?.items]
+    () => items.slice(0, PREVIEW_COUNT),
+    [items]
   );
-  const totalCount = query.data?.total ?? query.data?.items?.length ?? 0;
-  const hasMore = totalCount > PREVIEW_COUNT;
 
   return (
     <div className="space-y-3">
@@ -140,14 +168,6 @@ const ChannelListingsPreview = memo(({ channelId, isExpanded }: ChannelListingsP
         <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Placements
         </h4>
-        {hasMore ? (
-          <Link
-            to={`/channel-manage/${channelId}/listings`}
-            className="text-[11px] font-semibold text-primary"
-          >
-            View all listings
-          </Link>
-        ) : null}
       </div>
 
       {query.isLoading ? (
@@ -182,6 +202,7 @@ const ChannelListingsPreview = memo(({ channelId, isExpanded }: ChannelListingsP
               key={listing.id}
               channelId={channelId}
               listing={listing}
+              rootBackTo={rootBackTo}
             />
           ))}
         </div>
@@ -191,32 +212,8 @@ const ChannelListingsPreview = memo(({ channelId, isExpanded }: ChannelListingsP
           <p className="mt-1 text-[11px] text-muted-foreground">
             Create your first listing to start earning.
           </p>
-          <Link
-            to={`/channel-manage/${channelId}/listings/create`}
-            className="mt-3 inline-flex items-center justify-center rounded-full bg-primary px-4 py-1.5 text-[11px] font-semibold text-primary-foreground"
-          >
-            Create listing
-          </Link>
         </div>
       )}
-
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Link
-          to={`/channel-manage/${channelId}/listings/create`}
-          className="flex-1 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-center text-xs font-semibold text-primary"
-        >
-          Create listing
-        </Link>
-        <Link
-          to={`/channel-manage/${channelId}/listings`}
-          className={cn(
-            "flex-1 rounded-full border border-border/60 bg-background px-4 py-2 text-center text-xs font-semibold text-foreground",
-            query.isLoading && "pointer-events-none opacity-70"
-          )}
-        >
-          View all
-        </Link>
-      </div>
     </div>
   );
 });
