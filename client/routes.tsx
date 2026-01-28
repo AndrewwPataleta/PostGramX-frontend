@@ -28,7 +28,6 @@ const AddChannelStep3 = lazy(() => import("./pages/add-channel/Step3"));
 const ChannelManageLayout = lazy(
   () => import("./pages/channel-manage/ChannelManageLayout"),
 );
-const ChannelOverview = lazy(() => import("./pages/channel-manage/ChannelOverview"));
 const ListingsList = lazy(() => import("./pages/channel-manage/ListingsList"));
 const ChannelSettings = lazy(() => import("./pages/channel-manage/ChannelSettings"));
 const Splash = lazy(() => import("./pages/Splash"));
@@ -67,6 +66,7 @@ export const AppRoutes = () => {
             path="/channels/pending/:id"
             element={<ChannelPendingVerification />}
           />
+          <Route path="/channels/:channelId" element={<ChannelDetails />} />
           <Route path="/profile" element={<Profile />} />
 
           <Route path="/add-channel" element={<AddChannelLayout />}>
@@ -77,8 +77,8 @@ export const AppRoutes = () => {
           </Route>
 
           <Route path="/channel-manage/:id" element={<ChannelManageLayout />}>
-            <Route index element={<Navigate to="overview" replace />} />
-            <Route path="overview" element={<ChannelOverview />} />
+            <Route index element={<Navigate to="listings" replace />} />
+            <Route path="overview" element={<Navigate to="../listings" replace />} />
             <Route path="listings" element={<ListingsList />} />
             <Route path="listings/create" element={<CreateListing />} />
             <Route path="listings/preview" element={<ListingPreview />} />

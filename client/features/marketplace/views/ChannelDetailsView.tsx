@@ -19,6 +19,7 @@ export default function ChannelDetailsView() {
   const channel = (location.state as { channel?: ChannelItem } | null)?.channel;
   const listingsSectionRef = useRef<HTMLDivElement | null>(null);
   const [activeListingId, setActiveListingId] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
   const createDealMutation = useCreateDealMutation();
   const activeListings = (channel?.listings ?? []).filter(
     (listing) => listing.isActive !== false
@@ -82,11 +83,12 @@ export default function ChannelDetailsView() {
             <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-2xl">
-                  {channel.avatarUrl ? (
+                  {!avatarError && channel.avatarUrl ? (
                     <img
                       src={channel.avatarUrl}
                       alt={channel.name}
                       className="h-16 w-16 rounded-2xl object-cover"
+                      onError={() => setAvatarError(true)}
                     />
                   ) : (
                     channel.name?.[0]?.toUpperCase()

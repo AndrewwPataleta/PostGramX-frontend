@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { listingsByChannel } from "@/api/features/listingsApi";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getTelegramWebApp } from "@/lib/telegram";
 import { formatTonString, nanoToTonString } from "@/lib/ton";
 import { cn } from "@/lib/utils";
 import type { ChannelItem } from "@/types/channels";
@@ -84,6 +85,11 @@ const buildRestrictedRules = (listing: ListingListItem) => {
 
 export default function ChannelCard({ channel }: ChannelCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+  const navigate = useNavigate();
+  const trimmedUsername = channel.username?.replace(/^@/, "");
+  const telegramLink = trimmedUsername ? `https://t.me/${trimmedUsername}` : null;
+  const hasListingSummary = Array.isArray(channel.listings);
   const listingsQuery = useQuery<ListingsByChannelResponse>({
     queryKey: ["marketplaceListingsByChannel", channel.id],
     queryFn: () =>
@@ -94,33 +100,34 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         onlyActive: true,
         sort: "price_asc",
       }),
-    enabled: isExpanded,
+    enabled: isExpanded && !hasListingSummary,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
   });
 
   const listings = listingsQuery.data?.items ?? channel.listings ?? [];
+  const summaryListings = hasListingSummary ? channel.listings : listingsQuery.data?.items;
+  const activeSummaryListings = summaryListings?.filter(
+    (listing) => listing.isActive !== false
+  );
   const totalListings = useMemo(() => {
-    if (typeof channel.placementsCount === "number") {
-      return channel.placementsCount;
-    }
-    if (typeof channel.listingsCount === "number") {
-      return channel.listingsCount;
-    }
     if (listingsQuery.data) {
       return listingsQuery.data.total ?? listingsQuery.data.items.length;
     }
-    if (channel.listings) {
-      return channel.listings.length;
+    if (summaryListings) {
+      return activeSummaryListings?.length ?? 0;
     }
     return null;
-  }, [channel.listings, channel.placementsCount, listingsQuery.data]);
+  }, [activeSummaryListings?.length, listingsQuery.data, summaryListings]);
 
   const minPriceNano = useMemo(() => {
-    if (listings.length === 0) {
+    if (!summaryListings || summaryListings.length === 0) {
       return null;
     }
-    return listings.reduce<bigint | null>((currentMin, listing) => {
+    return summaryListings.reduce<bigint | null>((currentMin, listing) => {
+      if (listing.isActive === false) {
+        return currentMin;
+      }
       const price = parsePriceNano(listing.priceNano);
       if (price === null) {
         return currentMin;
@@ -130,7 +137,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       }
       return price < currentMin ? price : currentMin;
     }, null);
-  }, [listings]);
+  }, [summaryListings]);
 
   const minPriceTon = minPriceNano ? formatTonString(nanoToTonString(minPriceNano)) : null;
   const formattedSubscribers =
@@ -139,15 +146,32 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       : "— subscribers";
   const fallbackAvatar = channel.name?.[0]?.toUpperCase() ?? channel.username?.[0]?.toUpperCase();
   const username = channel.username ? `@${channel.username}` : null;
+  const avatarSrc = !avatarError && channel.avatarUrl ? channel.avatarUrl : null;
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/80 p-4 transition-colors hover:border-primary/40">
+    <div
+      className="rounded-2xl border border-border/50 bg-card/80 p-4 transition-colors hover:border-primary/40 cursor-pointer"
+      role="button"
+      tabIndex={0}
+      onClick={() =>
+        navigate(`/channels/${channel.id}`, { state: { channel, rootBackTo: "/marketplace" } })
+      }
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          navigate(`/channels/${channel.id}`, {
+            state: { channel, rootBackTo: "/marketplace" },
+          });
+        }
+      }}
+    >
       <div className="flex items-start gap-3">
-        {channel.avatarUrl ? (
+        {avatarSrc ? (
           <img
-            src={channel.avatarUrl}
+            src={avatarSrc}
             alt={channel.name}
             className="h-12 w-12 rounded-full object-cover"
+            onError={() => setAvatarError(true)}
           />
         ) : (
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-secondary/50 to-secondary text-lg text-foreground">
@@ -167,9 +191,30 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
               </div>
               {username ? <span className="text-xs text-muted-foreground">{username}</span> : null}
             </div>
-            <button
+            <div className="flex items-center gap-2">
+              {telegramLink ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    const webApp = getTelegramWebApp();
+                    if (webApp?.openTelegramLink) {
+                      webApp.openTelegramLink(telegramLink);
+                      return;
+                    }
+                    window.open(telegramLink, "_blank", "noopener,noreferrer");
+                  }}
+                  className="rounded-full border border-border/60 bg-secondary/40 px-3 py-1 text-[11px] font-semibold text-primary transition hover:text-primary/90"
+                >
+                  Open channel
+                </button>
+              ) : null}
+              <button
               type="button"
-              onClick={() => setIsExpanded((prev) => !prev)}
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsExpanded((prev) => !prev);
+              }}
               aria-expanded={isExpanded}
               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-secondary/40 text-muted-foreground transition hover:text-foreground"
             >
@@ -178,6 +223,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                 className={cn("transition-transform duration-200", isExpanded && "rotate-180")}
               />
             </button>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
@@ -190,7 +236,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
-              From <span className="font-semibold text-primary">{minPriceTon ?? "--"} TON</span>
+              From <span className="font-semibold text-primary">{minPriceTon ?? "—"} TON</span>
             </span>
           </div>
         </div>
@@ -207,13 +253,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Placements
             </h4>
-            <Link
-              to={`/marketplace/channels/${channel.id}`}
-              state={{ channel }}
-              className="text-[11px] font-semibold text-primary"
-            >
-              Open channel
-            </Link>
           </div>
 
           {listingsQuery.isLoading ? (

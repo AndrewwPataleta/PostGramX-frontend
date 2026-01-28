@@ -21,6 +21,7 @@ export type ChannelsListParams = {
   order?: ChannelsListOrder;
   page?: number;
   limit?: number;
+  includeListings?: boolean;
 };
 
 export type ChannelListItem = {
@@ -30,6 +31,10 @@ export type ChannelListItem = {
   status: ChannelStatus;
   telegramChatId?: number | null;
   memberCount?: number | null;
+  avatarUrl?: string | null;
+  listings?: import("./listings").ListingListItem[];
+  placementsCount?: number;
+  listingsCount?: number;
   verifiedAt?: string | null;
   lastCheckedAt?: string | null;
   membership: {

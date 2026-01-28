@@ -36,6 +36,7 @@ const ChannelPendingVerification = () => {
     const state = location.state as { channel?: ChannelListItem } | null;
     return state?.channel ?? null;
   }, [location.state]);
+  const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
 
   const handleRetry = async () => {
     if (!id) {
@@ -47,9 +48,13 @@ const ChannelPendingVerification = () => {
       const response = await mutateAsync(id);
       if (response.status === "VERIFIED") {
         const nextChannel = channel ? { ...channel, status: "VERIFIED" } : undefined;
-        navigate(`/channel-manage/${id}/overview`, {
+        navigate(`/channel-manage/${id}/listings`, {
           replace: true,
-          state: nextChannel ? { channel: nextChannel } : undefined,
+          state: nextChannel
+            ? { channel: nextChannel, rootBackTo }
+            : rootBackTo
+              ? { rootBackTo }
+              : undefined,
         });
         return;
       }
@@ -70,12 +75,19 @@ const ChannelPendingVerification = () => {
   };
 
   if (!id) {
+    const handleFallbackBack = () => {
+      if (rootBackTo) {
+        navigate(rootBackTo, { replace: true });
+        return;
+      }
+      navigate(-1);
+    };
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-6">
         <p className="text-sm text-muted-foreground">Channel not found.</p>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={handleFallbackBack}
           className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-primary"
         >
           <ChevronLeft size={14} />
@@ -89,7 +101,13 @@ const ChannelPendingVerification = () => {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6">
       <button
         type="button"
-        onClick={() => navigate(-1)}
+        onClick={() => {
+          if (rootBackTo) {
+            navigate(rootBackTo, { replace: true });
+            return;
+          }
+          navigate(-1);
+        }}
         className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground"
       >
         <ChevronLeft size={14} />

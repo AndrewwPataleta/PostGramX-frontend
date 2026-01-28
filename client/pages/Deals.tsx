@@ -143,7 +143,7 @@ export default function Deals() {
   const handleSelectDeal = useCallback(
     (deal: DealListItem) => {
       queryClient.setQueryData(["dealById", deal.id], deal);
-      navigate(`/deals/${deal.id}`, { state: { deal } });
+      navigate(`/deals/${deal.id}`, { state: { deal, rootBackTo: "/deals" } });
     },
     [navigate, queryClient]
   );

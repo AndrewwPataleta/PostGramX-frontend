@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useOutletContext, useParams } from "react-router-dom";
-import { Edit } from "lucide-react";
+import { Link, useLocation, useOutletContext, useParams } from "react-router-dom";
+import { Edit, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ListingCard } from "@/components/listings/ListingCard";
@@ -12,7 +12,9 @@ import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageL
 const ListingsList = () => {
   const { channel } = useOutletContext<ChannelManageContext>();
   const { id: channelIdParam } = useParams<{ id: string }>();
+  const location = useLocation();
   const channelId = channelIdParam ?? channel.id;
+  const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [onlyActive, setOnlyActive] = useState(true);
@@ -101,6 +103,7 @@ const ListingsList = () => {
                 actionSlot={
                   <Link
                     to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
+                    state={rootBackTo ? { rootBackTo } : undefined}
                     className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg border border-border transition-colors text-sm"
                   >
                     <Edit size={16} />
@@ -145,6 +148,7 @@ const ListingsList = () => {
           </p>
           <Link
             to={`/channel-manage/${channelId}/listings/create`}
+            state={rootBackTo ? { rootBackTo } : undefined}
             className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
           >
             Create listing
@@ -154,9 +158,11 @@ const ListingsList = () => {
 
       <Link
         to={`/channel-manage/${channelId}/listings/create`}
-        className="w-full button-primary py-3 text-base font-semibold text-center"
+        state={rootBackTo ? { rootBackTo } : undefined}
+        className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
+        aria-label="Create listing"
       >
-        Create Listing
+        <Plus size={18} />
       </Link>
     </>
   );

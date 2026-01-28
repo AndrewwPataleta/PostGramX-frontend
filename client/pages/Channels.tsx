@@ -8,7 +8,6 @@ import { useChannelsList } from "@/features/channels/hooks/useChannelsList";
 import ErrorState from "@/components/feedback/ErrorState";
 import BottomSheet from "@/components/BottomSheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TELEGRAM_MOCK } from "@/config/env";
 import { unlinkChannel } from "@/api/features/channelsApi";
 import { getErrorMessage } from "@/lib/api/errors";
 import type {
@@ -18,6 +17,7 @@ import type {
   ChannelsListSort,
   ChannelListItem,
 } from "@/types/channels";
+import type { ListingListItem } from "@/types/listings";
 
 const DEFAULT_SORT: ChannelsListSort = "recent";
 const DEFAULT_ORDER: ChannelsListOrder = "desc";
@@ -44,6 +44,28 @@ const ChannelCardSkeleton = () => (
   </div>
 );
 
+const getListingSummary = (listings?: ListingListItem[]) => {
+  if (!listings) {
+    return null;
+  }
+  const activeListings = listings.filter((listing) => listing.isActive !== false);
+  const minPriceNano = activeListings.reduce<bigint | null>((currentMin, listing) => {
+    try {
+      const price = BigInt(listing.priceNano);
+      if (currentMin === null || price < currentMin) {
+        return price;
+      }
+      return currentMin;
+    } catch {
+      return currentMin;
+    }
+  }, null);
+  return {
+    placementsCount: activeListings.length,
+    minPriceNano: minPriceNano ? minPriceNano.toString() : null,
+  };
+};
+
 export default function Channels() {
   const [activeTab, setActiveTab] = useState<"pending" | "verified">("verified");
   const [unlinkTarget, setUnlinkTarget] = useState<ChannelListItem | null>(null);
@@ -52,11 +74,15 @@ export default function Channels() {
   const [expandedChannelIds, setExpandedChannelIds] = useState<Set<string>>(
     () => new Set()
   );
+  const [listingSummaries, setListingSummaries] = useState<
+    Record<string, { placementsCount: number; minPriceNano: string | null }>
+  >({});
   const navigate = useNavigate();
   const filters = useMemo<ChannelsListParams>(
     () => ({
       sort: DEFAULT_SORT,
       order: DEFAULT_ORDER,
+      includeListings: true,
     }),
     [],
   );
@@ -104,11 +130,15 @@ export default function Channels() {
 
   const handleChannelClick = (channel: (typeof items)[number]) => {
     if (channel.status === "PENDING_VERIFY") {
-      navigate(`/channels/pending/${channel.id}`, { state: { channel } });
+      navigate(`/channels/pending/${channel.id}`, {
+        state: { channel, rootBackTo: "/channels" },
+      });
       return;
     }
 
-    navigate(`/channel-manage/${channel.id}/overview`, { state: { channel } });
+    navigate(`/channel-manage/${channel.id}/listings`, {
+      state: { channel, rootBackTo: "/channels" },
+    });
   };
 
   const handleToggleExpand = useCallback((channelId: string) => {
@@ -204,13 +234,23 @@ export default function Channels() {
               {tabbedChannels.map((channel) => {
                 const isExpanded = expandedChannelIds.has(channel.id);
                 const canExpand = channel.status === "VERIFIED";
+                const listingSummary = getListingSummary(channel.listings);
+                const fallbackSummary = listingSummaries[channel.id];
+                const placementsCount =
+                  listingSummary?.placementsCount ?? fallbackSummary?.placementsCount ?? null;
+                const minPriceNano =
+                  listingSummary?.minPriceNano ?? fallbackSummary?.minPriceNano ?? null;
                 return (
                   <ChannelCard
                     key={channel.id}
                     channel={channel}
+                    placementsCount={placementsCount}
+                    minPriceNano={minPriceNano}
                     onClick={() => handleChannelClick(channel)}
                     onVerify={() =>
-                      navigate(`/channels/pending/${channel.id}`, { state: { channel } })
+                      navigate(`/channels/pending/${channel.id}`, {
+                        state: { channel, rootBackTo: "/channels" },
+                      })
                     }
                     onUnlink={
                       activeTab === "pending"
@@ -232,9 +272,17 @@ export default function Channels() {
                         <ChannelListingsPreview
                           channelId={channel.id}
                           isExpanded={isExpanded}
+                          onSummaryChange={(summary) => {
+                            setListingSummaries((prev) => ({
+                              ...prev,
+                              [channel.id]: summary,
+                            }));
+                          }}
                         />
                       ) : null
                     }
+                    createListingTo={`/channel-manage/${channel.id}/listings/create`}
+                    createListingState={{ channel, rootBackTo: "/channels" }}
                   />
                 );
               })}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Info } from "lucide-react";
-import { useOutletContext, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ListingPreviewDetails } from "@/components/listings/ListingPreviewDetails";
@@ -51,8 +51,11 @@ const resolveHours = (choice: string, customValue: string, fallback: number) => 
 
 export default function EditListing() {
   const { id, listingId } = useParams<{ id: string; listingId: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const outletContext = useOutletContext<ChannelManageContext | null>();
   const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
+  const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
 
   const listingsQuery = useQuery({
     queryKey: [
@@ -181,7 +184,9 @@ export default function EditListing() {
 
     queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
     queryClient.invalidateQueries({ queryKey: ["channelsList"] });
-    navigate(`/channel-manage/${channel.id}/overview`);
+    navigate(`/channel-manage/${channel.id}/listings`, {
+      state: rootBackTo ? { rootBackTo } : undefined,
+    });
   };
 
   const handleSave = () => {
@@ -202,14 +207,18 @@ export default function EditListing() {
     disableListing(listing.id);
     queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
     queryClient.invalidateQueries({ queryKey: ["channelsList"] });
-    navigate(`/channel-manage/${channel.id}/overview`);
+    navigate(`/channel-manage/${channel.id}/listings`, {
+      state: rootBackTo ? { rootBackTo } : undefined,
+    });
   };
 
   const handleEnable = () => {
     enableListing(listing.id);
     queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
     queryClient.invalidateQueries({ queryKey: ["channelsList"] });
-    navigate(`/channel-manage/${channel.id}/overview`);
+    navigate(`/channel-manage/${channel.id}/listings`, {
+      state: rootBackTo ? { rootBackTo } : undefined,
+    });
   };
 
   return (
