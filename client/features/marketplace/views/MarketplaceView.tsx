@@ -4,11 +4,12 @@ import { ActiveFiltersChips } from "@/components/ActiveFiltersChips";
 import { FilterModal } from "@/components/FilterModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import ErrorState from "@/components/feedback/ErrorState";
-import { getErrorMessage } from "@/lib/api/errors";
 import { useMarketplaceViewModel } from "@/features/marketplace/viewmodels/useMarketplaceViewModel";
 
 export default function MarketplaceView() {
   const { state, computed, actions } = useMarketplaceViewModel();
+  const errorMessage =
+    state.error instanceof Error ? state.error.message : "Unable to load channels";
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -58,17 +59,47 @@ export default function MarketplaceView() {
               <ChannelCard key={channel.id} channel={channel} />
             ))}
 
-        {!state.isLoading && state.error ? (
+        {!state.isLoading && state.error && computed.channels.length === 0 ? (
           <ErrorState
-            message={getErrorMessage(state.error, "Unable to load channels")}
+            message={errorMessage}
             description="Please try again when you have a stable connection."
             onRetry={actions.refetch}
           />
         ) : null}
 
+        {!state.isLoading && state.error && computed.channels.length > 0 ? (
+          <div className="rounded-2xl border border-border/60 bg-red-500/5 p-4 text-sm text-red-200">
+            <p className="font-medium">{errorMessage}</p>
+            <button
+              type="button"
+              onClick={actions.refetch}
+              className="mt-3 inline-flex items-center rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-100"
+            >
+              Retry
+            </button>
+          </div>
+        ) : null}
+
         {!state.isLoading && !state.error && computed.channels.length === 0 ? (
           <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center text-sm text-muted-foreground">
             No channels found. Try a new search.
+          </div>
+        ) : null}
+
+        {!state.isLoading && computed.channels.length > 0 ? (
+          <div className="flex justify-center pt-2">
+            {computed.hasMore ? (
+              <button
+                type="button"
+                onClick={actions.loadMore}
+                disabled={state.isLoadingMore}
+                className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-secondary/50 px-4 py-2 text-xs font-semibold text-foreground disabled:opacity-60"
+              >
+                {state.isLoadingMore ? "Loading more..." : "Load more"}
+              </button>
+            ) : (
+              <span className="text-xs text-muted-foreground">No more channels</span>
+            )}
           </div>
         ) : null}
       </div>

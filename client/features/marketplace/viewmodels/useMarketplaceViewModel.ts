@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { FilterState } from "@/components/FilterModal";
-import { channelsApi } from "@/api/features/channelsApi";
-import { getErrorMessage } from "@/lib/api/errors";
-import type { ChannelItem, ListChannelsParams, Paginated } from "@/types/channels";
+import { marketplaceListChannels } from "@/api/features/marketplaceApi";
+import type {
+  MarketplaceChannelItem,
+  MarketplaceListChannelsParams,
+  MarketplaceListChannelsResponse,
+} from "@/api/types/marketplace";
 
 const defaultFilters: FilterState = {
   priceRange: [0, 100],
@@ -17,7 +20,13 @@ const defaultFilters: FilterState = {
 };
 
 const marketplaceKeys = {
-  channels: (filters: ListChannelsParams) => ["channels", filters] as const,
+  channels: (
+    filters: FilterState & { q?: string },
+    page: number,
+    limit: number,
+    sort: MarketplaceListChannelsParams["sort"],
+    order: MarketplaceListChannelsParams["order"]
+  ) => ["marketplaceChannels", filters, page, limit, sort, order] as const,
 };
 
 export const useMarketplaceViewModel = () => {
@@ -27,8 +36,10 @@ export const useMarketplaceViewModel = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
-  const [sort] = useState<ListChannelsParams["sort"]>("recent");
-  const [order] = useState<ListChannelsParams["order"]>("desc");
+  const [sort] = useState<MarketplaceListChannelsParams["sort"]>("recent");
+  const [order] = useState<MarketplaceListChannelsParams["order"]>("desc");
+  const [channels, setChannels] = useState<MarketplaceChannelItem[]>([]);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     const handler = window.setTimeout(() => {
@@ -40,34 +51,87 @@ export const useMarketplaceViewModel = () => {
     };
   }, [searchQuery]);
 
-  const queryFilters = useMemo<ListChannelsParams>(
-    () => ({
+  const queryFilters = useMemo<MarketplaceListChannelsParams>(() => {
+    const hasDefaultPriceRange =
+      filters.priceRange[0] === defaultFilters.priceRange[0] &&
+      filters.priceRange[1] === defaultFilters.priceRange[1];
+    const hasDefaultSubscriberRange =
+      filters.subscribersRange[0] === defaultFilters.subscribersRange[0] &&
+      filters.subscribersRange[1] === defaultFilters.subscribersRange[1];
+    return {
       q: debouncedQuery || undefined,
-      verifiedOnly: filters.verifiedOnly || undefined,
+      tags: filters.tags.length > 0 ? filters.tags : undefined,
+      minSubscribers: hasDefaultSubscriberRange
+        ? undefined
+        : filters.subscribersRange[0],
+      maxSubscribers: hasDefaultSubscriberRange
+        ? undefined
+        : filters.subscribersRange[1],
+      minPriceTon: hasDefaultPriceRange ? undefined : filters.priceRange[0],
+      maxPriceTon: hasDefaultPriceRange ? undefined : filters.priceRange[1],
+      verifiedOnly: filters.verifiedOnly,
       page,
       limit,
       sort,
       order,
-      includeListings: false,
+    };
+  }, [debouncedQuery, filters, limit, order, page, sort]);
+
+  const filtersKey = useMemo(
+    () => ({
+      ...filters,
+      q: debouncedQuery || undefined,
     }),
-    [debouncedQuery, filters.verifiedOnly, limit, order, page, sort]
+    [debouncedQuery, filters]
   );
 
-  const query = useQuery<Paginated<ChannelItem>>({
-    queryKey: marketplaceKeys.channels(queryFilters),
-    queryFn: () => channelsApi.listChannels(queryFilters),
+  useEffect(() => {
+    setPage(1);
+    setChannels([]);
+    setTotal(0);
+  }, [filtersKey, limit, order, sort]);
+
+  const query = useQuery<MarketplaceListChannelsResponse>({
+    queryKey: marketplaceKeys.channels(filtersKey, page, limit, sort, order),
+    queryFn: () => marketplaceListChannels(queryFilters),
   });
 
   useEffect(() => {
-    if (query.error) {
-      toast.error(getErrorMessage(query.error, "Unable to load channels"));
+    if (!query.data) {
+      return;
     }
+    setTotal(query.data.total);
+    setChannels((prev) => {
+      if (page === 1) {
+        return query.data.items;
+      }
+      const next = new Map(prev.map((item) => [item.id, item]));
+      query.data.items.forEach((item) => next.set(item.id, item));
+      return Array.from(next.values());
+    });
+  }, [page, query.data]);
+
+  useEffect(() => {
+    if (!query.error) {
+      return;
+    }
+    const message =
+      query.error instanceof Error ? query.error.message : "Unable to load channels";
+    toast.error(message);
   }, [query.error]);
 
-  const filteredChannels = useMemo(
-    () => query.data?.items ?? [],
-    [query.data?.items]
-  );
+  const hasMore = channels.length < total;
+  const isLoadingInitial = query.isLoading && page === 1 && channels.length === 0;
+  const isLoadingMore = query.isFetching && page > 1;
+
+  const filteredChannels = useMemo(() => channels, [channels]);
+
+  const handleLoadMore = () => {
+    if (query.isFetching || !hasMore) {
+      return;
+    }
+    setPage((prev) => prev + 1);
+  };
 
   const handleRemoveFilter = (filterType: string, value?: string) => {
     setFilters((prev) => {
@@ -109,11 +173,14 @@ export const useMarketplaceViewModel = () => {
       searchQuery,
       isFilterOpen,
       filters,
-      isLoading: query.isLoading,
+      isLoading: isLoadingInitial,
+      isLoadingMore,
       error: query.error,
+      total,
     },
     computed: {
       channels: filteredChannels,
+      hasMore,
     },
     actions: {
       setSearchQuery,
@@ -123,7 +190,7 @@ export const useMarketplaceViewModel = () => {
       resetFilters,
       removeFilter: handleRemoveFilter,
       refetch: () => query.refetch(),
-      setPage,
+      loadMore: handleLoadMore,
     },
   };
 };
