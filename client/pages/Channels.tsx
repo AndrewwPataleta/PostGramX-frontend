@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import ChannelCard from "@/features/channels/components/ChannelCard";
+import ChannelListingsPreview from "@/features/channels/components/ChannelListingsPreview";
 import { useChannelsList } from "@/features/channels/hooks/useChannelsList";
 import ErrorState from "@/components/feedback/ErrorState";
 import BottomSheet from "@/components/BottomSheet";
@@ -48,6 +49,9 @@ export default function Channels() {
   const [unlinkTarget, setUnlinkTarget] = useState<ChannelListItem | null>(null);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [removedChannelIds, setRemovedChannelIds] = useState<Set<string>>(() => new Set());
+  const [expandedChannelIds, setExpandedChannelIds] = useState<Set<string>>(
+    () => new Set()
+  );
   const navigate = useNavigate();
   const filters = useMemo<ChannelsListParams>(
     () => ({
@@ -106,6 +110,18 @@ export default function Channels() {
 
     navigate(`/channel-manage/${channel.id}/overview`, { state: { channel } });
   };
+
+  const handleToggleExpand = useCallback((channelId: string) => {
+    setExpandedChannelIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(channelId)) {
+        next.delete(channelId);
+      } else {
+        next.add(channelId);
+      }
+      return next;
+    });
+  }, []);
 
   const handleUnlinkConfirm = async () => {
     if (!unlinkTarget) {
@@ -185,21 +201,43 @@ export default function Channels() {
           </div>
           {tabbedChannels.length > 0 ? (
             <div className="space-y-3">
-              {tabbedChannels.map((channel) => (
-                <ChannelCard
-                  key={channel.id}
-                  channel={channel}
-                  onClick={() => handleChannelClick(channel)}
-                  onVerify={() => navigate(`/channels/pending/${channel.id}`, { state: { channel } })}
-                  onUnlink={
-                    activeTab === "pending"
-                      ? () => {
-                        setUnlinkTarget(channel);
-                      }
-                      : undefined
-                  }
-                />
-              ))}
+              {tabbedChannels.map((channel) => {
+                const isExpanded = expandedChannelIds.has(channel.id);
+                const canExpand = channel.status === "VERIFIED";
+                return (
+                  <ChannelCard
+                    key={channel.id}
+                    channel={channel}
+                    onClick={() => handleChannelClick(channel)}
+                    onVerify={() =>
+                      navigate(`/channels/pending/${channel.id}`, { state: { channel } })
+                    }
+                    onUnlink={
+                      activeTab === "pending"
+                        ? () => {
+                          setUnlinkTarget(channel);
+                        }
+                        : undefined
+                    }
+                    isExpanded={isExpanded}
+                    onToggleExpand={
+                      canExpand ? () => handleToggleExpand(channel.id) : undefined
+                    }
+                    expandDisabled={!canExpand}
+                    expandTooltip={
+                      canExpand ? undefined : "Verify channel to add placements"
+                    }
+                    expandedContent={
+                      canExpand ? (
+                        <ChannelListingsPreview
+                          channelId={channel.id}
+                          isExpanded={isExpanded}
+                        />
+                      ) : null
+                    }
+                  />
+                );
+              })}
             </div>
           ) : (
             <p
