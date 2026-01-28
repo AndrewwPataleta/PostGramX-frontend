@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Info } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
+import { useOutletContext, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { ListingPreviewDetails } from "@/components/listings/ListingPreviewDetails";
+import { listingsByChannel } from "@/api/features/listingsApi";
 import { managedChannelData } from "@/features/channels/managedChannels";
 import {
   AlertDialog,
@@ -13,14 +16,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  disableListing,
-  enableListing,
-  getListingById,
-  isMockListingsEnabled,
-  updateListing,
-} from "@/features/listings/mockStore";
 import { listingTagCategories } from "@/features/listings/tagOptions";
+import { getErrorMessage } from "@/lib/api/errors";
+import { nanoToTonString } from "@/lib/ton";
+import type { ListingListItem } from "@/types/listings";
+import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
 const pinDurationOptions = [
   { label: "Not pinned", value: "none" },
@@ -50,55 +50,90 @@ const resolveHours = (choice: string, customValue: string, fallback: number) => 
 
 export default function EditListing() {
   const { id, listingId } = useParams<{ id: string; listingId: string }>();
-  const channel = id ? managedChannelData[id] : null;
-  const listing = listingId ? getListingById(listingId) : undefined;
-  const navigate = useNavigate();
+  const outletContext = useOutletContext<ChannelManageContext | null>();
+  const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
 
-  const initialPinDuration = listing?.pinDurationHours ?? null;
-  const initialPinChoice = initialPinDuration
-    ? [6, 12, 24, 48].includes(initialPinDuration)
-      ? String(initialPinDuration)
-      : "custom"
-    : "none";
-  const initialPinCustom =
-    initialPinDuration && ![6, 12, 24, 48].includes(initialPinDuration)
-      ? String(initialPinDuration)
-      : "";
-  const initialVisibilityDuration = listing?.visibilityDurationHours ?? 24;
-  const initialVisibilityChoice = [24, 48, 72, 168].includes(initialVisibilityDuration)
-    ? String(initialVisibilityDuration)
-    : "custom";
-  const initialVisibilityCustom = [24, 48, 72, 168].includes(initialVisibilityDuration)
-    ? ""
-    : String(initialVisibilityDuration);
+  const listingsQuery = useQuery({
+    queryKey: [
+      "listingsByChannel",
+      id,
+      { page: 1, limit: 50, onlyActive: false, sort: "recent" },
+    ],
+    queryFn: () =>
+      listingsByChannel({
+        channelId: id ?? "",
+        page: 1,
+        limit: 50,
+        onlyActive: false,
+        sort: "recent",
+      }),
+    enabled: Boolean(id),
+  });
 
-  const [priceTon, setPriceTon] = useState(listing ? String(listing.priceTon) : "25");
-  const [pinDurationChoice, setPinDurationChoice] = useState(initialPinChoice);
-  const [pinCustomHours, setPinCustomHours] = useState(initialPinCustom);
-  const [visibilityDurationChoice, setVisibilityDurationChoice] = useState(
-    initialVisibilityChoice,
+  useEffect(() => {
+    if (listingsQuery.error) {
+      toast.error(getErrorMessage(listingsQuery.error, "Unable to load listing"));
+    }
+  }, [listingsQuery.error]);
+
+  const listing = useMemo<ListingListItem | undefined>(
+    () => listingsQuery.data?.items.find((item) => item.id === listingId),
+    [listingsQuery.data?.items, listingId],
   );
-  const [visibilityCustomHours, setVisibilityCustomHours] = useState(
-    initialVisibilityCustom,
-  );
-  const [allowEdits, setAllowEdits] = useState(listing?.allowEdits ?? true);
-  const [allowLinkTracking, setAllowLinkTracking] = useState(
-    listing?.allowLinkTracking ?? true,
-  );
-  const [contentRulesText, setContentRulesText] = useState(
-    listing?.contentRulesText ?? "",
-  );
+
+  const [priceTon, setPriceTon] = useState("25");
+  const [pinDurationChoice, setPinDurationChoice] = useState("none");
+  const [pinCustomHours, setPinCustomHours] = useState("");
+  const [visibilityDurationChoice, setVisibilityDurationChoice] = useState("24");
+  const [visibilityCustomHours, setVisibilityCustomHours] = useState("");
+  const [allowEdits, setAllowEdits] = useState(true);
+  const [allowLinkTracking, setAllowLinkTracking] = useState(true);
+  const [contentRulesText, setContentRulesText] = useState("");
   const [tagQuery, setTagQuery] = useState("");
   const [customTag, setCustomTag] = useState("");
-  const initialTags = listing?.tags?.length ? listing.tags : ["Must be pre-approved"];
-  const [selectedTags, setSelectedTags] = useState<string[]>(
-    initialTags.includes("Must be pre-approved")
-      ? initialTags
-      : [...initialTags, "Must be pre-approved"],
-  );
+  const [selectedTags, setSelectedTags] = useState<string[]>(["Must be pre-approved"]);
   const [showVisibilityWarning, setShowVisibilityWarning] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
+  useEffect(() => {
+    if (!listing || hasInitialized) {
+      return;
+    }
+    const initialPinDuration = listing.pinDurationHours ?? null;
+    const initialPinChoice = initialPinDuration
+      ? [6, 12, 24, 48].includes(initialPinDuration)
+        ? String(initialPinDuration)
+        : "custom"
+      : "none";
+    const initialPinCustom =
+      initialPinDuration && ![6, 12, 24, 48].includes(initialPinDuration)
+        ? String(initialPinDuration)
+        : "";
+    const initialVisibilityDuration = listing.visibilityDurationHours ?? 24;
+    const initialVisibilityChoice = [24, 48, 72, 168].includes(initialVisibilityDuration)
+      ? String(initialVisibilityDuration)
+      : "custom";
+    const initialVisibilityCustom = [24, 48, 72, 168].includes(initialVisibilityDuration)
+      ? ""
+      : String(initialVisibilityDuration);
+    const listingPrice = Number.parseFloat(nanoToTonString(listing.priceNano));
+
+    setPriceTon(Number.isFinite(listingPrice) ? String(listingPrice) : "25");
+    setPinDurationChoice(initialPinChoice);
+    setPinCustomHours(initialPinCustom);
+    setVisibilityDurationChoice(initialVisibilityChoice);
+    setVisibilityCustomHours(initialVisibilityCustom);
+    setAllowEdits(listing.allowEdits);
+    setAllowLinkTracking(listing.allowLinkTracking);
+    setContentRulesText(listing.contentRulesText ?? "");
+    const initialTags = listing.tags?.length ? listing.tags : ["Must be pre-approved"];
+    setSelectedTags(
+      initialTags.includes("Must be pre-approved")
+        ? initialTags
+        : [...initialTags, "Must be pre-approved"],
+    );
+    setHasInitialized(true);
+  }, [hasInitialized, listing]);
 
   const pinDurationHours =
     pinDurationChoice === "none" ? null : resolveHours(pinDurationChoice, pinCustomHours, 24);
@@ -108,7 +143,15 @@ export default function EditListing() {
     24,
   );
 
-  if (!channel || !listing) {
+  if (!channel || listingsQuery.isLoading) {
+    return (
+      <div className="w-full max-w-2xl mx-auto px-4 py-6">
+        <p className="text-muted-foreground">Loading listing...</p>
+      </div>
+    );
+  }
+
+  if (!listing) {
     return (
       <div className="w-full max-w-2xl mx-auto px-4 py-6">
         <p className="text-muted-foreground">Listing not found</p>
@@ -117,24 +160,7 @@ export default function EditListing() {
   }
 
   const applySave = () => {
-    const ensuredTags = selectedTags.includes("Must be pre-approved")
-      ? selectedTags
-      : [...selectedTags, "Must be pre-approved"];
-
-    updateListing(listing.id, {
-      priceTon: Number(priceTon || 0),
-      availabilityFrom: listing.availabilityFrom,
-      availabilityTo: listing.availabilityTo,
-      pinDurationHours,
-      visibilityDurationHours,
-      allowEdits,
-      allowLinkTracking,
-      contentRulesText,
-      tags: ensuredTags,
-      allowPinnedPlacement: pinDurationHours !== null,
-    });
-
-    navigate(`/channel-manage/${channel.id}/overview`);
+    toast.error("Listing updates are not available yet.");
   };
 
   const handleSave = () => {
@@ -151,25 +177,9 @@ export default function EditListing() {
     applySave();
   };
 
-  const handleDisable = () => {
-    disableListing(listing.id);
-    navigate(`/channel-manage/${channel.id}/overview`);
-  };
-
-  const handleEnable = () => {
-    enableListing(listing.id);
-    navigate(`/channel-manage/${channel.id}/overview`);
-  };
-
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="px-4 py-6 space-y-6">
-        {mockModeEnabled ? (
-          <div className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary w-fit">
-            Mock mode enabled
-          </div>
-        ) : null}
-
         <section className="space-y-3">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Ad format</h2>
@@ -489,12 +499,17 @@ export default function EditListing() {
             <h2 className="text-sm font-semibold text-foreground">Listing preview</h2>
             <p className="text-xs text-muted-foreground">Review how your offer appears.</p>
           </div>
-          <ListingSummaryCard
-            channel={channel}
+          <ListingPreviewDetails
             priceTon={Number(priceTon || 0)}
+            format="POST"
             pinDurationHours={pinDurationHours}
             visibilityDurationHours={visibilityDurationHours}
+            allowEdits={allowEdits}
+            allowLinkTracking={allowLinkTracking}
+            allowPinnedPlacement={pinDurationHours !== null}
             tags={selectedTags}
+            requiresApproval
+            additionalRequirementsText={contentRulesText}
           />
         </section>
 
@@ -520,22 +535,6 @@ export default function EditListing() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <button
-            type="button"
-            onClick={handleDisable}
-            className="w-full rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-3 text-sm font-semibold text-destructive"
-          >
-            Disable listing
-          </button>
-          {!listing.isActive ? (
-            <button
-              type="button"
-              onClick={handleEnable}
-              className="w-full rounded-xl border border-primary/40 bg-primary/10 px-3 py-3 text-sm font-semibold text-primary"
-            >
-              Enable listing
-            </button>
-          ) : null}
           <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-card px-3 py-3 text-xs text-muted-foreground">
             <Info size={16} className="text-primary" />
             <span>

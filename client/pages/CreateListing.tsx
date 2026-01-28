@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Info } from "lucide-react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/api/errors";
-import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
+import { ListingPreviewDetails } from "@/components/listings/ListingPreviewDetails";
 import { managedChannelData } from "@/features/channels/managedChannels";
-import { createListing as createMockListing, isMockListingsEnabled } from "@/features/listings/mockStore";
 import { listingTagCategories } from "@/features/listings/tagOptions";
 import { createListing } from "@/api/features/listingsApi";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
@@ -41,6 +41,7 @@ export default function CreateListing() {
   const outletContext = useOutletContext<ChannelManageContext | null>();
   const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [priceTon, setPriceTon] = useState("25");
   const [pinDurationChoice, setPinDurationChoice] = useState("none");
   const [pinCustomHours, setPinCustomHours] = useState("");
@@ -53,8 +54,11 @@ export default function CreateListing() {
   const [customTag, setCustomTag] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>(["Must be pre-approved"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availabilityFrom] = useState(() => new Date());
+  const [availabilityTo] = useState(
+    () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  );
 
-  const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
   const pinDurationHours =
     pinDurationChoice === "none" ? null : resolveHours(pinDurationChoice, pinCustomHours, 24);
   const visibilityDurationHours = resolveHours(
@@ -76,12 +80,6 @@ export default function CreateListing() {
       return;
     }
 
-    const today = new Date();
-    const defaultAvailabilityDays = 7;
-    const availabilityFrom = today;
-    const availabilityTo = new Date(
-      today.getTime() + defaultAvailabilityDays * 24 * 60 * 60 * 1000,
-    );
     const ensuredTags = selectedTags.includes("Must be pre-approved")
       ? selectedTags
       : [...selectedTags, "Must be pre-approved"];
@@ -105,12 +103,11 @@ export default function CreateListing() {
 
     try {
       setIsSubmitting(true);
-      if (mockModeEnabled) {
-        createMockListing(payload);
-      } else {
-        await createListing(payload);
-      }
-      navigate(`/channel-manage/${channel.id}/listings/success`);
+      await createListing(payload);
+      await queryClient.invalidateQueries({
+        queryKey: ["listingsByChannel", channel.id],
+      });
+      navigate(`/channel-manage/${channel.id}/listings`);
     } catch (error) {
       toast.error(getErrorMessage(error, "Unable to publish listing"));
     } finally {
@@ -121,12 +118,6 @@ export default function CreateListing() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="px-4 py-6 space-y-6">
-        {mockModeEnabled ? (
-          <div className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary w-fit">
-            Mock mode enabled
-          </div>
-        ) : null}
-
         <section className="space-y-3">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Ad format</h2>
@@ -486,12 +477,19 @@ export default function CreateListing() {
             <h2 className="text-sm font-semibold text-foreground">Listing preview</h2>
             <p className="text-xs text-muted-foreground">Live preview of your Marketplace card.</p>
           </div>
-          <ListingSummaryCard
-            channel={channel}
+          <ListingPreviewDetails
             priceTon={Number(priceTon || 0)}
+            format="POST"
             pinDurationHours={pinDurationHours}
             visibilityDurationHours={visibilityDurationHours}
+            allowEdits={allowEdits}
+            allowLinkTracking={allowLinkTracking}
+            allowPinnedPlacement={pinDurationHours !== null}
             tags={selectedTags}
+            requiresApproval
+            additionalRequirementsText={contentRulesText}
+            availabilityFrom={availabilityFrom.toISOString()}
+            availabilityTo={availabilityTo.toISOString()}
           />
         </section>
 

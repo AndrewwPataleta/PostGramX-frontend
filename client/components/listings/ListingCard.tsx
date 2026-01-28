@@ -1,36 +1,15 @@
 import type { ReactNode } from "react";
+import { formatTonString, nanoToTonString } from "@/lib/ton";
 import type { Listing } from "@/features/listings/types";
+import type { ListingListItem } from "@/types/listings";
 
 type ListingCardVariant = "compact" | "full";
 
 interface ListingCardProps {
-  listing: Listing;
+  listing: ListingListItem | Listing;
   variant?: ListingCardVariant;
   actionSlot?: ReactNode;
 }
-
-const formatDateLabel = (value: string) =>
-  new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-const formatRangeLabel = (listing: Listing) => {
-  const fromLabel = formatDateLabel(listing.availabilityFrom);
-  const toLabel = formatDateLabel(listing.availabilityTo);
-  return `${fromLabel} – ${toLabel}`;
-};
-
-const formatAvailabilityBadge = (listing: Listing) => {
-  const from = new Date(listing.availabilityFrom);
-  const to = new Date(listing.availabilityTo);
-  const diffMs = to.getTime() - from.getTime();
-  const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-  if (diffDays <= 14) {
-    return `Next ${diffDays} day${diffDays === 1 ? "" : "s"}`;
-  }
-  return formatRangeLabel(listing);
-};
-
-const formatListingFormat = (format: Listing["format"]) =>
-  format === "POST" ? "Post" : format.toLowerCase();
 
 const formatDuration = (hours: number) => {
   if (hours >= 168 && hours % 24 === 0) {
@@ -41,14 +20,30 @@ const formatDuration = (hours: number) => {
 
 export function ListingCard({ listing, variant = "full", actionSlot }: ListingCardProps) {
   const tags = listing.tags ?? [];
-  const maxTags = variant === "compact" ? 3 : tags.length;
-  const visibleTags = tags.slice(0, maxTags);
-  const remainingTags = Math.max(0, tags.length - visibleTags.length);
+  const normalizedTags = [
+    ...new Set([
+      ...tags.filter((tag) => tag === "Must be pre-approved"),
+      ...tags.filter((tag) => tag !== "Must be pre-approved"),
+    ]),
+  ];
+  const maxTags = variant === "compact" ? 3 : normalizedTags.length;
+  const visibleTags = normalizedTags.slice(0, maxTags);
+  const remainingTags = Math.max(0, normalizedTags.length - visibleTags.length);
   const visibilityDuration = listing.visibilityDurationHours ?? 24;
   const pinnedDurationLabel = listing.pinDurationHours
     ? formatDuration(listing.pinDurationHours)
     : null;
   const visibleDurationLabel = formatDuration(visibilityDuration);
+  const priceTonLabel = (() => {
+    if ("priceNano" in listing) {
+      try {
+        return formatTonString(nanoToTonString(listing.priceNano));
+      } catch {
+        return listing.priceNano;
+      }
+    }
+    return String(listing.priceTon);
+  })();
 
   return (
     <div
@@ -59,14 +54,20 @@ export function ListingCard({ listing, variant = "full", actionSlot }: ListingCa
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-foreground">
-            {formatListingFormat(listing.format)} • {listing.priceTon} TON
+            Post • {priceTonLabel} TON
           </p>
           <p className="text-xs text-muted-foreground">
             {variant === "compact" ? "Per post" : "Per post offer"}
           </p>
         </div>
-        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
-          {variant === "compact" ? formatAvailabilityBadge(listing) : formatRangeLabel(listing)}
+        <span
+          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+            listing.isActive
+              ? "bg-emerald-500/15 text-emerald-400"
+              : "bg-rose-500/15 text-rose-400"
+          }`}
+        >
+          {listing.isActive ? "Active" : "Inactive"}
         </span>
       </div>
 
@@ -75,7 +76,7 @@ export function ListingCard({ listing, variant = "full", actionSlot }: ListingCa
           {listing.allowEdits ? "Edits allowed" : "No edits"}
         </span>
         <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-foreground">
-          {listing.requiresApproval ? "Approval required" : "No approval"}
+          {listing.allowLinkTracking ? "Tracking allowed" : "No tracking"}
         </span>
       </div>
 
@@ -84,19 +85,31 @@ export function ListingCard({ listing, variant = "full", actionSlot }: ListingCa
           <span className="rounded-full bg-secondary/60 px-2.5 py-1">
             Pinned: {pinnedDurationLabel}
           </span>
-        ) : null}
+        ) : (
+          <span className="rounded-full bg-secondary/60 px-2.5 py-1">Pinned: none</span>
+        )}
         <span className="rounded-full bg-secondary/60 px-2.5 py-1">
           Visible: {visibleDurationLabel}
         </span>
       </div>
 
-      {tags.length > 0 ? (
+      {normalizedTags.length > 0 ? (
         <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
-          {visibleTags.map((tag) => (
-            <span key={tag} className="rounded-full border border-border/60 bg-card px-2.5 py-1">
-              {tag}
-            </span>
-          ))}
+          {visibleTags.map((tag) => {
+            const isLocked = tag === "Must be pre-approved";
+            return (
+              <span
+                key={tag}
+                className={`rounded-full border px-2.5 py-1 ${
+                  isLocked
+                    ? "border-primary/40 bg-primary/10 text-primary"
+                    : "border-border/60 bg-card text-foreground"
+                }`}
+              >
+                {tag}
+              </span>
+            );
+          })}
           {remainingTags > 0 ? (
             <span className="rounded-full border border-border/60 bg-card px-2.5 py-1 text-muted-foreground">
               +{remainingTags}

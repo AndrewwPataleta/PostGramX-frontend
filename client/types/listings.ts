@@ -13,3 +13,13 @@ export type ListingListItem = {
   contentRulesText?: string;
   isActive: boolean;
 };
+
+export type ListingsByChannelParams = {
+  channelId: string;
+  page: number;
+  limit: number;
+  onlyActive?: boolean;
+  sort?: "recent" | "price_asc" | "price_desc";
+};
+
+export type ListingsByChannelResponse = import("./channels").Paginated<ListingListItem>;

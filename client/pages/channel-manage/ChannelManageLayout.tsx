@@ -8,23 +8,10 @@ import {
   useVerifyChannel,
 } from "@/features/channels/hooks/useVerifyChannel";
 import { managedChannelData, type ManagedChannel } from "@/features/channels/managedChannels";
-import type { Listing } from "@/features/listings/types";
-import {
-  getListingsByChannel,
-  isMockListingsEnabled,
-  subscribeToMockListings,
-} from "@/features/listings/mockStore";
 import type { ChannelListItem } from "@/types/channels";
 
 export type ChannelManageContext = {
   channel: ManagedChannel;
-  listings: Listing[];
-  activeListings: Listing[];
-  inactiveListings: Listing[];
-  previewListings: Listing[];
-  listingFilter: "active" | "disabled";
-  setListingFilter: (filter: "active" | "disabled") => void;
-  mockModeEnabled: boolean;
 };
 
 const mapChannelFromListItem = (channel: ChannelListItem): ManagedChannel => ({
@@ -78,31 +65,6 @@ const ChannelManageLayout = () => {
   }, [fallbackChannel, id]);
 
   const isPendingVerification = channel?.status === "PENDING_VERIFY";
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [listingFilter, setListingFilter] = useState<"active" | "disabled">("active");
-
-  useEffect(() => {
-    if (!id) {
-      return;
-    }
-    const loadListings = () => {
-      setListings(getListingsByChannel(id));
-    };
-    loadListings();
-    return subscribeToMockListings(loadListings);
-  }, [id]);
-
-  const activeListings = useMemo(
-    () => listings.filter((listing) => listing.isActive),
-    [listings],
-  );
-  const inactiveListings = useMemo(
-    () => listings.filter((listing) => !listing.isActive),
-    [listings],
-  );
-  const previewListings = useMemo(() => activeListings.slice(0, 3), [activeListings]);
-  const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
-
   if (!channel) {
     return (
       <div className="w-full max-w-2xl mx-auto px-4 py-6">
@@ -149,13 +111,6 @@ const ChannelManageLayout = () => {
 
   const outletContext = {
     channel,
-    listings,
-    activeListings,
-    inactiveListings,
-    previewListings,
-    listingFilter,
-    setListingFilter,
-    mockModeEnabled,
   } satisfies ChannelManageContext;
 
   return (

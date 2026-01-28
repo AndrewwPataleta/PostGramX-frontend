@@ -1,91 +1,135 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { Edit, Plus, Power } from "lucide-react";
+import { Edit } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { disableListing, enableListing } from "@/features/listings/mockStore";
+import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import { listingsByChannel } from "@/api/features/listingsApi";
+import { getErrorMessage } from "@/lib/api/errors";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
 const ListingsList = () => {
-  const {
-    channel,
-    activeListings,
-    inactiveListings,
-    listingFilter,
-    setListingFilter,
-    mockModeEnabled,
-  } = useOutletContext<ChannelManageContext>();
+  const { channel } = useOutletContext<ChannelManageContext>();
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [onlyActive, setOnlyActive] = useState(true);
+  const [sort, setSort] = useState<"recent" | "price_asc" | "price_desc">("recent");
 
-  const hasListings = activeListings.length > 0 || inactiveListings.length > 0;
+  const listingsQuery = useQuery({
+    queryKey: ["listingsByChannel", channel.id, { page, limit, onlyActive, sort }],
+    queryFn: () =>
+      listingsByChannel({
+        channelId: channel.id,
+        page,
+        limit,
+        onlyActive,
+        sort,
+      }),
+  });
+
+  useEffect(() => {
+    if (listingsQuery.error) {
+      toast.error(getErrorMessage(listingsQuery.error, "Unable to load listings"));
+    }
+  }, [listingsQuery.error]);
+
+  const listings = listingsQuery.data?.items ?? [];
+  const total = listingsQuery.data?.total ?? 0;
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(total / limit)), [total, limit]);
+  const hasListings = listings.length > 0;
 
   return (
     <>
-      {mockModeEnabled ? (
-        <div className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary w-fit">
-          Mock mode enabled
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2 rounded-full bg-secondary/40 p-1">
+          <button
+            type="button"
+            onClick={() => {
+              setOnlyActive(true);
+              setPage(1);
+            }}
+            className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+              onlyActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Active only
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOnlyActive(false);
+              setPage(1);
+            }}
+            className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+              !onlyActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            All listings
+          </button>
         </div>
-      ) : null}
+        <select
+          value={sort}
+          onChange={(event) => {
+            setSort(event.target.value as "recent" | "price_asc" | "price_desc");
+            setPage(1);
+          }}
+          className="rounded-full border border-border/60 bg-card px-3 py-2 text-xs text-foreground"
+        >
+          <option value="recent">Most recent</option>
+          <option value="price_asc">Price: low to high</option>
+          <option value="price_desc">Price: high to low</option>
+        </select>
+      </div>
 
-      {hasListings ? (
+      {listingsQuery.isLoading ? (
+        <LoadingSkeleton items={3} />
+      ) : hasListings ? (
         <div className="space-y-4">
-          <div className="flex gap-2 rounded-full bg-secondary/40 p-1">
-            {([
-              { id: "active", label: "Active" },
-              { id: "disabled", label: "Disabled" },
-            ] as const).map((filter) => (
-              <button
-                key={filter.id}
-                type="button"
-                onClick={() => setListingFilter(filter.id)}
-                className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
-                  listingFilter === filter.id
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {filter.label}
-              </button>
+          <div className="space-y-3">
+            {listings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                variant="full"
+                actionSlot={
+                  <Link
+                    to={`/channel-manage/${channel.id}/listings/${listing.id}/edit`}
+                    className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg border border-border transition-colors text-sm"
+                  >
+                    <Edit size={16} />
+                    Edit
+                  </Link>
+                }
+              />
             ))}
           </div>
-
-          <div className="space-y-3">
-            {(listingFilter === "active" ? activeListings : inactiveListings).map(
-              (listing) => (
-                <ListingCard
-                  key={listing.id}
-                  listing={listing}
-                  variant="full"
-                  actionSlot={
-                    <>
-                      <Link
-                        to={`/channel-manage/${channel.id}/listings/${listing.id}/edit`}
-                        className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg border border-border transition-colors text-sm"
-                      >
-                        <Edit size={16} />
-                        Edit
-                      </Link>
-                      {listing.isActive ? (
-                        <button
-                          type="button"
-                          onClick={() => disableListing(listing.id)}
-                          className="flex-1 flex items-center justify-center gap-2 bg-destructive/20 hover:bg-destructive/30 text-destructive font-medium py-2 rounded-lg transition-colors text-sm"
-                        >
-                          <Power size={16} />
-                          Disable
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => enableListing(listing.id)}
-                          className="flex-1 flex items-center justify-center gap-2 bg-primary/15 hover:bg-primary/20 text-primary font-medium py-2 rounded-lg transition-colors text-sm"
-                        >
-                          <Plus size={16} />
-                          Enable
-                        </button>
-                      )}
-                    </>
-                  }
-                />
-              ),
-            )}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              Page {page} of {totalPages}
+            </span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={page === 1}
+                className="rounded-full border border-border/60 px-3 py-1 text-xs disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={page >= totalPages}
+                className="rounded-full border border-border/60 px-3 py-1 text-xs disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -97,6 +141,12 @@ const ListingsList = () => {
           <p className="text-muted-foreground text-sm mb-6">
             Create your first listing to start receiving offers
           </p>
+          <Link
+            to={`/channel-manage/${channel.id}/listings/create`}
+            className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+          >
+            Create listing
+          </Link>
         </div>
       )}
 
