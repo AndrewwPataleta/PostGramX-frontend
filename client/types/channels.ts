@@ -30,7 +30,6 @@ export type ChannelListItem = {
   status: ChannelStatus;
   telegramChatId?: number | null;
   memberCount?: number | null;
-  avgViews?: number | null;
   verifiedAt?: string | null;
   lastCheckedAt?: string | null;
   membership: {
@@ -83,9 +82,9 @@ export type PreviewChannelResponse = {
   isPublic: boolean;
   nextStep: string;
   memberCount?: number | null;
-  avgViews?: number | null;
   photoUrl?: string | null;
   avatarUrl?: string | null;
+  about?: string | null;
   // TODO: Align preview response fields with backend DTO when confirmed.
 };
 
@@ -130,9 +129,11 @@ export type ListChannelsParams = {
 export type ChannelItem = {
   id: string;
   name: string;
-  username: string;
+  username?: string | null;
   avatarUrl: string | null;
   verified: boolean;
   subscribers?: number;
+  about?: string | null;
+  description?: string | null;
   listings?: import("./listings").ListingListItem[];
 };

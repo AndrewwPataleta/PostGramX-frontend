@@ -37,14 +37,8 @@ const ChannelCardSkeleton = () => (
       </div>
       <Skeleton className="h-5 w-24 rounded-full" />
     </div>
-    <div className="mt-4 grid grid-cols-3 gap-2">
+    <div className="mt-4">
       <Skeleton className="h-16 rounded-xl" />
-      <Skeleton className="h-16 rounded-xl" />
-      <Skeleton className="h-16 rounded-xl" />
-    </div>
-    <div className="mt-4 flex items-center justify-between">
-      <Skeleton className="h-3 w-24" />
-      <Skeleton className="h-3 w-20" />
     </div>
   </div>
 );

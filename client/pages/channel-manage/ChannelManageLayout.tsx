@@ -35,13 +35,8 @@ const mapChannelFromListItem = (channel: ChannelListItem): ManagedChannel => ({
   status: channel.status,
   verified: channel.status === "VERIFIED",
   subscribers: channel.memberCount ?? 0,
-  averageViews: channel.avgViews ?? 0,
-  engagement: 0,
-  postsPerWeek: 0,
-  earnings: 0,
   activeDeals: 0,
-  lastVerified: channel.verifiedAt ? "recently" : "–",
-  viewsTrend: [],
+  description: undefined,
 });
 
 const ChannelManageLayout = () => {
@@ -173,10 +168,15 @@ const ChannelManageLayout = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-xl font-bold text-foreground">{channel.name}</h2>
+              {channel.verified ? (
+                <span className="inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                  Verified
+                </span>
+              ) : null}
             </div>
             <p className="text-sm text-muted-foreground mb-2">{channel.username}</p>
             <p className="text-xs text-muted-foreground">
-              Last verified {channel.lastVerified}
+              {channel.subscribers.toLocaleString()} subscribers
             </p>
           </div>
         </div>

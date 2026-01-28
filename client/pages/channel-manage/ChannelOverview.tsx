@@ -1,6 +1,4 @@
 import { Link, useOutletContext } from "react-router-dom";
-import { BarChart3 } from "lucide-react";
-import { Sparkline } from "@/components/Sparkline";
 import { ListingCard } from "@/components/listings/ListingCard";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
@@ -16,38 +14,11 @@ const ChannelOverview = () => {
 
   return (
     <>
-      <div className="glass p-4 space-y-3">
-        <h3 className="font-semibold text-foreground flex items-center gap-2">
-          <BarChart3 size={18} className="text-primary" />
-          Channel Statistics
-        </h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-secondary/30 rounded-lg px-3 py-2">
-            <p className="text-xs text-muted-foreground">Subscribers</p>
-            <p className="text-lg font-semibold text-foreground">
-              {(channel.subscribers / 1000).toFixed(0)}K
-            </p>
-          </div>
-          <div className="bg-secondary/30 rounded-lg px-3 py-2">
-            <p className="text-xs text-muted-foreground">Avg Views</p>
-            <p className="text-lg font-semibold text-foreground">
-              {(channel.averageViews / 1000).toFixed(0)}K
-            </p>
-          </div>
-          <div className="bg-secondary/30 rounded-lg px-3 py-2">
-            <p className="text-xs text-muted-foreground">Engagement</p>
-            <p className="text-lg font-semibold text-accent">
-              {channel.engagement}%
-            </p>
-          </div>
-          <div className="bg-secondary/30 rounded-lg px-3 py-2">
-            <p className="text-xs text-muted-foreground">Posts/Week</p>
-            <p className="text-lg font-semibold text-foreground">
-              {channel.postsPerWeek}
-            </p>
-          </div>
+      {channel.description ? (
+        <div className="glass p-4 text-sm text-muted-foreground">
+          {channel.description}
         </div>
-      </div>
+      ) : null}
 
       <div className="glass p-4 space-y-4">
         <div className="flex items-start justify-between gap-3">

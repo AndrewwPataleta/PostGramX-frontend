@@ -112,19 +112,11 @@ const ChannelPendingVerification = () => {
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-muted/30 p-3">
-            <p className="text-xs text-muted-foreground">Members</p>
-            <p className="mt-1 text-base font-semibold text-foreground">
-              {formatMetric(channel?.memberCount)}
-            </p>
-          </div>
-          <div className="rounded-xl bg-muted/30 p-3">
-            <p className="text-xs text-muted-foreground">Avg. Views</p>
-            <p className="mt-1 text-base font-semibold text-foreground">
-              {formatMetric(channel?.avgViews)}
-            </p>
-          </div>
+        <div className="mt-4 rounded-xl bg-muted/30 p-3">
+          <p className="text-xs text-muted-foreground">Members</p>
+          <p className="mt-1 text-base font-semibold text-foreground">
+            {formatMetric(channel?.memberCount)}
+          </p>
         </div>
       </div>
 

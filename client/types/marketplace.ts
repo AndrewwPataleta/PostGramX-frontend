@@ -1,15 +1,13 @@
 export interface ChannelCard {
   id: string;
   name: string;
-  username: string;
-  avatar: string;
+  username?: string | null;
+  avatarUrl?: string | null;
   verified: boolean;
-  subscribers: number;
-  averageViews: number;
-  engagement: number;
-  pricePerPost: number;
-  language: string;
-  category: string;
-  viewsTrend: number[];
-  lastUpdated: string;
+  subscribers?: number;
+  description?: string | null;
+  priceFromTon?: number;
+  placementsCount?: number;
+  tags?: string[];
+  rules?: string[];
 }

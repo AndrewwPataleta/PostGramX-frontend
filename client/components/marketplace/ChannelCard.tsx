@@ -34,10 +34,9 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
     return price < currentMin ? price : currentMin;
   }, null);
   const minPriceTon = minPriceNano ? formatTonString(nanoToTonString(minPriceNano)) : null;
-  const hasPinnedOptions = activeListings.some((listing) => listing.pinDurationHours !== null);
   const formattedSubscribers =
     typeof channel.subscribers === "number"
-      ? `${Math.round(channel.subscribers / 1000)}K subs`
+      ? `${channel.subscribers.toLocaleString()} subscribers`
       : null;
   const tagSet = new Set<string>();
   let hasPreApprovalTag = false;
@@ -93,6 +92,8 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       null,
     );
   const rulesPreview = rulesListing?.listing.contentRulesText?.trim() ?? null;
+  const description = channel.about ?? channel.description;
+  const username = channel.username ? `@${channel.username}` : null;
 
   return (
     <Link
@@ -112,7 +113,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             {fallbackAvatar ?? "?"}
           </div>
         )}
-        <div className="flex-1">
+        <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-foreground">{channel.name}</h3>
             {channel.verified ? (
@@ -121,18 +122,21 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
               </span>
             ) : null}
           </div>
-          <p className="text-xs text-muted-foreground">@{channel.username}</p>
-          <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {username ? <span>{username}</span> : null}
+            {username && formattedSubscribers ? <span>·</span> : null}
             {formattedSubscribers ? <span>{formattedSubscribers}</span> : null}
-            {formattedSubscribers ? <span>·</span> : null}
-            <span>{placementsCount} placements</span>
-            {hasPinnedOptions ? (
-              <>
-                <span>·</span>
-                <span>Pinned options available</span>
-              </>
-            ) : null}
           </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              From <span className="font-semibold text-primary">{minPriceTon ?? "--"} TON</span>
+            </span>
+            <span>·</span>
+            <span>{placementsCount} placements</span>
+          </div>
+          {description ? (
+            <p className="truncate text-xs text-muted-foreground">{description}</p>
+          ) : null}
           {aggregatedTags.length > 0 ? (
             <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-foreground">
               {visibleTags.map((tag) => (
@@ -174,12 +178,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
               Rules: {rulesPreview}
             </p>
           ) : null}
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">From</p>
-          <p className="text-sm font-semibold text-primary">
-            {minPriceTon ?? "--"} TON
-          </p>
         </div>
       </div>
     </Link>

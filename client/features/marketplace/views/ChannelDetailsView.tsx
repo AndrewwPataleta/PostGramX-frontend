@@ -32,8 +32,9 @@ export default function ChannelDetailsView() {
   }, null);
   const minPriceTon = minPriceNano ? formatTonString(nanoToTonString(minPriceNano)) : null;
   const primaryListing = activeListings[0];
-  const hasPinnedOptions = activeListings.some((listing) => listing.pinDurationHours !== null);
   const isSubmitting = createDealMutation.isPending;
+  const description = channel?.about ?? channel?.description;
+  const username = channel?.username ? `@${channel.username}` : null;
 
   const handleCreateDeal = async (listingId: string) => {
     if (isSubmitting) {
@@ -102,31 +103,18 @@ export default function ChannelDetailsView() {
                       </span>
                     ) : null}
                   </div>
+                  {username ? (
+                    <p className="text-xs text-muted-foreground">{username}</p>
+                  ) : null}
                   <p className="text-xs text-muted-foreground">
-                    @{channel.username}
+                    {channel.subscribers
+                      ? `${channel.subscribers.toLocaleString()} subscribers`
+                      : "-- subscribers"}
                   </p>
+                  {description ? (
+                    <p className="text-sm text-muted-foreground">{description}</p>
+                  ) : null}
                 </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
-                <p className="text-xs text-muted-foreground">Subscribers</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {channel.subscribers ? `${Math.round(channel.subscribers / 1000)}K` : "--"}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
-                <p className="text-xs text-muted-foreground">Placements</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {activeListings.length}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-center">
-                <p className="text-xs text-muted-foreground">Pinned options</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {hasPinnedOptions ? "Yes" : "No"}
-                </p>
               </div>
             </div>
 
