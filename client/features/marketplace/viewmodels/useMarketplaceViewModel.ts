@@ -48,7 +48,7 @@ export const useMarketplaceViewModel = () => {
       limit,
       sort,
       order,
-      includeListings: true,
+      includeListings: false,
     }),
     [debouncedQuery, filters.verifiedOnly, limit, order, page, sort]
   );
@@ -64,15 +64,10 @@ export const useMarketplaceViewModel = () => {
     }
   }, [query.error]);
 
-  const filteredChannels = useMemo(() => {
-    const channels = query.data?.items ?? [];
-    return channels.filter((channel) => {
-      const activeListings = (channel.listings ?? []).filter(
-        (listing) => listing.isActive !== false
-      );
-      return activeListings.length > 0;
-    });
-  }, [query.data?.items]);
+  const filteredChannels = useMemo(
+    () => query.data?.items ?? [],
+    [query.data?.items]
+  );
 
   const handleRemoveFilter = (filterType: string, value?: string) => {
     setFilters((prev) => {

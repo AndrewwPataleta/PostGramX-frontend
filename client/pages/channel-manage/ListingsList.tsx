@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, useOutletContext, useParams } from "react-router-dom";
 import { Edit } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -11,16 +11,18 @@ import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageL
 
 const ListingsList = () => {
   const { channel } = useOutletContext<ChannelManageContext>();
+  const { id: channelIdParam } = useParams<{ id: string }>();
+  const channelId = channelIdParam ?? channel.id;
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [onlyActive, setOnlyActive] = useState(true);
   const [sort, setSort] = useState<"recent" | "price_asc" | "price_desc">("recent");
 
   const listingsQuery = useQuery({
-    queryKey: ["listingsByChannel", channel.id, { page, limit, onlyActive, sort }],
+    queryKey: ["listingsByChannel", channelId, { page, limit, onlyActive, sort }],
     queryFn: () =>
       listingsByChannel({
-        channelId: channel.id,
+        channelId,
         page,
         limit,
         onlyActive,
@@ -98,7 +100,7 @@ const ListingsList = () => {
                 variant="full"
                 actionSlot={
                   <Link
-                    to={`/channel-manage/${channel.id}/listings/${listing.id}/edit`}
+                    to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
                     className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg border border-border transition-colors text-sm"
                   >
                     <Edit size={16} />
@@ -142,7 +144,7 @@ const ListingsList = () => {
             Create your first listing to start receiving offers
           </p>
           <Link
-            to={`/channel-manage/${channel.id}/listings/create`}
+            to={`/channel-manage/${channelId}/listings/create`}
             className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
           >
             Create listing
@@ -151,7 +153,7 @@ const ListingsList = () => {
       )}
 
       <Link
-        to={`/channel-manage/${channel.id}/listings/create`}
+        to={`/channel-manage/${channelId}/listings/create`}
         className="w-full button-primary py-3 text-base font-semibold text-center"
       >
         Create Listing

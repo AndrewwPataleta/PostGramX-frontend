@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { PencilLine, RefreshCcw } from "lucide-react";
-import { postListingsByChannel } from "@/api/features/listingsApi";
+import { listingsByChannel } from "@/api/features/listingsApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getErrorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
@@ -116,7 +116,7 @@ const ChannelListingsPreview = memo(({ channelId, isExpanded }: ChannelListingsP
   const query = useQuery<ListingsByChannelResponse>({
     queryKey: ["channelListingsPreview", channelId],
     queryFn: () =>
-      postListingsByChannel({
+      listingsByChannel({
         channelId,
         page: 1,
         limit: PREVIEW_LIMIT,

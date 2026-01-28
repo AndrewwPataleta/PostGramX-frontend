@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Info } from "lucide-react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/api/errors";
 import { ListingPreviewDetails } from "@/components/listings/ListingPreviewDetails";
@@ -107,6 +106,9 @@ export default function CreateListing() {
       await createListing(payload);
       await queryClient.invalidateQueries({
         queryKey: ["listingsByChannel", channel.id],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["marketplaceListingsByChannel", channel.id],
       });
       queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
       queryClient.invalidateQueries({ queryKey: ["channelsList"] });
