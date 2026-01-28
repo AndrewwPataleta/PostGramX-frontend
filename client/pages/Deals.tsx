@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import DealListCard from "@/components/deals/DealListCard";
 import ErrorState from "@/components/feedback/ErrorState";
@@ -49,6 +50,7 @@ const sectionLabels: Record<DealSectionKey, string> = {
 export default function Deals() {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const initialTab = (location.state as { activeTab?: DealSectionKey } | null)
     ?.activeTab;
   const [activeTab, setActiveTab] = useState<DealSectionKey>(initialTab ?? "pending");
@@ -82,6 +84,11 @@ export default function Deals() {
     if (!data) {
       return;
     }
+
+    const allDeals = [...data.pending.items, ...data.active.items, ...data.completed.items];
+    allDeals.forEach((deal) => {
+      queryClient.setQueryData(["dealById", deal.id], deal);
+    });
 
     setGroups((prev) => ({
       pending:
@@ -133,10 +140,11 @@ export default function Deals() {
   }, []);
 
   const handleSelectDeal = useCallback(
-    (dealId: string) => {
-      navigate(`/deals/${dealId}`);
+    (deal: DealListItem) => {
+      queryClient.setQueryData(["dealById", deal.id], deal);
+      navigate(`/deals/${deal.id}`, { state: { deal } });
     },
-    [navigate]
+    [navigate, queryClient]
   );
 
   const currentGroup = groups[activeTab];

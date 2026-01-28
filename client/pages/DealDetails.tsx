@@ -1,180 +1,137 @@
-import { useMemo, useState } from "react";
-import { Copy, Link as LinkIcon } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation, useParams } from "react-router-dom";
 import DetailHeader from "@/components/deals/DetailHeader";
 import InfoCard from "@/components/deals/InfoCard";
 import Timeline from "@/components/deals/Timeline";
-import {
-  USE_MOCK_DEALS,
-} from "@/features/deals/api";
-import { buildTonConnectTransaction, buildTonTransferLink } from "@/features/deals/payment";
-import { formatCountdown, formatRelativeTime, formatScheduleDate } from "@/features/deals/time";
-import { getDealPresentation, getTimelineItems } from "@/features/deals/status";
+import { fetchDealsList } from "@/api/features/dealsApi";
+import { formatScheduleDate } from "@/features/deals/time";
 import { toast } from "sonner";
-import { useTonConnectModal, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
-import {
-  useApproveCreative,
-  useDeal,
-  useRequestEdits,
-  useSimulatePayment,
-  useSimulatePost,
-  useSimulateVerifyFail,
-  useSimulateVerifyPass,
-} from "@/features/deals/hooks";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import ErrorState from "@/components/feedback/ErrorState";
 import { getErrorMessage } from "@/lib/api/errors";
+import type { DealListItem } from "@/types/deals";
+import { formatTonString, nanoToTonString } from "@/lib/ton";
+
+const formatDateTime = (value?: string) => {
+  if (!value) {
+    return "-";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 export default function DealDetails() {
   const { dealId } = useParams<{ dealId: string }>();
-  const [isActionLoading, setIsActionLoading] = useState(false);
-  const [showManualTransfer, setShowManualTransfer] = useState(false);
-  const wallet = useTonWallet();
-  const [tonConnectUI] = useTonConnectUI();
-  const { open: openWalletModal } = useTonConnectModal();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const stateDeal = (location.state as { deal?: DealListItem } | null)?.deal;
+  const cachedDeal = dealId
+    ? queryClient.getQueryData<DealListItem>(["dealById", dealId])
+    : undefined;
+  const preferredDeal = stateDeal?.id === dealId ? stateDeal : cachedDeal;
+
+  const shouldFetch = Boolean(dealId) && !preferredDeal;
   const {
-    data: deal,
-    isLoading,
+    data: fallbackDeals,
+    isLoading: isFetchingFallback,
     error,
     refetch,
-  } = useDeal(dealId);
-  const approveCreativeMutation = useApproveCreative();
-  const requestEditsMutation = useRequestEdits();
-  const simulatePaymentMutation = useSimulatePayment();
-  const simulatePostMutation = useSimulatePost();
-  const simulateVerifyPassMutation = useSimulateVerifyPass();
-  const simulateVerifyFailMutation = useSimulateVerifyFail();
-  const actionInFlight =
-    isActionLoading ||
-    approveCreativeMutation.isPending ||
-    requestEditsMutation.isPending ||
-    simulatePaymentMutation.isPending ||
-    simulatePostMutation.isPending ||
-    simulateVerifyPassMutation.isPending ||
-    simulateVerifyFailMutation.isPending;
+  } = useQuery({
+    queryKey: ["deals", "list", "detail-fallback", dealId],
+    queryFn: () =>
+      fetchDealsList({
+        role: "all",
+        pendingLimit: 20,
+        activeLimit: 20,
+        completedLimit: 20,
+      }),
+    enabled: shouldFetch,
+    staleTime: 20_000,
+  });
 
-  const presentation = useMemo(() => (deal ? getDealPresentation(deal) : null), [deal]);
-  const timelineItems = useMemo(() => (deal ? getTimelineItems(deal) : []), [deal]);
-  const releaseCountdown = formatCountdown(deal?.post?.verifyUntil);
+  useEffect(() => {
+    if (error) {
+      toast.error(getErrorMessage(error, "Unable to load deals"));
+    }
+  }, [error]);
 
-  const handleApproveCreative = async () => {
+  const fallbackDeal = useMemo(() => {
+    if (!fallbackDeals || !dealId) {
+      return null;
+    }
+    const allDeals = [
+      ...fallbackDeals.pending.items,
+      ...fallbackDeals.active.items,
+      ...fallbackDeals.completed.items,
+    ];
+    return allDeals.find((deal) => deal.id === dealId) ?? null;
+  }, [dealId, fallbackDeals]);
+
+  const deal = preferredDeal ?? fallbackDeal ?? null;
+  const isLoading = shouldFetch && isFetchingFallback;
+  const statusLabel = deal?.status ? deal.status.replace(/_/g, " ") : "";
+  const escrowLabel = deal?.escrowStatus ? deal.escrowStatus.replace(/_/g, " ") : "";
+  const tone = (() => {
     if (!deal) {
-      return;
+      return "neutral";
     }
-    setIsActionLoading(true);
-    try {
-      await approveCreativeMutation.mutateAsync(deal.id);
-    } finally {
-      setIsActionLoading(false);
+    switch (deal.status) {
+      case "COMPLETED":
+        return "success";
+      case "CANCELED":
+        return "danger";
+      case "ACTIVE":
+        return "primary";
+      case "PENDING":
+      default:
+        return "warning";
     }
-  };
-
-  const handleRequestEdits = async () => {
+  })();
+  const timelineItems = useMemo(() => {
     if (!deal) {
-      return;
+      return [];
     }
-    setIsActionLoading(true);
-    try {
-      await requestEditsMutation.mutateAsync({
-        id: deal.id,
-        note: "Please tweak the CTA and shorten the headline.",
-      });
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  const handlePayViaTelegram = async () => {
-    if (!deal) {
-      return;
-    }
-
-    const address = deal.escrow?.depositAddress;
-    if (!address) {
-      toast.error("Payment address is missing");
-      return;
-    }
-
-    const amountTon = deal.escrow?.amountTon ?? deal.priceTon;
-    if (!Number.isFinite(amountTon) || amountTon <= 0) {
-      toast.error("Payment amount is invalid");
-      return;
-    }
-
-    if (!wallet) {
-      openWalletModal();
-      toast.info("Connect a TON wallet to continue");
-      return;
-    }
-
-    setIsActionLoading(true);
-    try {
-      await tonConnectUI.sendTransaction(
-        buildTonConnectTransaction({ address, amountTon })
-      );
-
-      if (USE_MOCK_DEALS) {
-        await simulatePaymentMutation.mutateAsync(deal.id);
-      } else {
-        toast.success("Transaction sent. Awaiting confirmation.");
-      }
-    } catch (err) {
-      toast.error(getErrorMessage(err, "Unable to process payment"));
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  const handleSimulatePost = async () => {
-    if (!deal) {
-      return;
-    }
-    setIsActionLoading(true);
-    try {
-      await simulatePostMutation.mutateAsync(deal.id);
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  const handleSimulateVerifyPass = async () => {
-    if (!deal) {
-      return;
-    }
-    setIsActionLoading(true);
-    try {
-      await simulateVerifyPassMutation.mutateAsync(deal.id);
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  const handleSimulateVerifyFail = async () => {
-    if (!deal) {
-      return;
-    }
-    setIsActionLoading(true);
-    try {
-      await simulateVerifyFailMutation.mutateAsync(deal.id);
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  const handleCopy = async (value?: string) => {
-    if (!value) {
-      return;
-    }
-    await navigator.clipboard.writeText(value);
-    toast.success("Copied to clipboard");
-  };
+    const steps =
+      deal.status === "CANCELED" ? ["Pending", "Active", "Canceled"] : ["Pending", "Active", "Completed"];
+    const currentIndex =
+      deal.status === "PENDING" ? 0 : deal.status === "ACTIVE" ? 1 : 2;
+    return steps.map((label, index) => ({
+      label,
+      state: index < currentIndex ? "completed" : index === currentIndex ? "current" : "upcoming",
+    }));
+  }, [deal]);
+  const formattedPrice = deal
+    ? `${formatTonString(nanoToTonString(deal.listing.priceNano))} TON`
+    : "--";
+  const roleLabel = deal
+    ? deal.userRoleInDeal === "advertiser"
+      ? "You are advertiser"
+      : deal.userRoleInDeal === "publisher"
+      ? "You are publisher"
+      : "You manage this channel"
+    : "";
+  const initiatorLabel = deal
+    ? deal.initiatorSide === "ADVERTISER"
+      ? "Advertiser initiated"
+      : "Publisher initiated"
+    : "";
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="px-4 py-6 space-y-4">
         {isLoading ? (
           <LoadingSkeleton items={3} />
-        ) : error || !deal || !presentation ? (
+        ) : error || !deal ? (
           <ErrorState
             message={getErrorMessage(error, "Deal not found")}
             description="We couldn't load this deal right now."
@@ -184,186 +141,77 @@ export default function DealDetails() {
           <>
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
               <DetailHeader
-                status={presentation.label}
-                tone={presentation.tone}
-                title={deal.channel.title}
+                status={statusLabel || "Deal"}
+                tone={tone}
+                title={deal.channel.name}
                 username={deal.channel.username}
-                verified={deal.channel.isVerified}
-                price={`${deal.priceTon} TON`}
+                verified={deal.channel.verified}
+                price={formattedPrice}
                 dealId={deal.id}
-                avatarUrl={deal.channel.avatarUrl}
-                statusDescription={presentation.description}
+                avatarUrl={deal.channel.avatarUrl ?? undefined}
+                statusDescription={escrowLabel ? `Escrow: ${escrowLabel}` : "Escrow status pending"}
               />
 
               <Timeline items={timelineItems} />
             </div>
 
-            <InfoCard title="Escrow">
-              <div className="flex items-center justify-between text-sm text-foreground">
-                <span>{deal.escrow?.status ?? "Awaiting payment"}</span>
-                <span className="font-semibold">{deal.escrow?.amountTon ?? deal.priceTon} TON</span>
+            <InfoCard title="Status">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-foreground">
+                <span className="rounded-full bg-foreground/5 px-3 py-1">{statusLabel}</span>
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">
+                  {escrowLabel}
+                </span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Escrow holds funds safely until the post is verified.
+              <p className="mt-2 text-xs text-muted-foreground">
+                Created {formatDateTime(deal.createdAt)} · Last activity{" "}
+                {formatDateTime(deal.lastActivityAt)}
               </p>
-              {deal.escrow?.status === "AWAITING_PAYMENT" ? (
-                <div className="mt-4 space-y-3">
-                  <button
-                    type="button"
-                    onClick={handlePayViaTelegram}
-                    disabled={actionInFlight}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:pointer-events-none disabled:opacity-70"
-                  >
-                    Pay via Telegram Wallet
-                  </button>
-                  <a
-                    href={
-                      deal.escrow.depositAddress
-                        ? buildTonTransferLink({
-                            address: deal.escrow.depositAddress,
-                            amountTon: deal.escrow.amountTon,
-                            memo: deal.escrow.memo,
-                          })
-                        : undefined
-                    }
-                    className="inline-flex w-full items-center justify-center rounded-xl border border-border/60 px-4 py-2 text-xs font-semibold text-foreground"
-                  >
-                    Open TON transfer link
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setShowManualTransfer((value) => !value)}
-                    className="w-full rounded-xl border border-border/60 px-4 py-2 text-sm text-foreground"
-                  >
-                    {showManualTransfer ? "Hide" : "Show"} manual transfer
-                  </button>
-                  {showManualTransfer ? (
-                    <div className="space-y-2 rounded-xl border border-border/60 bg-background p-3 text-xs text-muted-foreground">
-                      <div className="flex items-center justify-between">
-                        <span>Address</span>
-                        <button type="button" onClick={() => handleCopy(deal.escrow?.depositAddress)}>
-                          <Copy size={14} />
-                        </button>
-                      </div>
-                      <p className="break-all text-foreground">{deal.escrow?.depositAddress ?? "-"}</p>
-                      <div className="flex items-center justify-between">
-                        <span>Memo</span>
-                        <button type="button" onClick={() => handleCopy(deal.escrow?.memo)}>
-                          <Copy size={14} />
-                        </button>
-                      </div>
-                      <p className="text-foreground">{deal.escrow?.memo ?? "-"}</p>
-                    </div>
-                  ) : null}
-                  {USE_MOCK_DEALS ? (
-                    <p className="text-xs text-muted-foreground">
-                      Mock payments confirm after the wallet approval flow.
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-              <div className="mt-3 text-[11px] text-muted-foreground">
-                {formatRelativeTime(deal.updatedAt)}
-              </div>
             </InfoCard>
 
-            <InfoCard title="Creative">
-              <p className="text-sm font-semibold text-foreground">
-                {deal.creative?.submittedAt
-                  ? deal.creative.approvedAt
-                    ? "Approved"
-                    : "Needs your review"
-                  : "Waiting for channel owner"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {deal.creative?.text ?? "Creative will appear here once submitted."}
-              </p>
-              {deal.creative?.submittedAt && !deal.creative?.approvedAt ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={handleApproveCreative}
-                    disabled={actionInFlight}
-                    className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleRequestEdits}
-                    disabled={actionInFlight}
-                    className="rounded-full border border-border/60 px-4 py-2 text-xs text-foreground"
-                  >
-                    Request edits
-                  </button>
+            <InfoCard title="Listing">
+              <div className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
+                  <p className="font-semibold">{formattedPrice}</p>
                 </div>
-              ) : (
-                <p className="mt-3 text-[11px] text-muted-foreground">
-                  Approvals are confirmed via bot messaging.
-                </p>
-              )}
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Format</p>
+                  <p className="font-semibold">{deal.listing.format}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Placement</p>
+                  <p className="font-semibold">Pinned {deal.listing.placementHours}h</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Visibility</p>
+                  <p className="font-semibold">Visible {deal.listing.lifetimeHours}h</p>
+                </div>
+              </div>
+              {deal.listing.tags.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {deal.listing.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </InfoCard>
+
+            <InfoCard title="Participants">
+              <p className="text-sm font-semibold text-foreground">{roleLabel}</p>
+              <p className="text-xs text-muted-foreground">{initiatorLabel}</p>
             </InfoCard>
 
             <InfoCard title="Schedule">
-              <p className="text-sm text-foreground">{formatScheduleDate(deal.schedule?.scheduledAt)}</p>
-              <p className="text-xs text-muted-foreground">Timezone: {deal.schedule?.timezone ?? "UTC"}</p>
-            </InfoCard>
-
-            <InfoCard title="Delivery">
-              <p className="text-sm text-foreground">
-                {deal.post?.viewUrl ? "Post live" : "Waiting for delivery"}
+              <p className="text-sm text-foreground">{formatScheduleDate(deal.scheduledAt)}</p>
+              <p className="text-xs text-muted-foreground">
+                Last activity {formatDateTime(deal.lastActivityAt)}
               </p>
-              {deal.post?.viewUrl ? (
-                <a
-                  href={deal.post.viewUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-2 text-xs text-primary"
-                >
-                  <LinkIcon size={12} /> View in Telegram
-                </a>
-              ) : null}
-              <p className="mt-2 text-xs text-muted-foreground">
-                {releaseCountdown ? `Release in: ${releaseCountdown}` : "Verification pending"}
-              </p>
-              {USE_MOCK_DEALS ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSimulatePost}
-                    disabled={actionInFlight}
-                    className="rounded-full border border-border/60 px-3 py-1 text-xs"
-                  >
-                    Simulate Post Published
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSimulateVerifyPass}
-                    disabled={actionInFlight}
-                    className="rounded-full border border-border/60 px-3 py-1 text-xs"
-                  >
-                    Simulate Verify Pass
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSimulateVerifyFail}
-                    disabled={actionInFlight}
-                    className="rounded-full border border-border/60 px-3 py-1 text-xs"
-                  >
-                    Simulate Verify Fail
-                  </button>
-                </div>
-              ) : null}
             </InfoCard>
-
-            <div className="sticky bottom-4 rounded-2xl border border-border/60 bg-card/90 px-4 py-3 backdrop-blur">
-              <button
-                type="button"
-                className="w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-              >
-                {presentation.ctaLabel}
-              </button>
-            </div>
           </>
         )}
       </div>

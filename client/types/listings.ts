@@ -10,5 +10,6 @@ export type ListingListItem = {
   allowLinkTracking: boolean;
   allowPinnedPlacement: boolean;
   requiresApproval: boolean;
+  contentRulesText?: string;
   isActive: boolean;
 };

@@ -10,12 +10,24 @@ interface ChannelCardProps {
 const PRE_APPROVAL_TAG = "Must be pre-approved";
 const MAX_VISIBLE_TAGS = 3;
 const MAX_TAG_LENGTH = 24;
+const MAX_VISIBLE_RULES = 3;
+
+const parsePriceNano = (value: string) => {
+  try {
+    return BigInt(value);
+  } catch {
+    return null;
+  }
+};
 
 export default function ChannelCard({ channel }: ChannelCardProps) {
   const activeListings = (channel.listings ?? []).filter((listing) => listing.isActive !== false);
   const placementsCount = activeListings.length;
   const minPriceNano = activeListings.reduce<bigint | null>((currentMin, listing) => {
-    const price = BigInt(listing.priceNano);
+    const price = parsePriceNano(listing.priceNano);
+    if (price === null) {
+      return currentMin;
+    }
     if (currentMin === null) {
       return price;
     }
@@ -51,6 +63,36 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
   const visibleTags = aggregatedTags.slice(0, MAX_VISIBLE_TAGS);
   const hiddenTagsCount = Math.max(aggregatedTags.length - MAX_VISIBLE_TAGS, 0);
   const fallbackAvatar = channel.name?.[0]?.toUpperCase() ?? channel.username?.[0]?.toUpperCase();
+  const allowEdits = activeListings.some((listing) => listing.allowEdits);
+  const allowLinkTracking = activeListings.some((listing) => listing.allowLinkTracking);
+  const pinnedAvailable = activeListings.some(
+    (listing) => listing.allowPinnedPlacement || listing.pinDurationHours !== null,
+  );
+  const approvalRequired = activeListings.some((listing) => listing.requiresApproval);
+  const rules = [
+    ...(allowEdits ? ["Edits allowed"] : []),
+    ...(allowLinkTracking ? ["Tracking allowed"] : []),
+    ...(pinnedAvailable ? ["Pinned available"] : []),
+    ...(approvalRequired ? ["Pre-approval required"] : []),
+  ];
+  const visibleRules = rules.slice(0, MAX_VISIBLE_RULES);
+  const hiddenRulesCount = Math.max(rules.length - MAX_VISIBLE_RULES, 0);
+  const rulesListing = activeListings
+    .filter((listing) => listing.contentRulesText?.trim())
+    .reduce<{ listing: (typeof activeListings)[number]; price: bigint } | null>(
+      (current, listing) => {
+        const price = parsePriceNano(listing.priceNano);
+        if (price === null) {
+          return current;
+        }
+        if (!current || price < current.price) {
+          return { listing, price };
+        }
+        return current;
+      },
+      null,
+    );
+  const rulesPreview = rulesListing?.listing.contentRulesText?.trim() ?? null;
 
   return (
     <Link
@@ -109,6 +151,28 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                 </span>
               ) : null}
             </div>
+          ) : null}
+          {rules.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+              {visibleRules.map((rule) => (
+                <span
+                  key={rule}
+                  className="flex-none whitespace-nowrap rounded-full border border-border/60 px-2.5 py-1"
+                >
+                  {rule}
+                </span>
+              ))}
+              {hiddenRulesCount > 0 ? (
+                <span className="flex-none whitespace-nowrap rounded-full border border-border/60 px-2.5 py-1 text-muted-foreground">
+                  +{hiddenRulesCount}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+          {rulesPreview ? (
+            <p className="mt-2 truncate text-xs text-muted-foreground">
+              Rules: {rulesPreview}
+            </p>
           ) : null}
         </div>
         <div className="text-right">
