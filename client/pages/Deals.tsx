@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Megaphone, ShoppingCart } from "lucide-react";
 import DealListCard from "@/components/deals/DealListCard";
 import ErrorState from "@/components/feedback/ErrorState";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
@@ -148,9 +149,18 @@ export default function Deals() {
   );
 
   const currentGroup = groups[activeTab];
+  const { buyerDeals, sellerDeals } = useMemo(() => {
+    const buyer = currentGroup.items.filter(
+      (deal) => deal.userRoleInDeal === "advertiser"
+    );
+    const seller = currentGroup.items.filter(
+      (deal) => deal.userRoleInDeal !== "advertiser"
+    );
+    return { buyerDeals: buyer, sellerDeals: seller };
+  }, [currentGroup.items]);
   const hasMore = currentGroup.items.length < currentGroup.total;
   const showEmptyState =
-    !isLoading && !error && currentGroup.items.length === 0 && !isFetching;
+    !isLoading && !error && buyerDeals.length === 0 && sellerDeals.length === 0 && !isFetching;
 
   return (
     <div className="w-full max-w-3xl mx-auto">
@@ -176,7 +186,27 @@ export default function Deals() {
 
       <div className="px-4 py-6 space-y-4">
         {isLoading && currentGroup.items.length === 0 ? (
-          <LoadingSkeleton items={3} />
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <ShoppingCart size={14} />
+                Buying ads
+                <span className="text-[11px] font-normal">·</span>
+                <span className="text-[11px] font-normal">--</span>
+              </div>
+              <LoadingSkeleton items={2} />
+            </div>
+            <div className="border-t border-border/60" />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <Megaphone size={14} />
+                Selling ads
+                <span className="text-[11px] font-normal">·</span>
+                <span className="text-[11px] font-normal">--</span>
+              </div>
+              <LoadingSkeleton items={2} />
+            </div>
+          </div>
         ) : error ? (
           <ErrorState
             message={getErrorMessage(error, "Unable to load deals")}
@@ -188,16 +218,49 @@ export default function Deals() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
               📭
             </div>
-            <h2 className="text-base font-semibold text-foreground">No deals yet</h2>
+            <h2 className="text-base font-semibold text-foreground">No deals in this section</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Deals in this section will appear here once they are created.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {currentGroup.items.map((deal) => (
-              <DealListCard key={deal.id} deal={deal} onSelect={handleSelectDeal} />
-            ))}
+          <div className="space-y-5">
+            {buyerDeals.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <ShoppingCart size={14} />
+                  Buying ads
+                  <span className="text-[11px] font-normal">·</span>
+                  <span className="text-[11px] font-normal">{buyerDeals.length}</span>
+                </div>
+                <div className="space-y-3">
+                  {buyerDeals.map((deal) => (
+                    <DealListCard key={deal.id} deal={deal} onSelect={handleSelectDeal} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {buyerDeals.length > 0 && sellerDeals.length > 0 ? (
+              <div className="border-t border-border/60" />
+            ) : null}
+
+            {sellerDeals.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <Megaphone size={14} />
+                  Selling ads
+                  <span className="text-[11px] font-normal">·</span>
+                  <span className="text-[11px] font-normal">{sellerDeals.length}</span>
+                </div>
+                <div className="space-y-3">
+                  {sellerDeals.map((deal) => (
+                    <DealListCard key={deal.id} deal={deal} onSelect={handleSelectDeal} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             {hasMore ? (
               <button
                 type="button"

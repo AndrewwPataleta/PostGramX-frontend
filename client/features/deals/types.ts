@@ -27,7 +27,6 @@ export interface DealChannel {
   avatarUrl: string;
   isVerified: boolean;
   subscribers: number;
-  averageViews: number;
   language: string;
   priceTon: number;
 }

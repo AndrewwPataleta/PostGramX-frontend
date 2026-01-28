@@ -9,8 +9,6 @@ import type { ChannelItem, ListChannelsParams, Paginated } from "@/types/channel
 const defaultFilters: FilterState = {
   priceRange: [0, 100],
   subscribersRange: [0, 1_000_000],
-  viewsRange: [0, 1_000_000],
-  engagementRange: [0, 100],
   languages: [],
   categories: [],
   tags: [],
@@ -83,10 +81,6 @@ export const useMarketplaceViewModel = () => {
           return { ...prev, priceRange: defaultFilters.priceRange };
         case "subscribersRange":
           return { ...prev, subscribersRange: defaultFilters.subscribersRange };
-        case "viewsRange":
-          return { ...prev, viewsRange: defaultFilters.viewsRange };
-        case "engagementRange":
-          return { ...prev, engagementRange: defaultFilters.engagementRange };
         case "verifiedOnly":
           return { ...prev, verifiedOnly: false };
         case "languages":

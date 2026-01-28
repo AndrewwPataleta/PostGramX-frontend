@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BadgeCheck, Shield, Users2, X } from "lucide-react";
+import { BadgeCheck, Users2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChannelListItem, ChannelStatus } from "@/types/channels";
 
@@ -99,29 +99,14 @@ const ChannelCard = ({ channel, onClick, onVerify, onUnlink }: ChannelCardProps)
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4">
         <div className="rounded-xl bg-muted/30 p-3">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Users2 size={12} />
-            Members
+            Subscribers
           </div>
           <p className="mt-1 text-sm font-semibold text-foreground">
             {formatMetric(channel.memberCount)}
-          </p>
-        </div>
-        <div className="rounded-xl bg-muted/30 p-3">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Shield size={12} />
-            Avg. Views
-          </div>
-          <p className="mt-1 text-sm font-semibold text-foreground">
-            {formatMetric(channel.avgViews)}
-          </p>
-        </div>
-        <div className="rounded-xl bg-muted/30 p-3">
-          <div className="text-xs text-muted-foreground">Role</div>
-          <p className="mt-1 text-sm font-semibold text-foreground">
-            {channel.membership.telegramAdminStatus}
           </p>
         </div>
       </div>

@@ -128,7 +128,6 @@ const AddChannelStep2 = () => {
   const primaryLabel = isLinked ? "Verify channel" : "Connect channel";
 
   const memberCount = formatMetric(preview?.memberCount);
-  const avgViews = formatMetric(preview?.avgViews);
 
   if (!preview) {
     return null;
@@ -157,12 +156,11 @@ const AddChannelStep2 = () => {
               {isLinked ? "Linked" : "Not connected yet"}
             </Badge>
           </div>
-          {(memberCount || avgViews) && (
+          {memberCount ? (
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              {memberCount ? <span>{memberCount} subscribers</span> : null}
-              {avgViews ? <span>{avgViews} avg views</span> : null}
+              <span>{memberCount} subscribers</span>
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
 

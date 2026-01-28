@@ -15,10 +15,6 @@ export const ActiveFiltersChips = ({
     filters.priceRange[1] < 10 ||
     filters.subscribersRange[0] > 0 ||
     filters.subscribersRange[1] < 1000000 ||
-    filters.viewsRange[0] > 0 ||
-    filters.viewsRange[1] < 1000000 ||
-    (filters as any).engagementRange?.[0] > 0 ||
-    (filters as any).engagementRange?.[1] < 100 ||
     filters.languages.length > 0 ||
     filters.categories.length > 0 ||
     filters.tags.length > 0 ||
@@ -47,29 +43,6 @@ export const ActiveFiltersChips = ({
           >
             Subs: {(filters.subscribersRange[0] / 1000).toFixed(0)}K-
             {(filters.subscribersRange[1] / 1000).toFixed(0)}K
-            <X size={14} />
-          </button>
-        ) : null}
-
-        {filters.viewsRange[0] > 0 || filters.viewsRange[1] < 1000000 ? (
-          <button
-            onClick={() => onRemoveFilter("viewsRange")}
-            className="inline-flex items-center gap-1.5 bg-accent/20 hover:bg-accent/30 text-accent px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-          >
-            Views: {(filters.viewsRange[0] / 1000).toFixed(0)}K-
-            {(filters.viewsRange[1] / 1000).toFixed(0)}K
-            <X size={14} />
-          </button>
-        ) : null}
-
-        {(filters as any).engagementRange?.[0] > 0 ||
-        (filters as any).engagementRange?.[1] < 100 ? (
-          <button
-            onClick={() => onRemoveFilter("engagementRange")}
-            className="inline-flex items-center gap-1.5 bg-accent/20 hover:bg-accent/30 text-accent px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-          >
-            Engagement: {(filters as any).engagementRange?.[0] ?? 0}%-
-            {(filters as any).engagementRange?.[1] ?? 100}%
             <X size={14} />
           </button>
         ) : null}

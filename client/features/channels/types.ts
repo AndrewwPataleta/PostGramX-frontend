@@ -8,10 +8,5 @@ export interface Channel {
   verified: boolean;
   verificationStatus: ChannelVerificationStatus;
   subscribers: number;
-  averageViews: number;
-  engagement: number;
   activeListings: number;
-  earnings: number;
-  lastUpdated: string;
-  viewsTrend: number[];
 }

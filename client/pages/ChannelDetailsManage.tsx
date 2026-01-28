@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { BarChart3, Edit, Power, Plus } from "lucide-react";
-import { Sparkline } from "@/components/Sparkline";
+import { Edit, Power, Plus } from "lucide-react";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { managedChannelData } from "@/features/channels/managedChannels";
 import type { Listing } from "@/features/listings/types";
@@ -64,10 +63,15 @@ export default function ChannelDetailsManage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-xl font-bold text-foreground">{channel.name}</h2>
+              {channel.verified ? (
+                <span className="inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                  Verified
+                </span>
+              ) : null}
             </div>
             <p className="text-sm text-muted-foreground mb-2">{channel.username}</p>
             <p className="text-xs text-muted-foreground">
-              Last verified {channel.lastVerified}
+              {channel.subscribers.toLocaleString()} subscribers
             </p>
           </div>
         </div>
@@ -101,71 +105,12 @@ export default function ChannelDetailsManage() {
         {/* OVERVIEW TAB */}
         {activeTab === "overview" && (
           <>
-            {/* Stats Card */}
-            <div className="glass p-4 space-y-3">
-              <h3 className="font-semibold text-foreground flex items-center gap-2">
-                <BarChart3 size={18} className="text-primary" />
-                Channel Statistics
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-secondary/30 rounded-lg px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Subscribers</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    {(channel.subscribers / 1000).toFixed(0)}K
-                  </p>
-                </div>
-                <div className="bg-secondary/30 rounded-lg px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Avg Views</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    {(channel.averageViews / 1000).toFixed(0)}K
-                  </p>
-                </div>
-                <div className="bg-secondary/30 rounded-lg px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Engagement</p>
-                  <p className="text-lg font-semibold text-accent">
-                    {channel.engagement}%
-                  </p>
-                </div>
-                <div className="bg-secondary/30 rounded-lg px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Posts/Week</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    {channel.postsPerWeek}
-                  </p>
-                </div>
+            {channel.description ? (
+              <div className="glass p-4 text-sm text-muted-foreground">
+                {channel.description}
               </div>
-            </div>
+            ) : null}
 
-            {/* Performance Chart */}
-            <div className="glass p-4 space-y-3">
-              <h3 className="font-semibold text-foreground">
-                Last 10 Posts Performance
-              </h3>
-              <div className="h-32 text-primary/60">
-                <Sparkline data={channel.viewsTrend} height={100} />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Views trend from your last 10 posts
-              </p>
-            </div>
-
-            {/* Revenue Card */}
-            <div className="glass p-4 border-2 border-primary/30 space-y-3">
-              <h3 className="font-semibold text-foreground">Revenue</h3>
-              <div className="bg-primary/10 rounded-lg px-3 py-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Total Earned</p>
-                <p className="text-3xl font-bold text-primary">
-                  {channel.earnings} TON
-                </p>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Active deals:</span>
-                <span className="font-semibold text-foreground">
-                  {channel.activeDeals}
-                </span>
-              </div>
-            </div>
-
-            {/* Listings Preview */}
             <div className="glass p-4 space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div>

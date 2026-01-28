@@ -17,12 +17,7 @@ const mockChannels: Channel[] = [
     verified: true,
     verificationStatus: "verified",
     subscribers: 45000,
-    averageViews: 18000,
-    engagement: 40,
     activeListings: 1,
-    earnings: 230,
-    lastUpdated: "2h",
-    viewsTrend: [17000, 17800, 18200, 18500, 18100, 18900, 18500, 18200, 18800, 18000],
   },
   {
     id: "2",
@@ -32,12 +27,7 @@ const mockChannels: Channel[] = [
     verified: true,
     verificationStatus: "verified",
     subscribers: 32000,
-    averageViews: 12000,
-    engagement: 38,
     activeListings: 0,
-    earnings: 145,
-    lastUpdated: "4h",
-    viewsTrend: [11500, 12000, 11800, 12300, 12100, 12500, 12200, 12000, 12400, 12000],
   },
   {
     id: "3",
@@ -47,12 +37,7 @@ const mockChannels: Channel[] = [
     verified: false,
     verificationStatus: "pending",
     subscribers: 18000,
-    averageViews: 6500,
-    engagement: 36,
     activeListings: 0,
-    earnings: 0,
-    lastUpdated: "6h",
-    viewsTrend: [6000, 6300, 6500, 6200, 6400, 6600, 6300, 6500, 6400, 6500],
   },
 ];
 

@@ -5,8 +5,6 @@ import { flattenTagOptions, listingTagCategories } from "@/features/listings/tag
 export interface FilterState {
   priceRange: [number, number];
   subscribersRange: [number, number];
-  viewsRange: [number, number];
-  engagementRange?: [number, number];
   languages: string[];
   categories: string[];
   tags: string[];
@@ -52,7 +50,6 @@ export const FilterModal = ({
   const [expandedSections, setExpandedSections] = useState({
     pricing: true,
     audience: true,
-    engagement: false,
     language: false,
     category: false,
     tags: false,
@@ -75,21 +72,6 @@ export const FilterModal = ({
     { label: "0-10K", range: [0, 10000] },
     { label: "10-100K", range: [10000, 100000] },
     { label: "100K-1M", range: [100000, 1000000] },
-  ];
-
-  const viewsPresets: Array<{ label: string; range: [number, number] }> = [
-    { label: "Any", range: [0, 1000000] },
-    { label: "0-10K", range: [0, 10000] },
-    { label: "10-100K", range: [10000, 100000] },
-    { label: "100K-1M", range: [100000, 1000000] },
-  ];
-
-  const engagementPresets: Array<{ label: string; range: [number, number] }> = [
-    { label: "Any", range: [0, 100] },
-    { label: "0-5%", range: [0, 5] },
-    { label: "5-10%", range: [5, 10] },
-    { label: "10-25%", range: [10, 25] },
-    { label: "25%+", range: [25, 100] },
   ];
 
   useEffect(() => {
@@ -127,30 +109,6 @@ export const FilterModal = ({
     }));
   };
 
-  const handleViewsChange = (
-    index: 0 | 1,
-    value: number
-  ) => {
-    const newRange = [...localFilters.viewsRange] as [number, number];
-    newRange[index] = value;
-    setLocalFilters((prev) => ({
-      ...prev,
-      viewsRange: newRange,
-    }));
-  };
-
-  const handleEngagementChange = (
-    index: 0 | 1,
-    value: number
-  ) => {
-    const newRange = [...(localFilters.engagementRange || [0, 100])] as [number, number];
-    newRange[index] = value;
-    setLocalFilters((prev) => ({
-      ...prev,
-      engagementRange: newRange,
-    }));
-  };
-
   const toggleLanguage = (lang: string) => {
     setLocalFilters((prev) => ({
       ...prev,
@@ -179,8 +137,6 @@ export const FilterModal = ({
     setLocalFilters({
       priceRange: [0, 10],
       subscribersRange: [0, 1000000],
-      viewsRange: [0, 1000000],
-      engagementRange: [0, 100],
       languages: [],
       categories: [],
       tags: [],
@@ -346,127 +302,6 @@ export const FilterModal = ({
                     {formatCompact(localFilters.subscribersRange[1])}
                   </p>
                 </div>
-
-                {/* Average Views */}
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    Average Views
-                  </p>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {viewsPresets.map((preset) => (
-                      <button
-                        key={preset.label}
-                        onClick={() =>
-                          setLocalFilters((prev) => ({
-                            ...prev,
-                            viewsRange: preset.range,
-                          }))
-                        }
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                          localFilters.viewsRange[0] === preset.range[0] &&
-                          localFilters.viewsRange[1] === preset.range[1]
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-secondary text-foreground hover:bg-secondary/80"
-                        }`}
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex flex-col gap-2 mb-2 sm:flex-row">
-                    <input
-                      type="number"
-                      value={localFilters.viewsRange[0]}
-                      onChange={(e) =>
-                        handleViewsChange(0, parseInt(e.target.value) || 0)
-                      }
-                      className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      placeholder="Min"
-                    />
-                    <input
-                      type="number"
-                      value={localFilters.viewsRange[1]}
-                      onChange={(e) =>
-                        handleViewsChange(1, parseInt(e.target.value) || 1000000)
-                      }
-                      className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      placeholder="Max"
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formatCompact(localFilters.viewsRange[0])} -{" "}
-                    {formatCompact(localFilters.viewsRange[1])}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Engagement Section */}
-          <div className="space-y-3">
-            <button
-              onClick={() => toggleSection("engagement")}
-              className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
-            >
-              <span className="font-semibold text-foreground">Engagement Rate</span>
-              <ChevronDown
-                size={18}
-                className={`text-muted-foreground transition-transform ${
-                  expandedSections.engagement ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            {expandedSections.engagement && (
-              <div className="px-3 space-y-3 pb-3">
-                <div className="flex flex-wrap gap-2">
-                  {engagementPresets.map((preset) => (
-                    <button
-                      key={preset.label}
-                      onClick={() =>
-                        setLocalFilters((prev) => ({
-                          ...prev,
-                          engagementRange: preset.range,
-                        }))
-                      }
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                        localFilters.engagementRange?.[0] === preset.range[0] &&
-                        localFilters.engagementRange?.[1] === preset.range[1]
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-foreground hover:bg-secondary/80"
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <input
-                    type="number"
-                    value={localFilters.engagementRange?.[0] ?? 0}
-                    onChange={(e) =>
-                      handleEngagementChange(0, parseFloat(e.target.value) || 0)
-                    }
-                    min="0"
-                    max="100"
-                    className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Min %"
-                  />
-                  <input
-                    type="number"
-                    value={localFilters.engagementRange?.[1] ?? 100}
-                    onChange={(e) =>
-                      handleEngagementChange(1, parseFloat(e.target.value) || 100)
-                    }
-                    min="0"
-                    max="100"
-                    className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Max %"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {(localFilters.engagementRange?.[0] ?? 0).toFixed(0)}% -{" "}
-                  {(localFilters.engagementRange?.[1] ?? 100).toFixed(0)}%
-                </p>
               </div>
             )}
           </div>

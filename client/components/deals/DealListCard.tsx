@@ -37,6 +37,12 @@ const roleLabelMap: Record<DealListItem["userRoleInDeal"], string> = {
   publisher_manager: "You manage this channel",
 };
 
+const roleToneMap: Record<DealListItem["userRoleInDeal"], string> = {
+  advertiser: "bg-primary/10 text-primary",
+  publisher: "bg-emerald-500/10 text-emerald-400",
+  publisher_manager: "bg-emerald-500/10 text-emerald-400",
+};
+
 const statusLabel = (value: string) => value.replace(/_/g, " ");
 
 interface DealListCardProps {
@@ -115,6 +121,11 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
       ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
+        >
+          {roleLabelMap[deal.userRoleInDeal]}
+        </span>
         <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
           {statusLabel(deal.status)}
         </span>
@@ -129,9 +140,6 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
         </div>
         <div>
           <span className="font-medium text-foreground">Scheduled:</span> {formatDate(deal.scheduledAt)}
-        </div>
-        <div className="sm:col-span-2">
-          <span className="font-medium text-foreground">Role:</span> {roleLabelMap[deal.userRoleInDeal]}
         </div>
       </div>
     </button>

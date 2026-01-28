@@ -42,7 +42,6 @@ const AddChannelStep3 = () => {
           status: "VERIFIED",
           telegramChatId: preview.telegramChatId ?? null,
           memberCount: preview.memberCount ?? null,
-          avgViews: preview.avgViews ?? null,
           verifiedAt: new Date().toISOString(),
           lastCheckedAt: new Date().toISOString(),
           membership: {
