@@ -173,7 +173,7 @@ export const subscribeToMockListings = (callback: () => void) => {
 
 export const getListings = (): Listing[] => readListings();
 
-export const getListingsByChannel = (channelId: string): Listing[] => {
+export const listingsByChannel = (channelId: string): Listing[] => {
   return readListings().filter((listing) => listing.channelId === channelId);
 };
 

@@ -135,5 +135,7 @@ export type ChannelItem = {
   subscribers?: number;
   about?: string | null;
   description?: string | null;
+  placementsCount?: number;
+  listingsCount?: number;
   listings?: import("./listings").ListingListItem[];
 };
