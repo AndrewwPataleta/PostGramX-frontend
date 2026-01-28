@@ -1,0 +1,1 @@
+import{p as s}from"./index-CY7JS-uu.js";const e=async n=>s("/channels/list",n),l=async n=>s("/channels/preview",n),c=async n=>s("/channels/link",n),i=async n=>s("/channels/verify",n),t=async n=>s("/channels/unlink",n),h=async n=>{await s(`/channels/${n.id}/disabled`,{disabled:n.disabled})};export{l as a,h as b,c as l,e as p,t as u,i as v};
