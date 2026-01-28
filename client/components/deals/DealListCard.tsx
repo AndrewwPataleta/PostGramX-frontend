@@ -41,14 +41,14 @@ const statusLabel = (value: string) => value.replace(/_/g, " ");
 
 interface DealListCardProps {
   deal: DealListItem;
-  onSelect: (id: string) => void;
+  onSelect: (deal: DealListItem) => void;
 }
 
 const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
   return (
     <button
       type="button"
-      onClick={() => onSelect(deal.id)}
+      onClick={() => onSelect(deal)}
       className="w-full rounded-2xl border border-border/60 bg-card/80 p-4 text-left shadow-sm transition hover:border-primary/40 hover:bg-card"
     >
       <div className="flex items-center gap-3">
