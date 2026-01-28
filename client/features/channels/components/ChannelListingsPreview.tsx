@@ -1,0 +1,226 @@
+import { memo, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { PencilLine, RefreshCcw } from "lucide-react";
+import { postListingsByChannel } from "@/api/features/listingsApi";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getErrorMessage } from "@/lib/api/errors";
+import { cn } from "@/lib/utils";
+import type { ListingListItem, ListingsByChannelResponse } from "@/types/listings";
+
+const PREVIEW_LIMIT = 5;
+const PREVIEW_COUNT = 3;
+const TON_NANO = 1_000_000_000n;
+
+const formatTon = (priceNano: string) => {
+  try {
+    const nano = BigInt(priceNano);
+    const whole = nano / TON_NANO;
+    const fraction = nano % TON_NANO;
+    if (fraction === 0n) {
+      return `${whole.toString()} TON`;
+    }
+    const fractionString = fraction.toString().padStart(9, "0");
+    const trimmed = fractionString.slice(0, 2).replace(/0+$/, "");
+    const display = trimmed ? `${whole.toString()}.${trimmed}` : whole.toString();
+    return `${display} TON`;
+  } catch {
+    return `${priceNano} TON`;
+  }
+};
+
+const buildTags = (tags: string[]) => {
+  const shown = tags.slice(0, 2);
+  const remaining = tags.length - shown.length;
+  return {
+    shown,
+    remaining,
+  };
+};
+
+interface ListingPreviewRowProps {
+  channelId: string;
+  listing: ListingListItem;
+}
+
+const ListingPreviewRow = memo(({ channelId, listing }: ListingPreviewRowProps) => {
+  const pinLabel = listing.pinDurationHours
+    ? `Pinned ${listing.pinDurationHours}h`
+    : "No pin";
+  const visibilityLabel = `Visible ${listing.visibilityDurationHours}h`;
+  const tags = buildTags(listing.tags ?? []);
+
+  return (
+    <div className="flex items-center gap-3 py-3">
+      <div className="flex flex-col items-start gap-1">
+        <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+          {listing.format}
+        </span>
+        <span
+          className={cn(
+            "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+            listing.isActive
+              ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
+              : "border-muted-foreground/30 bg-muted/40 text-muted-foreground"
+          )}
+        >
+          {listing.isActive ? "Active" : "Inactive"}
+        </span>
+      </div>
+
+      <div className="flex-1">
+        <div className="text-sm font-semibold text-foreground">
+          {formatTon(listing.priceNano)}
+        </div>
+        <div className="mt-1 text-[11px] text-muted-foreground">
+          {pinLabel} • {visibilityLabel}
+        </div>
+        {tags.shown.length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {tags.shown.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground"
+              >
+                {tag}
+              </span>
+            ))}
+            {tags.remaining > 0 ? (
+              <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
+                +{tags.remaining}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <Link
+        to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition hover:text-foreground"
+        aria-label="Edit listing"
+      >
+        <PencilLine size={14} />
+      </Link>
+    </div>
+  );
+});
+
+ListingPreviewRow.displayName = "ListingPreviewRow";
+
+interface ChannelListingsPreviewProps {
+  channelId: string;
+  isExpanded: boolean;
+}
+
+const ChannelListingsPreview = memo(({ channelId, isExpanded }: ChannelListingsPreviewProps) => {
+  const query = useQuery<ListingsByChannelResponse>({
+    queryKey: ["channelListingsPreview", channelId],
+    queryFn: () =>
+      postListingsByChannel({
+        channelId,
+        page: 1,
+        limit: PREVIEW_LIMIT,
+        onlyActive: true,
+        sort: "recent",
+      }),
+    enabled: isExpanded,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const previewItems = useMemo(
+    () => query.data?.items?.slice(0, PREVIEW_COUNT) ?? [],
+    [query.data?.items]
+  );
+  const totalCount = query.data?.total ?? query.data?.items?.length ?? 0;
+  const hasMore = totalCount > PREVIEW_COUNT;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Placements
+        </h4>
+        {hasMore ? (
+          <Link
+            to={`/channel-manage/${channelId}/listings`}
+            className="text-[11px] font-semibold text-primary"
+          >
+            View all listings
+          </Link>
+        ) : null}
+      </div>
+
+      {query.isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <div
+              key={`listing-skeleton-${index}`}
+              className="rounded-xl border border-border/50 bg-background/60 px-3 py-3"
+            >
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="mt-2 h-3 w-40" />
+              <Skeleton className="mt-2 h-3 w-28" />
+            </div>
+          ))}
+        </div>
+      ) : query.isError ? (
+        <div className="rounded-xl border border-border/60 bg-red-500/5 px-4 py-3 text-xs text-red-200">
+          <p>{getErrorMessage(query.error, "Unable to load placements.")}</p>
+          <button
+            type="button"
+            onClick={() => query.refetch()}
+            className="mt-2 inline-flex items-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-[11px] font-semibold text-red-200"
+          >
+            <RefreshCcw size={12} />
+            Retry
+          </button>
+        </div>
+      ) : previewItems.length > 0 ? (
+        <div className="rounded-xl border border-border/60 bg-background/60 px-3 divide-y divide-border/40">
+          {previewItems.map((listing) => (
+            <ListingPreviewRow
+              key={listing.id}
+              channelId={channelId}
+              listing={listing}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-border/60 bg-background/50 px-4 py-4 text-center">
+          <p className="text-xs font-semibold text-foreground">No placements yet</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Create your first listing to start earning.
+          </p>
+          <Link
+            to={`/channel-manage/${channelId}/listings/create`}
+            className="mt-3 inline-flex items-center justify-center rounded-full bg-primary px-4 py-1.5 text-[11px] font-semibold text-primary-foreground"
+          >
+            Create listing
+          </Link>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Link
+          to={`/channel-manage/${channelId}/listings/create`}
+          className="flex-1 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-center text-xs font-semibold text-primary"
+        >
+          Create listing
+        </Link>
+        <Link
+          to={`/channel-manage/${channelId}/listings`}
+          className={cn(
+            "flex-1 rounded-full border border-border/60 bg-background px-4 py-2 text-center text-xs font-semibold text-foreground",
+            query.isLoading && "pointer-events-none opacity-70"
+          )}
+        >
+          View all
+        </Link>
+      </div>
+    </div>
+  );
+});
+
+ChannelListingsPreview.displayName = "ChannelListingsPreview";
+
+export default ChannelListingsPreview;

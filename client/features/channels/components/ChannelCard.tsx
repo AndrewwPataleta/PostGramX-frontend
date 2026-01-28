@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { BadgeCheck, Users2, X } from "lucide-react";
+import { memo, type ReactNode } from "react";
+import { BadgeCheck, ChevronDown, Users2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChannelListItem, ChannelStatus } from "@/types/channels";
 
@@ -53,18 +53,47 @@ interface ChannelCardProps {
   onClick?: () => void;
   onVerify?: () => void;
   onUnlink?: () => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  expandDisabled?: boolean;
+  expandTooltip?: string;
+  expandedContent?: ReactNode;
 }
 
-const ChannelCard = ({ channel, onClick, onVerify, onUnlink }: ChannelCardProps) => {
+const ChannelCard = ({
+  channel,
+  onClick,
+  onVerify,
+  onUnlink,
+  isExpanded = false,
+  onToggleExpand,
+  expandDisabled = false,
+  expandTooltip,
+  expandedContent,
+}: ChannelCardProps) => {
   const status = statusStyles[channel.status];
   const showVerifyAction = channel.status === "PENDING_VERIFY" && onVerify;
   const showUnlinkAction = Boolean(onUnlink);
+  const showExpandAction = Boolean(onToggleExpand);
 
   return (
-    <button
-      type="button"
+    <div
+      className={cn(
+        "w-full rounded-2xl border border-border/50 bg-card/80 p-4 text-left shadow-sm transition",
+        onClick && "cursor-pointer hover:border-border/80 hover:bg-card"
+      )}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
-      className="block w-full rounded-2xl border border-border/50 bg-card/80 p-4 text-left shadow-sm transition hover:border-border/80 hover:bg-card"
+      onKeyDown={(event) => {
+        if (!onClick) {
+          return;
+        }
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -96,6 +125,32 @@ const ChannelCard = ({ channel, onClick, onVerify, onUnlink }: ChannelCardProps)
             {status.icon}
             {status.label}
           </span>
+          {showExpandAction ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleExpand?.();
+              }}
+              disabled={expandDisabled}
+              title={expandTooltip}
+              aria-label={isExpanded ? "Collapse placements" : "Expand placements"}
+              aria-expanded={isExpanded}
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition",
+                !expandDisabled && "hover:text-foreground",
+                expandDisabled && "cursor-not-allowed opacity-60"
+              )}
+            >
+              <ChevronDown
+                size={16}
+                className={cn(
+                  "transition-transform duration-300",
+                  isExpanded && "rotate-180"
+                )}
+              />
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -127,8 +182,28 @@ const ChannelCard = ({ channel, onClick, onVerify, onUnlink }: ChannelCardProps)
           ) : null}
         </div>
       </div>
-    </button>
+
+      {expandedContent ? (
+        <div
+          className={cn(
+            "mt-4 grid transition-[grid-template-rows] duration-300 ease-out",
+            isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          )}
+        >
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300 ease-out",
+              isExpanded ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"
+            )}
+          >
+            <div className="rounded-xl border border-border/50 bg-background/60 p-3">
+              {expandedContent}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 };
 
-export default ChannelCard;
+export default memo(ChannelCard);

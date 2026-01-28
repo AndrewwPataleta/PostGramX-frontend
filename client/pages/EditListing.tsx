@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Info } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
@@ -53,6 +54,7 @@ export default function EditListing() {
   const channel = id ? managedChannelData[id] : null;
   const listing = listingId ? getListingById(listingId) : undefined;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const initialPinDuration = listing?.pinDurationHours ?? null;
   const initialPinChoice = initialPinDuration
@@ -134,6 +136,8 @@ export default function EditListing() {
       allowPinnedPlacement: pinDurationHours !== null,
     });
 
+    queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
+    queryClient.invalidateQueries({ queryKey: ["channelsList"] });
     navigate(`/channel-manage/${channel.id}/overview`);
   };
 
@@ -153,11 +157,15 @@ export default function EditListing() {
 
   const handleDisable = () => {
     disableListing(listing.id);
+    queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
+    queryClient.invalidateQueries({ queryKey: ["channelsList"] });
     navigate(`/channel-manage/${channel.id}/overview`);
   };
 
   const handleEnable = () => {
     enableListing(listing.id);
+    queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
+    queryClient.invalidateQueries({ queryKey: ["channelsList"] });
     navigate(`/channel-manage/${channel.id}/overview`);
   };
 

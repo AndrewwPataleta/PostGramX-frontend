@@ -1,3 +1,5 @@
+import type { Paginated } from "./channels";
+
 export type ListingListItem = {
   id: string;
   priceNano: string;
@@ -13,3 +15,13 @@ export type ListingListItem = {
   contentRulesText?: string;
   isActive: boolean;
 };
+
+export type ListingsByChannelParams = {
+  channelId: string;
+  page: number;
+  limit: number;
+  onlyActive?: boolean;
+  sort?: "recent";
+};
+
+export type ListingsByChannelResponse = Paginated<ListingListItem>;
