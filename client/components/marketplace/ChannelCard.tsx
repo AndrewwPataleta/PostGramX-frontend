@@ -7,25 +7,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getTelegramWebApp } from "@/lib/telegram";
 import { formatTonString, nanoToTonString } from "@/lib/ton";
 import { cn } from "@/lib/utils";
-import type { ChannelItem } from "@/types/channels";
+import type { MarketplaceChannelItem } from "@/api/types/marketplace";
 import type { ListingListItem, ListingsByChannelResponse } from "@/types/listings";
 
 interface ChannelCardProps {
-  channel: ChannelItem;
+  channel: MarketplaceChannelItem;
 }
 
 const PRE_APPROVAL_TAG = "Must be pre-approved";
 const MAX_VISIBLE_TAGS = 3;
 const MAX_TAG_LENGTH = 24;
 const LISTINGS_PREVIEW_LIMIT = 5;
-
-const parsePriceNano = (value: string) => {
-  try {
-    return BigInt(value);
-  } catch {
-    return null;
-  }
-};
 
 const formatDuration = (hours: number) => {
   if (hours >= 168 && hours % 24 === 0) {
@@ -40,6 +32,25 @@ const formatListingPrice = (priceNano: string) => {
   } catch {
     return priceNano;
   }
+};
+
+const formatChannelPrice = (priceNano: string) => {
+  try {
+    return formatTonString(nanoToTonString(priceNano));
+  } catch {
+    return priceNano;
+  }
+};
+
+const buildChannelTagList = (tags: string[]) => {
+  const normalizedTags = tags
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0 && tag.length <= MAX_TAG_LENGTH);
+  const deduped = Array.from(new Set(normalizedTags));
+  return {
+    visible: deduped.slice(0, MAX_VISIBLE_TAGS),
+    hiddenCount: Math.max(deduped.length - MAX_VISIBLE_TAGS, 0),
+  };
 };
 
 const buildTagList = (tags: string[]) => {
@@ -89,7 +100,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
   const navigate = useNavigate();
   const trimmedUsername = channel.username?.replace(/^@/, "");
   const telegramLink = trimmedUsername ? `https://t.me/${trimmedUsername}` : null;
-  const hasListingSummary = Array.isArray(channel.listings);
   const listingsQuery = useQuery<ListingsByChannelResponse>({
     queryKey: ["marketplaceListingsByChannel", channel.id],
     queryFn: () =>
@@ -100,46 +110,16 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         onlyActive: true,
         sort: "price_asc",
       }),
-    enabled: isExpanded && !hasListingSummary,
+    enabled: isExpanded,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
   });
 
-  const listings = listingsQuery.data?.items ?? channel.listings ?? [];
-  const summaryListings = hasListingSummary ? channel.listings : listingsQuery.data?.items;
-  const activeSummaryListings = summaryListings?.filter(
-    (listing) => listing.isActive !== false
+  const listings = listingsQuery.data?.items ?? [];
+  const minPriceTon = useMemo(
+    () => formatChannelPrice(channel.minPriceNano),
+    [channel.minPriceNano]
   );
-  const totalListings = useMemo(() => {
-    if (listingsQuery.data) {
-      return listingsQuery.data.total ?? listingsQuery.data.items.length;
-    }
-    if (summaryListings) {
-      return activeSummaryListings?.length ?? 0;
-    }
-    return null;
-  }, [activeSummaryListings?.length, listingsQuery.data, summaryListings]);
-
-  const minPriceNano = useMemo(() => {
-    if (!summaryListings || summaryListings.length === 0) {
-      return null;
-    }
-    return summaryListings.reduce<bigint | null>((currentMin, listing) => {
-      if (listing.isActive === false) {
-        return currentMin;
-      }
-      const price = parsePriceNano(listing.priceNano);
-      if (price === null) {
-        return currentMin;
-      }
-      if (currentMin === null) {
-        return price;
-      }
-      return price < currentMin ? price : currentMin;
-    }, null);
-  }, [summaryListings]);
-
-  const minPriceTon = minPriceNano ? formatTonString(nanoToTonString(minPriceNano)) : null;
   const formattedSubscribers =
     typeof channel.subscribers === "number"
       ? `${channel.subscribers.toLocaleString()} subscribers`
@@ -147,6 +127,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
   const fallbackAvatar = channel.name?.[0]?.toUpperCase() ?? channel.username?.[0]?.toUpperCase();
   const username = channel.username ? `@${channel.username}` : null;
   const avatarSrc = !avatarError && channel.avatarUrl ? channel.avatarUrl : null;
+  const channelTags = buildChannelTagList(channel.tags ?? []);
 
   return (
     <div
@@ -210,35 +191,48 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                 </button>
               ) : null}
               <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                setIsExpanded((prev) => !prev);
-              }}
-              aria-expanded={isExpanded}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-secondary/40 text-muted-foreground transition hover:text-foreground"
-            >
-              <ChevronDown
-                size={16}
-                className={cn("transition-transform duration-200", isExpanded && "rotate-180")}
-              />
-            </button>
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsExpanded((prev) => !prev);
+                }}
+                aria-expanded={isExpanded}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-secondary/40 text-muted-foreground transition hover:text-foreground"
+              >
+                <ChevronDown
+                  size={16}
+                  className={cn("transition-transform duration-200", isExpanded && "rotate-180")}
+                />
+              </button>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span>
-              {typeof totalListings === "number"
-                ? `${totalListings} placements`
-                : "— placements"}
-            </span>
+            <span>{channel.placementsCount} placements</span>
             <span>·</span>
             <span>{formattedSubscribers}</span>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
-              From <span className="font-semibold text-primary">{minPriceTon ?? "—"} TON</span>
+              From <span className="font-semibold text-primary">{minPriceTon} TON</span>
             </span>
           </div>
+          {channelTags.visible.length > 0 ? (
+            <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+              {channelTags.visible.map((tag) => (
+                <span
+                  key={`${channel.id}-${tag}`}
+                  className="rounded-full border border-border/60 bg-card px-2.5 py-1 text-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
+              {channelTags.hiddenCount > 0 ? (
+                <span className="rounded-full border border-border/60 bg-card px-2.5 py-1 text-muted-foreground">
+                  +{channelTags.hiddenCount}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
 
