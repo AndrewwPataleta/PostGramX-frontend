@@ -1,17 +1,37 @@
+import { useEffect } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
-import { ListingSummaryCard } from "@/components/listings/ListingSummaryCard";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { ListingPreviewDetails } from "@/components/listings/ListingPreviewDetails";
+import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import { listingsByChannel } from "@/api/features/listingsApi";
 import { managedChannelData } from "@/features/channels/managedChannels";
-import { getActiveListingForChannel, isMockListingsEnabled } from "@/features/listings/mockStore";
+import { getErrorMessage } from "@/lib/api/errors";
+import { nanoToTonString } from "@/lib/ton";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
 export default function ListingPreview() {
   const { id } = useParams<{ id: string }>();
   const outletContext = useOutletContext<ChannelManageContext | null>();
   const channel = outletContext?.channel ?? (id ? managedChannelData[id] : null);
-  const listing = id ? getActiveListingForChannel(id) : undefined;
-  const mockModeEnabled = import.meta.env.DEV && isMockListingsEnabled;
-  const pinDurationHours = listing?.pinDurationHours ?? null;
-  const visibilityDurationHours = listing?.visibilityDurationHours ?? 24;
+  const listingsQuery = useQuery({
+    queryKey: ["listingsByChannel", id, { page: 1, limit: 1, onlyActive: true }],
+    queryFn: () =>
+      listingsByChannel({
+        channelId: id ?? "",
+        page: 1,
+        limit: 1,
+        onlyActive: true,
+        sort: "recent",
+      }),
+    enabled: Boolean(id),
+  });
+
+  useEffect(() => {
+    if (listingsQuery.error) {
+      toast.error(getErrorMessage(listingsQuery.error, "Unable to load listing"));
+    }
+  }, [listingsQuery.error]);
 
   if (!channel) {
     return (
@@ -24,19 +44,29 @@ export default function ListingPreview() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="px-4 py-6 space-y-4">
-        {mockModeEnabled ? (
-          <div className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary w-fit">
-            Mock mode enabled
+        {listingsQuery.isLoading ? (
+          <LoadingSkeleton items={1} />
+        ) : listingsQuery.data?.items?.length ? (
+          <ListingPreviewDetails
+            priceTon={
+              Number.parseFloat(nanoToTonString(listingsQuery.data.items[0].priceNano)) ||
+              0
+            }
+            format="POST"
+            pinDurationHours={listingsQuery.data.items[0].pinDurationHours}
+            visibilityDurationHours={listingsQuery.data.items[0].visibilityDurationHours}
+            allowEdits={listingsQuery.data.items[0].allowEdits}
+            allowLinkTracking={listingsQuery.data.items[0].allowLinkTracking}
+            allowPinnedPlacement={listingsQuery.data.items[0].allowPinnedPlacement}
+            tags={listingsQuery.data.items[0].tags}
+            requiresApproval={listingsQuery.data.items[0].requiresApproval}
+            additionalRequirementsText={listingsQuery.data.items[0].contentRulesText ?? ""}
+          />
+        ) : (
+          <div className="rounded-2xl border border-border/60 bg-card/80 p-4 text-sm text-muted-foreground">
+            No listings available to preview yet.
           </div>
-        ) : null}
-
-        <ListingSummaryCard
-          channel={channel}
-          priceTon={listing?.priceTon ?? 25}
-          pinDurationHours={pinDurationHours}
-          visibilityDurationHours={visibilityDurationHours}
-          tags={listing?.tags ?? []}
-        />
+        )}
 
         <div className="rounded-2xl border border-border/60 bg-card/80 p-4 text-sm text-muted-foreground">
           <p className="font-medium text-foreground">Preview state</p>

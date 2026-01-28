@@ -1,16 +1,39 @@
+import { useEffect } from "react";
 import { Link, useOutletContext } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { ListingCard } from "@/components/listings/ListingCard";
+import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import { listingsByChannel } from "@/api/features/listingsApi";
+import { getErrorMessage } from "@/lib/api/errors";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
 const ChannelOverview = () => {
-  const {
-    channel,
-    activeListings,
-    inactiveListings,
-    previewListings,
-  } = useOutletContext<ChannelManageContext>();
+  const { channel } = useOutletContext<ChannelManageContext>();
+  const listingsQuery = useQuery({
+    queryKey: [
+      "listingsByChannel",
+      channel.id,
+      { page: 1, limit: 3, onlyActive: true, sort: "recent" },
+    ],
+    queryFn: () =>
+      listingsByChannel({
+        channelId: channel.id,
+        page: 1,
+        limit: 3,
+        onlyActive: true,
+        sort: "recent",
+      }),
+  });
 
-  const hasListings = activeListings.length > 0 || inactiveListings.length > 0;
+  useEffect(() => {
+    if (listingsQuery.error) {
+      toast.error(getErrorMessage(listingsQuery.error, "Unable to load listings"));
+    }
+  }, [listingsQuery.error]);
+
+  const listings = listingsQuery.data?.items ?? [];
+  const hasListings = listings.length > 0;
 
   return (
     <>
@@ -26,15 +49,20 @@ const ChannelOverview = () => {
             <h3 className="font-semibold text-foreground">Listings</h3>
             <p className="text-xs text-muted-foreground">Your active ad offers</p>
           </div>
+          <Link
+            to={`/channel-manage/${channel.id}/listings`}
+            className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-primary"
+          >
+            View all listings
+          </Link>
         </div>
 
-        {hasListings ? (
+        {listingsQuery.isLoading ? (
+          <LoadingSkeleton items={2} />
+        ) : hasListings ? (
           <>
-            <p className="text-xs text-muted-foreground">
-              Active: {activeListings.length} • Disabled: {inactiveListings.length}
-            </p>
             <div className="space-y-3">
-              {previewListings.map((listing) => (
+              {listings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} variant="compact" />
               ))}
             </div>

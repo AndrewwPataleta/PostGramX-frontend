@@ -21,7 +21,7 @@ export type ListingsByChannelParams = {
   page: number;
   limit: number;
   onlyActive?: boolean;
-  sort?: "recent";
+  sort?: "recent" | "price_asc" | "price_desc";
 };
 
-export type ListingsByChannelResponse = Paginated<ListingListItem>;
+export type ListingsByChannelResponse = import("./channels").Paginated<ListingListItem>;

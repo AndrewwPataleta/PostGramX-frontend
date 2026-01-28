@@ -5,8 +5,11 @@ import type {
   ListingsByChannelResponse,
 } from "@/types/listings";
 
+
 export const createListing = async (payload: ListingInput): Promise<void> =>
   post<void, ListingInput>("/listings/create", payload);
+
+
 
 export const postListingsByChannel = async (
   params: ListingsByChannelParams
