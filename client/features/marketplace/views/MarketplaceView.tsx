@@ -17,7 +17,6 @@ export default function MarketplaceView() {
       <PageContainer className="pt-4 space-y-6">
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-base font-semibold text-foreground">Marketplace</h1>
             <button
               type="button"
               onClick={actions.openFilters}

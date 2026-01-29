@@ -201,11 +201,6 @@ export default function DealDetails() {
               ) : null}
             </InfoCard>
 
-            <InfoCard title="Participants">
-              <p className="text-sm font-semibold text-foreground">{roleLabel}</p>
-              <p className="text-xs text-muted-foreground">{initiatorLabel}</p>
-            </InfoCard>
-
             <InfoCard title="Schedule">
               <p className="text-sm text-foreground">{formatScheduleDate(deal.scheduledAt)}</p>
               <p className="text-xs text-muted-foreground">
