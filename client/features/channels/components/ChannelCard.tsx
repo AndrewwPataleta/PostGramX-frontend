@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, type ReactNode } from "react";
-import { BadgeCheck, ChevronDown, Users2, X } from "lucide-react";
+import { ChevronDown, Users2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatTonString, nanoToTonString } from "@/lib/ton";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,6 @@ const statusStyles: Record<
   VERIFIED: {
     label: "Verified",
     className: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-    icon: <BadgeCheck size={12} className="text-emerald-300" />,
   },
   FAILED: {
     label: "Verification failed",
@@ -85,6 +84,7 @@ const ChannelCard = ({
   const showVerifyAction = channel.status === "PENDING_VERIFY" && onVerify;
   const showUnlinkAction = Boolean(onUnlink);
   const showExpandAction = Boolean(onToggleExpand);
+  const showStatusBadge = channel.status !== "VERIFIED";
   const [avatarError, setAvatarError] = useState(false);
   const avatarFallback = channel.title?.[0]?.toUpperCase() ?? channel.username?.[0]?.toUpperCase();
   const avatarSrc = !avatarError && channel.avatarUrl ? channel.avatarUrl : null;
@@ -154,15 +154,17 @@ const ChannelCard = ({
                   <X size={14} />
                 </button>
               ) : null}
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
-                  status.className
-                )}
-              >
-                {status.icon}
-                {status.label}
-              </span>
+              {showStatusBadge ? (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
+                    status.className
+                  )}
+                >
+                  {status.icon}
+                  {status.label}
+                </span>
+              ) : null}
               {showExpandAction ? (
                 <button
                   type="button"
