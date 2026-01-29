@@ -9,6 +9,7 @@ import { formatScheduleDate } from "@/features/deals/time";
 import { toast } from "sonner";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import ErrorState from "@/components/feedback/ErrorState";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
 import type { DealListItem } from "@/types/deals";
 import { formatTonString, nanoToTonString } from "@/lib/ton";
@@ -128,7 +129,7 @@ export default function DealDetails() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="px-4 py-6 space-y-4">
+      <PageContainer className="py-6 space-y-4">
         {isLoading ? (
           <LoadingSkeleton items={3} />
         ) : error || !deal ? (
@@ -145,7 +146,6 @@ export default function DealDetails() {
                 tone={tone}
                 title={deal.channel.name}
                 username={deal.channel.username}
-                verified={deal.channel.verified}
                 price={formattedPrice}
                 dealId={deal.id}
                 avatarUrl={deal.channel.avatarUrl ?? undefined}
@@ -214,7 +214,7 @@ export default function DealDetails() {
             </InfoCard>
           </>
         )}
-      </div>
+      </PageContainer>
     </div>
   );
 }

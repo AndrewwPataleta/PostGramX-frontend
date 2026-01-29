@@ -1,4 +1,3 @@
-import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { ChannelCard } from "@/types/marketplace";
 
@@ -36,11 +35,6 @@ export function MarketplaceCard({ channel }: MarketplaceCardProps) {
             <h3 className="font-semibold text-foreground truncate">
               {channel.name}
             </h3>
-            {channel.verified && (
-              <div className="inline-flex items-center justify-center bg-primary/15 rounded-full p-0.5 flex-shrink-0 ring-1 ring-primary/30">
-                <Check size={14} className="text-primary" />
-              </div>
-            )}
           </div>
           {username ? (
             <p className="text-xs text-muted-foreground">{username}</p>

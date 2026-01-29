@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getTelegramWebApp } from "@/lib/telegram";
 import { useCreateDealMutation } from "@/hooks/use-deals";
 import ErrorState from "@/components/feedback/ErrorState";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 interface CreateDealLocationState {
   listingId?: string;
@@ -63,19 +64,21 @@ export default function CreateDeal() {
 
   if (!listingId) {
     return (
-      <div className="w-full max-w-2xl mx-auto px-4 py-6">
-        <ErrorState
-          message="Listing not selected"
-          description="Please return to the marketplace and select a listing to continue."
-          onRetry={() => navigate("/marketplace")}
-        />
+      <div className="w-full max-w-2xl mx-auto">
+        <PageContainer className="py-6">
+          <ErrorState
+            message="Listing not selected"
+            description="Please return to the marketplace and select a listing to continue."
+            onRetry={() => navigate("/marketplace")}
+          />
+        </PageContainer>
       </div>
     );
   }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="px-4 py-6 space-y-4">
+      <PageContainer className="py-6 space-y-4">
         <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
           <p className="text-xs text-muted-foreground">Listing</p>
           <p className="mt-1 text-sm font-semibold text-foreground">{listingId}</p>
@@ -109,11 +112,11 @@ export default function CreateDeal() {
           type="button"
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
         >
           {isSubmitting ? "Creating deal..." : "Create deal"}
         </button>
-      </div>
+      </PageContainer>
     </div>
   );
 }

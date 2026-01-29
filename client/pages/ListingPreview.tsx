@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ListingPreviewDetails } from "@/components/listings/ListingPreviewDetails";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { listingsByChannel } from "@/api/features/listingsApi";
 import { managedChannelData } from "@/features/channels/managedChannels";
 import { getErrorMessage } from "@/lib/api/errors";
@@ -35,15 +36,17 @@ export default function ListingPreview() {
 
   if (!channel) {
     return (
-      <div className="w-full max-w-2xl mx-auto px-4 py-6">
-        <p className="text-muted-foreground">Channel not found</p>
+      <div className="w-full max-w-2xl mx-auto">
+        <PageContainer className="py-6">
+          <p className="text-muted-foreground">Channel not found</p>
+        </PageContainer>
       </div>
     );
   }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="px-4 py-6 space-y-4">
+      <PageContainer className="py-6 space-y-4">
         {listingsQuery.isLoading ? (
           <LoadingSkeleton items={1} />
         ) : listingsQuery.data?.items?.length ? (
@@ -74,8 +77,7 @@ export default function ListingPreview() {
             This summary card is used across Marketplace and advertiser requests.
           </p>
         </div>
-      </div>
-      <div className="h-20" />
+      </PageContainer>
     </div>
   );
 }

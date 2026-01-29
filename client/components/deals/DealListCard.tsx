@@ -72,11 +72,6 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
         <div className="flex-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <span>{deal.channel.name}</span>
-            {deal.channel.verified ? (
-              <span className="inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                Verified
-              </span>
-            ) : null}
           </div>
           <p className="text-xs text-muted-foreground">@{deal.channel.username}</p>
         </div>

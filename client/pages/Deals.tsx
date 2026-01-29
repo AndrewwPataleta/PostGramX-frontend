@@ -5,6 +5,7 @@ import { Megaphone, ShoppingCart } from "lucide-react";
 import DealListCard from "@/components/deals/DealListCard";
 import ErrorState from "@/components/feedback/ErrorState";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
 import { getTelegramWebApp } from "@/lib/telegram";
 import { useDealsListQuery } from "@/hooks/use-deals";
@@ -164,27 +165,27 @@ export default function Deals() {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <div className="px-4 pt-6">
-        <h1 className="text-lg font-semibold text-foreground">Deals</h1>
-        <div className="mt-4 flex gap-6 border-b border-border/60">
-          {(Object.keys(sectionLabels) as DealSectionKey[]).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 text-sm font-semibold transition-colors ${
-                activeTab === tab
-                  ? "border-b-2 border-primary text-primary"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {sectionLabels[tab]}
-            </button>
-          ))}
+      <PageContainer className="pt-6 space-y-4">
+        <div>
+          <h1 className="text-lg font-semibold text-foreground">Deals</h1>
+          <div className="mt-4 flex gap-6 border-b border-border/60">
+            {(Object.keys(sectionLabels) as DealSectionKey[]).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`pb-3 text-sm font-semibold transition-colors ${
+                  activeTab === tab
+                    ? "border-b-2 border-primary text-primary"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {sectionLabels[tab]}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="px-4 py-6 space-y-4">
         {isLoading && currentGroup.items.length === 0 ? (
           <div className="space-y-6">
             <div className="space-y-3">
@@ -263,14 +264,14 @@ export default function Deals() {
                 type="button"
                 onClick={() => handleLoadMore(activeTab)}
                 disabled={isFetching}
-                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary/40 disabled:opacity-60"
+                className="w-full rounded-lg border border-border/60 bg-background px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary/40 disabled:opacity-60"
               >
                 {isFetching ? "Loading..." : "Load more"}
               </button>
             ) : null}
           </div>
         )}
-      </div>
+      </PageContainer>
     </div>
   );
 }

@@ -1,10 +1,16 @@
 import { useMemo, useRef, useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useLocation, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { listingsByChannel } from "@/api/features/listingsApi";
 import ErrorState from "@/components/feedback/ErrorState";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateDealMutation } from "@/hooks/use-deals";
 import { formatTonString, nanoToTonString } from "@/lib/ton";
 import type { ChannelItem } from "@/types/channels";
+import type { ListingListItem, ListingsByChannelResponse } from "@/types/listings";
+import type { ChannelCardModel } from "@/components/channels/ChannelCard";
 
 const formatDuration = (hours: number) => {
   if (hours >= 168 && hours % 24 === 0) {
@@ -16,26 +22,106 @@ const formatDuration = (hours: number) => {
 export default function ChannelDetailsView() {
   const { channelId } = useParams<{ channelId: string }>();
   const location = useLocation();
-  const channel = (location.state as { channel?: ChannelItem } | null)?.channel;
+  const state = location.state as
+    | {
+        channel?: ChannelItem | ChannelCardModel;
+        listingsPreview?: ListingListItem[] | null;
+        placementsCount?: number | null;
+        minPriceNano?: string | null;
+        tags?: string[] | null;
+        subscribers?: number | null;
+        avatarUrl?: string | null;
+      }
+    | null;
+  const stateChannel = state?.channel ?? null;
   const listingsSectionRef = useRef<HTMLDivElement | null>(null);
   const [activeListingId, setActiveListingId] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState(false);
   const createDealMutation = useCreateDealMutation();
-  const activeListings = (channel?.listings ?? []).filter(
-    (listing) => listing.isActive !== false
-  );
-  const minPriceNano = activeListings.reduce<bigint | null>((currentMin, listing) => {
-    const price = BigInt(listing.priceNano);
-    if (currentMin === null) {
-      return price;
+  const channel = useMemo(() => {
+    if (!stateChannel) {
+      return null;
     }
-    return price < currentMin ? price : currentMin;
-  }, null);
-  const minPriceTon = minPriceNano ? formatTonString(nanoToTonString(minPriceNano)) : null;
+    const base = stateChannel as ChannelCardModel & ChannelItem;
+    return {
+      id: base.id,
+      name: base.name,
+      username: base.username ?? null,
+      about: base.about ?? base.description ?? null,
+      description: base.description ?? null,
+      avatarUrl: base.avatarUrl ?? null,
+      subscribers: base.subscribers ?? null,
+      placementsCount: state?.placementsCount ?? base.placementsCount ?? null,
+      minPriceNano: state?.minPriceNano ?? (base.minPriceNano ?? null),
+      tags: state?.tags ?? base.tags ?? [],
+      listingsPreview:
+        state?.listingsPreview ?? base.listingsPreview ?? base.listings ?? null,
+    };
+  }, [state, stateChannel]);
+  const resolvedChannel = useMemo(() => {
+    if (channel) {
+      return channel;
+    }
+    if (!channelId) {
+      return null;
+    }
+    return {
+      id: channelId,
+      name: "Channel",
+      username: null,
+      about: null,
+      description: null,
+      avatarUrl: null,
+      subscribers: null,
+      placementsCount: null,
+      minPriceNano: null,
+      tags: [],
+      listingsPreview: null,
+    };
+  }, [channel, channelId]);
+  const previewListings =
+    resolvedChannel?.listingsPreview?.filter((listing) => listing.isActive !== false) ?? [];
+  const shouldFetchListings = Boolean(channelId) && previewListings.length === 0;
+  const listingsQuery = useQuery<ListingsByChannelResponse>({
+    queryKey: ["listingsByChannel", "details", channelId],
+    queryFn: () =>
+      listingsByChannel({
+        channelId: channelId ?? "",
+        page: 1,
+        limit: 10,
+        onlyActive: true,
+        sort: "price_asc",
+      }),
+    enabled: shouldFetchListings,
+    staleTime: 1000 * 60 * 5,
+  });
+  const activeListings =
+    previewListings.length > 0
+      ? previewListings
+      : listingsQuery.data?.items.filter((listing) => listing.isActive !== false) ?? [];
+  const minPriceFromListings = activeListings.reduce<bigint | null>(
+    (currentMin, listing) => {
+      try {
+        const price = BigInt(listing.priceNano);
+        if (currentMin === null || price < currentMin) {
+          return price;
+        }
+        return currentMin;
+      } catch {
+        return currentMin;
+      }
+    },
+    null
+  );
+  const resolvedMinPriceNano =
+    resolvedChannel?.minPriceNano ?? (minPriceFromListings ? minPriceFromListings.toString() : null);
+  const minPriceTon = resolvedMinPriceNano
+    ? formatTonString(nanoToTonString(resolvedMinPriceNano))
+    : null;
   const primaryListing = activeListings[0];
   const isSubmitting = createDealMutation.isPending;
-  const description = channel?.about ?? channel?.description;
-  const username = channel?.username ? `@${channel.username}` : null;
+  const description = resolvedChannel?.about ?? resolvedChannel?.description;
+  const username = resolvedChannel?.username ? `@${resolvedChannel.username}` : null;
 
   const handleCreateDeal = async (listingId: string) => {
     if (isSubmitting) {
@@ -59,6 +145,22 @@ export default function ChannelDetailsView() {
     [activeListings]
   );
 
+  const formattedSubscribers =
+    typeof resolvedChannel?.subscribers === "number"
+      ? resolvedChannel.subscribers.toLocaleString()
+      : "—";
+
+  const buildTagList = (tags: string[]) => {
+    const cleaned = tags.map((tag) => tag.trim()).filter(Boolean);
+    const unique = Array.from(new Set(cleaned));
+    return {
+      visible: unique.slice(0, 3),
+      hiddenCount: Math.max(unique.length - 3, 0),
+    };
+  };
+
+  const channelTags = buildTagList(resolvedChannel?.tags ?? []);
+
   const handlePrimaryCta = () => {
     if (!primaryListing) {
       return;
@@ -72,47 +174,59 @@ export default function ChannelDetailsView() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="px-4 py-6 space-y-4">
-        {!channel || channel.id !== channelId ? (
-          <ErrorState
-            message="Channel not found"
-            description="We couldn't load this channel."
-          />
+      <PageContainer className="py-6 space-y-4">
+        {!resolvedChannel || (channelId && resolvedChannel.id !== channelId) ? (
+          <ErrorState message="Channel not found" description="We couldn't load this channel." />
         ) : (
           <>
             <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-2xl">
-                  {!avatarError && channel.avatarUrl ? (
+                  {!avatarError && resolvedChannel.avatarUrl ? (
                     <img
-                      src={channel.avatarUrl}
-                      alt={channel.name}
+                      src={resolvedChannel.avatarUrl}
+                      alt={resolvedChannel.name}
                       className="h-16 w-16 rounded-2xl object-cover"
                       onError={() => setAvatarError(true)}
                     />
                   ) : (
-                    channel.name?.[0]?.toUpperCase()
+                    resolvedChannel.name?.[0]?.toUpperCase()
                   )}
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-foreground">
-                      {channel.name}
+                      {resolvedChannel.name}
                     </h2>
-                    {channel.verified ? (
-                      <span className="inline-flex items-center justify-center rounded-full bg-primary/20 p-1">
-                        <Check size={14} className="text-primary" />
-                      </span>
-                    ) : null}
                   </div>
-                  {username ? (
-                    <p className="text-xs text-muted-foreground">{username}</p>
-                  ) : null}
+                  {username ? <p className="text-xs text-muted-foreground">{username}</p> : null}
                   <p className="text-xs text-muted-foreground">
-                    {channel.subscribers
-                      ? `${channel.subscribers.toLocaleString()} subscribers`
-                      : "-- subscribers"}
+                    {resolvedChannel.placementsCount ?? activeListings.length ?? "—"} placements •{" "}
+                    {formattedSubscribers} subscribers
                   </p>
+                  <p className="text-xs text-muted-foreground">
+                    From{" "}
+                    <span className="font-semibold text-primary">
+                      {minPriceTon ?? "--"} TON
+                    </span>
+                  </p>
+                  {channelTags.visible.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                      {channelTags.visible.map((tag) => (
+                        <span
+                          key={`${resolvedChannel.id}-${tag}`}
+                          className="rounded-full border border-border/60 bg-card px-2.5 py-1 text-foreground"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {channelTags.hiddenCount > 0 ? (
+                        <span className="rounded-full border border-border/60 bg-card px-2.5 py-1 text-muted-foreground">
+                          +{channelTags.hiddenCount}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {description ? (
                     <p className="text-sm text-muted-foreground">{description}</p>
                   ) : null}
@@ -120,32 +234,73 @@ export default function ChannelDetailsView() {
               </div>
             </div>
 
-            {activeListings.length > 0 ? (
-              <div
-                ref={listingsSectionRef}
-                className="rounded-2xl border border-border/60 bg-card/80 p-6 space-y-4"
+            <div className="rounded-2xl border border-border/60 bg-card/80 p-6">
+              <p className="text-xs text-muted-foreground">Pricing</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-semibold text-foreground">
+                  {minPriceTon ?? "--"}
+                </span>
+                <span className="text-sm text-muted-foreground">TON per post</span>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Pricing includes escrow protection and bot-assisted messaging.
+              </p>
+              <button
+                type="button"
+                onClick={handlePrimaryCta}
+                disabled={!primaryListing || isSubmitting}
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      Available placements
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {activeListings.length} placements available
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">From</p>
-                    <p className="text-lg font-semibold text-primary">
-                      {minPriceTon ?? "--"} TON
-                    </p>
-                  </div>
-                </div>
+                {isSubmitting && activeListingId === primaryListing?.id ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : null}
+                Create Deal
+              </button>
+            </div>
 
+            <div
+              ref={listingsSectionRef}
+              className="rounded-2xl border border-border/60 bg-card/80 p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Available placements</p>
+                  <p className="text-xs text-muted-foreground">
+                    {resolvedChannel.placementsCount ?? activeListings.length} placements available
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">From</p>
+                  <p className="text-lg font-semibold text-primary">
+                    {minPriceTon ?? "--"} TON
+                  </p>
+                </div>
+              </div>
+
+              {listingsQuery.isLoading && shouldFetchListings ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 2 }).map((_, index) => (
+                    <div
+                      key={`listing-skeleton-${index}`}
+                      className="rounded-xl border border-border/60 bg-card/70 p-4 space-y-3"
+                    >
+                      <Skeleton className="h-4 w-32" />
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <Skeleton className="h-14 rounded-lg" />
+                        <Skeleton className="h-14 rounded-lg" />
+                        <Skeleton className="h-14 rounded-lg" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : listingsQuery.isError ? (
+                <div className="rounded-xl border border-border/60 bg-red-500/5 p-4 text-sm text-red-200">
+                  Failed to load placements.
+                </div>
+              ) : formattedListings.length > 0 ? (
                 <div className="space-y-3">
                   {formattedListings.map((listing) => {
-                    const isListingSubmitting =
-                      isSubmitting && activeListingId === listing.id;
+                    const isListingSubmitting = isSubmitting && activeListingId === listing.id;
                     return (
                       <div
                         key={listing.id}
@@ -162,7 +317,7 @@ export default function ChannelDetailsView() {
                             type="button"
                             onClick={() => handleCreateDeal(listing.id)}
                             disabled={isSubmitting}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
                           >
                             {isListingSubmitting ? (
                               <Loader2 size={14} className="animate-spin" />
@@ -192,6 +347,23 @@ export default function ChannelDetailsView() {
                             </p>
                           </div>
                         </div>
+                        <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                          {listing.allowEdits ? (
+                            <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
+                              Edits allowed
+                            </span>
+                          ) : null}
+                          {listing.allowLinkTracking ? (
+                            <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
+                              Tracking allowed
+                            </span>
+                          ) : null}
+                          {listing.allowPinnedPlacement || listing.pinDurationHours ? (
+                            <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
+                              Pinned available
+                            </span>
+                          ) : null}
+                        </div>
                         {listing.tags.length > 0 ? (
                           <div className="space-y-2">
                             <p className="text-[11px] text-muted-foreground">Tags</p>
@@ -207,24 +379,28 @@ export default function ChannelDetailsView() {
                             </div>
                           </div>
                         ) : null}
+                        {listing.contentRulesText ? (
+                          <div className="text-[11px] text-muted-foreground">
+                            <p className="font-semibold text-muted-foreground">Requirements</p>
+                            <p className="line-clamp-2">{listing.contentRulesText}</p>
+                          </div>
+                        ) : null}
                       </div>
                     );
                   })}
                 </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center">
-                <p className="text-sm font-semibold text-foreground">
-                  No listings yet
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  This channel has no active placements available right now.
-                </p>
-              </div>
-            )}
+              ) : (
+                <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center">
+                  <p className="text-sm font-semibold text-foreground">No listings yet</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    This channel has no active placements available right now.
+                  </p>
+                </div>
+              )}
+            </div>
           </>
         )}
-      </div>
+      </PageContainer>
     </div>
   );
 }

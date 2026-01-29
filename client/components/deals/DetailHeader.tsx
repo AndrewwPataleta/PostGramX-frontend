@@ -5,7 +5,6 @@ interface DetailHeaderProps {
   tone: DealStatusTone;
   title: string;
   username: string;
-  verified: boolean;
   price: string;
   dealId: string;
   avatarUrl?: string;
@@ -17,7 +16,6 @@ export default function DetailHeader({
   tone,
   title,
   username,
-  verified,
   price,
   dealId,
   avatarUrl,
@@ -40,11 +38,6 @@ export default function DetailHeader({
         <div className="flex-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <span>{title}</span>
-            {verified ? (
-              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] text-primary">
-                ✓
-              </span>
-            ) : null}
           </div>
           <p className="text-xs text-muted-foreground">@{username}</p>
         </div>

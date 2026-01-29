@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useOutletContext, useParams } from "react-rou
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ListingPreviewDetails } from "@/components/listings/ListingPreviewDetails";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { listingsByChannel } from "@/api/features/listingsApi";
 import { managedChannelData } from "@/features/channels/managedChannels";
 import {
@@ -150,16 +151,20 @@ export default function EditListing() {
 
   if (!channel || listingsQuery.isLoading) {
     return (
-      <div className="w-full max-w-2xl mx-auto px-4 py-6">
-        <p className="text-muted-foreground">Loading listing...</p>
+      <div className="w-full max-w-2xl mx-auto">
+        <PageContainer className="py-6">
+          <p className="text-muted-foreground">Loading listing...</p>
+        </PageContainer>
       </div>
     );
   }
 
   if (!listing) {
     return (
-      <div className="w-full max-w-2xl mx-auto px-4 py-6">
-        <p className="text-muted-foreground">Listing not found</p>
+      <div className="w-full max-w-2xl mx-auto">
+        <PageContainer className="py-6">
+          <p className="text-muted-foreground">Listing not found</p>
+        </PageContainer>
       </div>
     );
   }
@@ -223,7 +228,7 @@ export default function EditListing() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="px-4 py-6 space-y-6">
+      <PageContainer className="py-6 space-y-6">
         <section className="space-y-3">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Ad format</h2>
@@ -278,7 +283,7 @@ export default function EditListing() {
                   key={hours}
                   type="button"
                   onClick={() => setPinDurationChoice(String(hours))}
-                  className={`rounded-full border px-3 py-1 text-[11px] ${
+                  className={`rounded-lg border px-3 py-1 text-[11px] ${
                     pinDurationChoice === String(hours)
                       ? "border-primary/60 bg-primary/20 text-primary"
                       : "border-border/60 bg-secondary/60 text-foreground"
@@ -290,7 +295,7 @@ export default function EditListing() {
               <button
                 type="button"
                 onClick={() => setPinDurationChoice("none")}
-                className={`rounded-full border px-3 py-1 text-[11px] ${
+                className={`rounded-lg border px-3 py-1 text-[11px] ${
                   pinDurationChoice === "none"
                     ? "border-primary/60 bg-primary/20 text-primary"
                     : "border-border/60 bg-secondary/60 text-foreground"
@@ -334,7 +339,7 @@ export default function EditListing() {
                   key={hours}
                   type="button"
                   onClick={() => setVisibilityDurationChoice(String(hours))}
-                  className={`rounded-full border px-3 py-1 text-[11px] ${
+                  className={`rounded-lg border px-3 py-1 text-[11px] ${
                     visibilityDurationChoice === String(hours)
                       ? "border-primary/60 bg-primary/20 text-primary"
                       : "border-border/60 bg-secondary/60 text-foreground"
@@ -440,7 +445,7 @@ export default function EditListing() {
                   }
                   setCustomTag("");
                 }}
-                className="rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-xs font-semibold text-primary"
+                className="rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-xs font-semibold text-primary"
               >
                 Add
               </button>
@@ -461,7 +466,7 @@ export default function EditListing() {
                       }
                       setSelectedTags((prev) => prev.filter((item) => item !== tag));
                     }}
-                    className={`rounded-full px-2.5 py-1 ${
+                    className={`rounded-lg px-2.5 py-1 ${
                       isLocked
                         ? "bg-secondary/60 text-foreground"
                         : "bg-secondary/60 text-foreground hover:bg-secondary"
@@ -505,7 +510,7 @@ export default function EditListing() {
                                 : [...prev, tag],
                             );
                           }}
-                          className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                          className={`rounded-lg border px-3 py-1 text-xs transition-colors ${
                             isSelected
                               ? "border-primary/60 bg-primary/20 text-primary"
                               : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
@@ -587,9 +592,7 @@ export default function EditListing() {
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="h-20" />
+      </PageContainer>
     </div>
   );
 }

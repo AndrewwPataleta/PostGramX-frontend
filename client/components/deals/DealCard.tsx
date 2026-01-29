@@ -3,7 +3,6 @@ import DealStatusPill, { DealStatusTone } from "./DealStatusPill";
 interface DealCardProps {
   name: string;
   username: string;
-  verified: boolean;
   avatarUrl: string;
   price: string;
   statusLabel: string;
@@ -17,7 +16,6 @@ interface DealCardProps {
 export default function DealCard({
   name,
   username,
-  verified,
   avatarUrl,
   price,
   statusLabel,
@@ -57,11 +55,6 @@ export default function DealCard({
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <span>{name}</span>
-              {verified ? (
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] text-primary">
-                  ✓
-                </span>
-              ) : null}
             </div>
             <p className="text-xs text-muted-foreground">@{username}</p>
           </div>
@@ -83,7 +76,7 @@ export default function DealCard({
           event.stopPropagation();
           onAction?.();
         }}
-        className="mt-4 w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+        className="mt-4 w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
       >
         {ctaLabel}
       </button>

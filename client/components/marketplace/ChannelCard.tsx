@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { listingsByChannel } from "@/api/features/listingsApi";
@@ -164,11 +164,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-foreground">{channel.name}</h3>
-                {channel.verified ? (
-                  <span className="inline-flex items-center justify-center rounded-full bg-primary/20 p-1">
-                    <Check size={12} className="text-primary" />
-                  </span>
-                ) : null}
               </div>
               {username ? <span className="text-xs text-muted-foreground">{username}</span> : null}
             </div>
@@ -185,7 +180,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                     }
                     window.open(telegramLink, "_blank", "noopener,noreferrer");
                   }}
-                  className="rounded-full border border-border/60 bg-secondary/40 px-3 py-1 text-[11px] font-semibold text-primary transition hover:text-primary/90"
+                  className="rounded-lg border border-border/60 bg-secondary/40 px-3 py-1 text-[11px] font-semibold text-primary transition hover:text-primary/90"
                 >
                   Open channel
                 </button>
@@ -197,7 +192,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                   setIsExpanded((prev) => !prev);
                 }}
                 aria-expanded={isExpanded}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-secondary/40 text-muted-foreground transition hover:text-foreground"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-secondary/40 text-muted-foreground transition hover:text-foreground"
               >
                 <ChevronDown
                   size={16}

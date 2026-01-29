@@ -1,4 +1,3 @@
-import { Check } from "lucide-react";
 import type { ManagedChannel } from "@/features/channels/managedChannels";
 
 interface ListingSummaryCardProps {
@@ -35,16 +34,10 @@ export function ListingSummaryCard({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-foreground">{channel.name}</p>
-            {channel.verified ? (
-              <span className="inline-flex items-center justify-center rounded-full bg-primary/20 p-1">
-                <Check size={12} className="text-primary" />
-              </span>
-            ) : null}
           </div>
           <p className="text-xs text-muted-foreground">{channel.username}</p>
           <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
             <span className="rounded-full bg-secondary/60 px-2 py-1">Editable</span>
-            <span className="rounded-full bg-secondary/60 px-2 py-1">Verified</span>
             <span className="rounded-full bg-secondary/60 px-2 py-1">Auto-post supported</span>
           </div>
         </div>

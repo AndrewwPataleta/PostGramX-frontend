@@ -98,7 +98,7 @@ const ListingPreviewRow = memo(({ channelId, listing, rootBackTo }: ListingPrevi
       <Link
         to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
         state={rootBackTo ? { rootBackTo } : undefined}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition hover:text-foreground"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground transition hover:text-foreground"
         aria-label="Edit listing"
       >
         <PencilLine size={14} />
@@ -185,7 +185,7 @@ const ChannelListingsPreview = memo(
           <button
             type="button"
             onClick={() => query.refetch()}
-            className="mt-2 inline-flex items-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-[11px] font-semibold text-red-200"
+            className="mt-2 inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1 text-[11px] font-semibold text-red-200"
           >
             <RefreshCcw size={12} />
             Retry

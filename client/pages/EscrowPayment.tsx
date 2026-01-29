@@ -1,5 +1,6 @@
 import { Lock, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export default function EscrowPayment() {
   const [showManualTransfer, setShowManualTransfer] = useState(false);
@@ -7,7 +8,7 @@ export default function EscrowPayment() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Main content */}
-      <div className="px-4 pt-6 pb-24 space-y-4">
+      <PageContainer className="pt-6 space-y-4">
         {/* Secure Payment Card */}
         <div className="glass p-8 rounded-lg border-2 border-primary/30 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/20 rounded-full mb-4">
@@ -93,7 +94,7 @@ export default function EscrowPayment() {
             </button>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

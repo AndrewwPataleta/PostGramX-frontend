@@ -8,6 +8,7 @@ import {
   useVerifyChannel,
 } from "@/features/channels/hooks/useVerifyChannel";
 import { managedChannelData, type ManagedChannel } from "@/features/channels/managedChannels";
+import { PageContainer } from "@/components/layout/PageContainer";
 import type { ChannelListItem } from "@/types/channels";
 
 export type ChannelManageContext = {
@@ -68,8 +69,10 @@ const ChannelManageLayout = () => {
   const isPendingVerification = channel?.status === "PENDING_VERIFY";
   if (!channel) {
     return (
-      <div className="w-full max-w-2xl mx-auto px-4 py-6">
-        <p className="text-muted-foreground">Channel not found</p>
+      <div className="w-full max-w-2xl mx-auto">
+        <PageContainer className="py-6">
+          <p className="text-muted-foreground">Channel not found</p>
+        </PageContainer>
       </div>
     );
   }
@@ -120,7 +123,8 @@ const ChannelManageLayout = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="px-4 py-6 bg-gradient-to-b from-card/50 to-transparent">
+      <PageContainer className="pt-6">
+        <div className="py-6 bg-gradient-to-b from-card/50 to-transparent">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center text-4xl flex-shrink-0">
             {channel.avatar}
@@ -128,11 +132,6 @@ const ChannelManageLayout = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-xl font-bold text-foreground">{channel.name}</h2>
-              {channel.verified ? (
-                <span className="inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                  Verified
-                </span>
-              ) : null}
             </div>
             <p className="text-sm text-muted-foreground mb-2">{channel.username}</p>
             <p className="text-xs text-muted-foreground">
@@ -153,7 +152,7 @@ const ChannelManageLayout = () => {
                 type="button"
                 onClick={handleRetryVerification}
                 disabled={isPending}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-yellow-500/80 px-4 py-2 text-xs font-semibold text-yellow-950 transition disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-yellow-500/80 px-4 py-2 text-xs font-semibold text-yellow-950 transition disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isPending ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -170,7 +169,7 @@ const ChannelManageLayout = () => {
         ) : null}
       </div>
 
-      <div className="border-b border-border/50 bg-card/80 backdrop-blur-glass px-4">
+      <div className="border-b border-border/50 bg-card/80 backdrop-blur-glass">
         <div className="flex gap-6">
           {[{ id: "listings", label: "Listings" }, { id: "settings", label: "Settings" }].map(
             (tab) => (
@@ -197,11 +196,10 @@ const ChannelManageLayout = () => {
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-4">
+      <div className="py-6 space-y-4">
         <Outlet context={outletContext} />
       </div>
-
-      <div className="h-20" />
+      </PageContainer>
     </div>
   );
 };

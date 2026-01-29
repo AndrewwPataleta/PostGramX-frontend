@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
 import { cn } from "@/lib/utils";
 import { AddChannelFlowProvider } from "@/pages/add-channel/useAddChannelFlow";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 const AddChannelLayout = () => {
   const navigate = useNavigate();
@@ -33,16 +34,16 @@ const AddChannelLayout = () => {
             <button
               type="button"
               onClick={() => navigate("/channels", { replace: true })}
-              className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+              className="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
               aria-label="Close add channel flow"
             >
               <X size={18} />
             </button>
           </div>
         </header>
-        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-6 pt-4">
+        <PageContainer className="mx-auto flex w-full max-w-2xl flex-1 flex-col pt-4">
           <Outlet />
-        </div>
+        </PageContainer>
       </SafeAreaLayout>
     </AddChannelFlowProvider>
   );
