@@ -97,7 +97,7 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
         }
       }}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div className="flex flex-wrap gap-2">
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}

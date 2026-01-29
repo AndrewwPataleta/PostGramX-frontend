@@ -43,14 +43,9 @@ export default function DetailHeader({
         </div>
         <div className="text-right text-xs text-muted-foreground">
           <p className="font-semibold text-foreground">{price}</p>
-          <p>{dealId}</p>
         </div>
       </div>
 
-      <div className="mt-4 space-y-2">
-        <DealStatusPill label={status} tone={tone} />
-        <p className="text-xs text-muted-foreground">{statusDescription}</p>
-      </div>
     </div>
   );
 }
