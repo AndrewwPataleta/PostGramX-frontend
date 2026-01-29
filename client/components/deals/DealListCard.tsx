@@ -98,14 +98,21 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
       }}
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
             >
               {roleLabelMap[deal.userRoleInDeal]}
             </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="text-right">
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              {escrowText}
+            </span>
           </div>
+        </div>
+        <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-secondary/60 text-lg font-semibold text-muted-foreground">
             {deal.channel.avatarUrl ? (
               <img
@@ -123,13 +130,7 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              {escrowText}
-            </span>
-          </div>
-        </div>
+
       </div>
 
       <div className="mt-3 space-y-1">

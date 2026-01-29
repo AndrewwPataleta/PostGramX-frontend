@@ -378,24 +378,6 @@ export default function EditListing() {
             <p className="text-xs text-muted-foreground">Control what advertisers can change.</p>
           </div>
           <div className="space-y-2">
-            <label className="flex items-center justify-between rounded-xl border border-border/60 bg-card px-3 py-3 text-sm">
-              <span className="text-foreground">Allow minor post edits by advertiser</span>
-              <input
-                type="checkbox"
-                checked={allowEdits}
-                onChange={(event) => setAllowEdits(event.target.checked)}
-                className="h-4 w-4"
-              />
-            </label>
-            <label className="flex items-center justify-between rounded-xl border border-border/60 bg-card px-3 py-3 text-sm">
-              <span className="text-foreground">Allow link tracking (UTM / referral links)</span>
-              <input
-                type="checkbox"
-                checked={allowLinkTracking}
-                onChange={(event) => setAllowLinkTracking(event.target.checked)}
-                className="h-4 w-4"
-              />
-            </label>
             <label className="flex items-center justify-between rounded-xl border border-border/40 bg-card/60 px-3 py-3 text-sm opacity-80">
               <span className="text-foreground">
                 Require pre-approval before publishing

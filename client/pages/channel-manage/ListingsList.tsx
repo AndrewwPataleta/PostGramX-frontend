@@ -76,18 +76,6 @@ const ListingsList = () => {
             All listings
           </button>
         </div>
-        <select
-          value={sort}
-          onChange={(event) => {
-            setSort(event.target.value as "recent" | "price_asc" | "price_desc");
-            setPage(1);
-          }}
-          className="rounded-lg border border-border/60 bg-card px-3 py-2 text-xs text-foreground"
-        >
-          <option value="recent">Most recent</option>
-          <option value="price_asc">Price: low to high</option>
-          <option value="price_desc">Price: high to low</option>
-        </select>
       </div>
 
       {listingsQuery.isLoading ? (
