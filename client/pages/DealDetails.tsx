@@ -1,53 +1,62 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "react-router-dom";
-import DetailHeader from "@/components/deals/DetailHeader";
-import InfoCard from "@/components/deals/InfoCard";
-import Timeline from "@/components/deals/Timeline";
-import { fetchDealsList } from "@/api/features/dealsApi";
-import { formatScheduleDate } from "@/features/deals/time";
+import DealHeaderCard from "@/components/deals/DealHeaderCard";
+import StageTimeline from "@/components/deals/StageTimeline";
+import { fetchDealDetails, fetchDealsList } from "@/api/features/dealsApi";
 import { toast } from "sonner";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
 import type { DealListItem } from "@/types/deals";
-import { formatTonString, nanoToTonString } from "@/lib/ton";
-
-const formatDateTime = (value?: string) => {
-  if (!value) {
-    return "-";
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+import { canNavigateTo, getAvailableStages, getCurrentStage, type DealStageId } from "@/features/deals/dealStageMachine";
+import StageScheduleTime from "@/features/deals/stages/StageScheduleTime";
+import StageSendPost from "@/features/deals/stages/StageSendPost";
+import StageConfirmPost from "@/features/deals/stages/StageConfirmPost";
+import StageAdminApproval from "@/features/deals/stages/StageAdminApproval";
+import StagePaymentWindow from "@/features/deals/stages/StagePaymentWindow";
+import StagePayment from "@/features/deals/stages/StagePayment";
+import StagePaymentPending from "@/features/deals/stages/StagePaymentPending";
+import StageScheduled from "@/features/deals/stages/StageScheduled";
+import StageVerifying from "@/features/deals/stages/StageVerifying";
+import StageDone from "@/features/deals/stages/StageDone";
 
 export default function DealDetails() {
   const { dealId } = useParams<{ dealId: string }>();
   const location = useLocation();
   const queryClient = useQueryClient();
   const stateDeal = (location.state as { deal?: DealListItem } | null)?.deal;
-  const cachedDeal = dealId
-    ? queryClient.getQueryData<DealListItem>(["dealById", dealId])
-    : undefined;
+  const cachedDeal = dealId ? queryClient.getQueryData<DealListItem>(["deal", dealId]) : undefined;
   const preferredDeal = stateDeal?.id === dealId ? stateDeal : cachedDeal;
 
-  const shouldFetch = Boolean(dealId) && !preferredDeal;
   const {
-    data: fallbackDeals,
-    isLoading: isFetchingFallback,
+    data: deal,
+    isLoading,
     error,
     refetch,
+    isFetching,
   } = useQuery({
+    queryKey: ["deal", dealId],
+    queryFn: async () => {
+      if (!dealId) {
+        throw new Error("Missing deal id");
+      }
+      return fetchDealDetails(dealId);
+    },
+    enabled: Boolean(dealId),
+    initialData: preferredDeal,
+    refetchInterval: (data) => {
+      if (!data) {
+        return false;
+      }
+      return ["PAYMENT_AWAITING", "FUNDS_PENDING", "POSTED_VERIFYING"].includes(data.escrowStatus)
+        ? 5000
+        : false;
+    },
+  });
+
+  const fallbackListQuery = useQuery({
     queryKey: ["deals", "list", "detail-fallback", dealId],
     queryFn: () =>
       fetchDealsList({
@@ -56,157 +65,118 @@ export default function DealDetails() {
         activeLimit: 20,
         completedLimit: 20,
       }),
-    enabled: shouldFetch,
+    enabled: Boolean(dealId) && !deal,
     staleTime: 20_000,
   });
 
-  useEffect(() => {
-    if (error) {
-      toast.error(getErrorMessage(error, "Unable to load deals"));
-    }
-  }, [error]);
-
   const fallbackDeal = useMemo(() => {
-    if (!fallbackDeals || !dealId) {
+    if (!fallbackListQuery.data || !dealId) {
       return null;
     }
     const allDeals = [
-      ...fallbackDeals.pending.items,
-      ...fallbackDeals.active.items,
-      ...fallbackDeals.completed.items,
+      ...fallbackListQuery.data.pending.items,
+      ...fallbackListQuery.data.active.items,
+      ...fallbackListQuery.data.completed.items,
     ];
-    return allDeals.find((deal) => deal.id === dealId) ?? null;
-  }, [dealId, fallbackDeals]);
+    return allDeals.find((entry) => entry.id === dealId) ?? null;
+  }, [dealId, fallbackListQuery.data]);
 
-  const deal = preferredDeal ?? fallbackDeal ?? null;
-  const isLoading = shouldFetch && isFetchingFallback;
-  const statusLabel = deal?.status ? deal.status.replace(/_/g, " ") : "";
-  const escrowLabel = deal?.escrowStatus ? deal.escrowStatus.replace(/_/g, " ") : "";
-  const tone = (() => {
-    if (!deal) {
-      return "neutral";
+  const resolvedDeal = deal ?? fallbackDeal;
+
+  useEffect(() => {
+    if (error || fallbackListQuery.error) {
+      toast.error(getErrorMessage(error ?? fallbackListQuery.error, "Unable to load deal"));
     }
-    switch (deal.status) {
-      case "COMPLETED":
-        return "success";
-      case "CANCELED":
-        return "danger";
-      case "ACTIVE":
-        return "primary";
-      case "PENDING":
+  }, [error, fallbackListQuery.error]);
+
+  const currentStage = resolvedDeal ? getCurrentStage(resolvedDeal.escrowStatus) : "SCHEDULE";
+  const availableStages = resolvedDeal ? getAvailableStages(resolvedDeal.escrowStatus) : [];
+  const [selectedStage, setSelectedStage] = useState<DealStageId | null>(null);
+
+  useEffect(() => {
+    if (!resolvedDeal) {
+      return;
+    }
+    setSelectedStage((prev) => {
+      if (!prev) {
+        return currentStage;
+      }
+      if (!canNavigateTo(prev, resolvedDeal.escrowStatus)) {
+        return currentStage;
+      }
+      return prev;
+    });
+  }, [currentStage, resolvedDeal]);
+
+  const handleSelectStage = (stage: DealStageId) => {
+    if (!resolvedDeal) {
+      return;
+    }
+    if (canNavigateTo(stage, resolvedDeal.escrowStatus)) {
+      setSelectedStage(stage);
+    }
+  };
+
+  const stagePanel = useMemo(() => {
+    if (!resolvedDeal || !selectedStage) {
+      return null;
+    }
+    const isCurrent = selectedStage === currentStage;
+    switch (selectedStage) {
+      case "SCHEDULE":
+        return <StageScheduleTime deal={resolvedDeal} isCurrent={isCurrent} />;
+      case "SEND_POST":
+        return <StageSendPost deal={resolvedDeal} isCurrent={isCurrent} />;
+      case "CONFIRM_POST":
+        return <StageConfirmPost deal={resolvedDeal} isCurrent={isCurrent} />;
+      case "ADMIN_APPROVAL":
+        return <StageAdminApproval deal={resolvedDeal} isCurrent={isCurrent} />;
+      case "PAYMENT_WINDOW":
+        return <StagePaymentWindow deal={resolvedDeal} isCurrent={isCurrent} />;
+      case "PAYMENT":
+        return <StagePayment deal={resolvedDeal} isCurrent={isCurrent} />;
+      case "PAYMENT_PENDING":
+        return (
+          <StagePaymentPending
+            isCurrent={isCurrent}
+            onRefresh={() => refetch()}
+            isRefreshing={isFetching}
+          />
+        );
+      case "SCHEDULED":
+        return <StageScheduled deal={resolvedDeal} isCurrent={isCurrent} />;
+      case "VERIFYING":
+        return <StageVerifying deal={resolvedDeal} isCurrent={isCurrent} />;
+      case "DONE":
+        return <StageDone deal={resolvedDeal} />;
       default:
-        return "warning";
+        return null;
     }
-  })();
-  const timelineItems = useMemo(() => {
-    if (!deal) {
-      return [];
-    }
-    const steps =
-      deal.status === "CANCELED" ? ["Pending", "Active", "Canceled"] : ["Pending", "Active", "Completed"];
-    const currentIndex =
-      deal.status === "PENDING" ? 0 : deal.status === "ACTIVE" ? 1 : 2;
-    return steps.map((label, index) => ({
-      label,
-      state: index < currentIndex ? "completed" : index === currentIndex ? "current" : "upcoming",
-    }));
-  }, [deal]);
-  const formattedPrice = deal
-    ? `${formatTonString(nanoToTonString(deal.listing.priceNano))} TON`
-    : "--";
-  const roleLabel = deal
-    ? deal.userRoleInDeal === "advertiser"
-      ? "You are advertiser"
-      : deal.userRoleInDeal === "publisher"
-      ? "You are publisher"
-      : "You manage this channel"
-    : "";
-  const initiatorLabel = deal
-    ? deal.initiatorSide === "ADVERTISER"
-      ? "Advertiser initiated"
-      : "Publisher initiated"
-    : "";
+  }, [currentStage, isFetching, refetch, resolvedDeal, selectedStage]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       <PageContainer className="py-6 space-y-4">
         {isLoading ? (
           <LoadingSkeleton items={3} />
-        ) : error || !deal ? (
+        ) : error || fallbackListQuery.error || !resolvedDeal ? (
           <ErrorState
-            message={getErrorMessage(error, "Deal not found")}
+            message={getErrorMessage(error ?? fallbackListQuery.error, "Deal not found")}
             description="We couldn't load this deal right now."
             onRetry={() => refetch()}
           />
         ) : (
           <>
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
-              <DetailHeader
-                status={statusLabel || "Deal"}
-                tone={tone}
-                title={deal.channel.name}
-                username={deal.channel.username}
-                price={formattedPrice}
-                dealId={deal.id}
-                avatarUrl={deal.channel.avatarUrl ?? undefined}
-                statusDescription={escrowLabel ? `Escrow: ${escrowLabel}` : "Escrow status pending"}
-              />
+            <DealHeaderCard deal={resolvedDeal} currentStage={currentStage} />
 
-              <Timeline items={timelineItems} />
-            </div>
+            <StageTimeline
+              stages={availableStages}
+              selectedStage={selectedStage ?? currentStage}
+              escrowStatus={resolvedDeal.escrowStatus}
+              onSelect={handleSelectStage}
+            />
 
-            <InfoCard title="Status">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-foreground">
-                <span className="rounded-full bg-foreground/5 px-3 py-1">{statusLabel}</span>
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">
-                  {escrowLabel}
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Created {formatDateTime(deal.createdAt)} · Last activity{" "}
-                {formatDateTime(deal.lastActivityAt)}
-              </p>
-            </InfoCard>
-
-            <InfoCard title="Listing">
-              <div className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
-                  <p className="font-semibold">{formattedPrice}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Format</p>
-                  <p className="font-semibold">{deal.listing.format}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Placement</p>
-                  <p className="font-semibold">Pinned {deal.listing.placementHours}h</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Visibility</p>
-                  <p className="font-semibold">Visible {deal.listing.lifetimeHours}h</p>
-                </div>
-              </div>
-              {deal.listing.tags.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {deal.listing.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </InfoCard>
-
-            <InfoCard title="Schedule">
-              <p className="text-sm text-foreground">{formatScheduleDate(deal.scheduledAt)}</p>
-              <p className="text-xs text-muted-foreground">
-                Last activity {formatDateTime(deal.lastActivityAt)}
-              </p>
-            </InfoCard>
+            {stagePanel}
           </>
         )}
       </PageContainer>

@@ -34,7 +34,7 @@ const normalizeDealsGroup = (
 const buildMockDeal = (overrides: Partial<DealListItem>): DealListItem => ({
   id: `deal_${Math.random().toString(36).slice(2, 8)}`,
   status: "PENDING",
-  escrowStatus: "NEGOTIATING",
+  escrowStatus: "SCHEDULING_PENDING",
   initiatorSide: "ADVERTISER",
   userRoleInDeal: "advertiser",
   channel: {
@@ -52,6 +52,12 @@ const buildMockDeal = (overrides: Partial<DealListItem>): DealListItem => ({
     tags: ["crypto", "telegram", "growth"],
     placementHours: 24,
     lifetimeHours: 48,
+    pinDurationHours: 24,
+    visibilityDurationHours: 48,
+    allowEdits: true,
+    allowLinkTracking: true,
+    contentRulesText: "Avoid misleading claims or urgent calls to action.",
+    requiresApproval: true,
   },
   createdAt: new Date().toISOString(),
   lastActivityAt: new Date().toISOString(),
@@ -67,7 +73,7 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
   const pendingItems = [
     buildMockDeal({
       status: "PENDING",
-      escrowStatus: "NEGOTIATING",
+      escrowStatus: "SCHEDULING_PENDING",
       channel: {
         id: "channel_1",
         name: "TON Signals",
@@ -83,11 +89,17 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         tags: ["trading", "alerts"],
         placementHours: 24,
         lifetimeHours: 48,
+        pinDurationHours: 24,
+        visibilityDurationHours: 48,
+        allowEdits: false,
+        allowLinkTracking: true,
+        contentRulesText: "No financial guarantees. Avoid spam emojis.",
+        requiresApproval: true,
       },
     }),
     buildMockDeal({
       status: "PENDING",
-      escrowStatus: "AWAITING_PAYMENT",
+      escrowStatus: "PAYMENT_WINDOW_PENDING",
       channel: {
         id: "channel_2",
         name: "Web3 Pulse",
@@ -103,11 +115,16 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         tags: ["web3", "defi"],
         placementHours: 12,
         lifetimeHours: 36,
+        pinDurationHours: 12,
+        visibilityDurationHours: 36,
+        allowEdits: true,
+        allowLinkTracking: false,
+        requiresApproval: false,
       },
     }),
     buildMockDeal({
       status: "PENDING",
-      escrowStatus: "NEGOTIATING",
+      escrowStatus: "CREATIVE_AWAITING_CONFIRM",
       channel: {
         id: "channel_3",
         name: "NFT Radar",
@@ -123,7 +140,13 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         tags: ["nft", "drops"],
         placementHours: 48,
         lifetimeHours: 72,
+        pinDurationHours: 48,
+        visibilityDurationHours: 72,
+        allowEdits: true,
+        allowLinkTracking: true,
+        requiresApproval: true,
       },
+      creativeText: "Launching the NFT Radar spotlight — drop your collection now.",
     }),
   ];
 
@@ -146,6 +169,11 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         tags: ["startup", "founder"],
         placementHours: 24,
         lifetimeHours: 48,
+        pinDurationHours: 24,
+        visibilityDurationHours: 48,
+        allowEdits: true,
+        allowLinkTracking: true,
+        requiresApproval: false,
       },
       scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
     }),
@@ -167,7 +195,13 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         tags: ["analysis", "market"],
         placementHours: 24,
         lifetimeHours: 48,
+        pinDurationHours: 24,
+        visibilityDurationHours: 48,
+        allowEdits: false,
+        allowLinkTracking: true,
+        requiresApproval: false,
       },
+      postUrl: "https://t.me/cryptoatlas/123",
     }),
   ];
 
@@ -190,6 +224,11 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         tags: ["product", "growth"],
         placementHours: 24,
         lifetimeHours: 48,
+        pinDurationHours: 24,
+        visibilityDurationHours: 48,
+        allowEdits: true,
+        allowLinkTracking: true,
+        requiresApproval: false,
       },
     }),
     buildMockDeal({
@@ -210,6 +249,11 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         tags: ["defi", "yield"],
         placementHours: 12,
         lifetimeHours: 36,
+        pinDurationHours: 12,
+        visibilityDurationHours: 36,
+        allowEdits: true,
+        allowLinkTracking: true,
+        requiresApproval: false,
       },
     }),
   ];
@@ -386,7 +430,7 @@ export const createDeal = async (
     return {
       id: `deal_${Date.now()}`,
       status: "PENDING",
-      escrowStatus: "NEGOTIATING",
+      escrowStatus: "SCHEDULING_PENDING",
       listingId: payload.listingId,
       channelId: "channel_mock",
       initiatorSide: "ADVERTISER",
@@ -422,8 +466,29 @@ export const fetchDealsList = async (
   };
 };
 
+export const fetchDealDetails = async (dealId: string): Promise<DealListItem> => {
+  if (isMockMode) {
+    await wait(600);
+    const snapshot = mockDealsList({
+      role: "all",
+      pendingLimit: 20,
+      activeLimit: 20,
+      completedLimit: 20,
+    });
+    const allDeals = [
+      ...snapshot.pending.items,
+      ...snapshot.active.items,
+      ...snapshot.completed.items,
+    ];
+    return allDeals.find((deal) => deal.id === dealId) ?? buildMockDeal({ id: dealId });
+  }
+
+  return post<DealListItem, { dealId: string }>("/deals/get", { dealId });
+};
+
 export const dealsApi = {
   createDeal,
   fetchDealsList,
+  fetchDealDetails,
   getDealsOverview,
 };
