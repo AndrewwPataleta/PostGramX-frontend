@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useLocation, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { listingsByChannel } from "@/api/features/listingsApi";
@@ -36,6 +36,7 @@ export default function ChannelDetailsView() {
   const stateChannel = state?.channel ?? null;
   const listingsSectionRef = useRef<HTMLDivElement | null>(null);
   const [activeListingId, setActiveListingId] = useState<string | null>(null);
+  const [expandedListingIds, setExpandedListingIds] = useState<string[]>([]);
   const [avatarError, setAvatarError] = useState(false);
   const createDealMutation = useCreateDealMutation();
   const channel = useMemo(() => {
@@ -159,6 +160,15 @@ export default function ChannelDetailsView() {
     };
   };
 
+  const buildListingTagList = (tags: string[]) => {
+    const cleaned = tags.map((tag) => tag.trim()).filter(Boolean);
+    const unique = Array.from(new Set(cleaned));
+    return {
+      visible: unique.slice(0, 2),
+      hiddenCount: Math.max(unique.length - 2, 0),
+    };
+  };
+
   const channelTags = buildTagList(resolvedChannel?.tags ?? []);
 
   const handlePrimaryCta = () => {
@@ -170,6 +180,14 @@ export default function ChannelDetailsView() {
     } else {
       listingsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  const toggleListingExpanded = (listingId: string) => {
+    setExpandedListingIds((prev) =>
+      prev.includes(listingId)
+        ? prev.filter((id) => id !== listingId)
+        : [...prev, listingId]
+    );
   };
 
   return (
@@ -260,7 +278,7 @@ export default function ChannelDetailsView() {
 
             <div
               ref={listingsSectionRef}
-              className="rounded-2xl border border-border/60 bg-card/80 p-6 space-y-4"
+              className="rounded-2xl border border-border/60 bg-card/80 p-4 space-y-3"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -282,7 +300,7 @@ export default function ChannelDetailsView() {
                   {Array.from({ length: 2 }).map((_, index) => (
                     <div
                       key={`listing-skeleton-${index}`}
-                      className="rounded-xl border border-border/60 bg-card/70 p-4 space-y-3"
+                      className="rounded-xl border border-border/60 bg-card/70 p-3 space-y-3"
                     >
                       <Skeleton className="h-4 w-32" />
                       <div className="grid gap-3 sm:grid-cols-3">
@@ -301,88 +319,103 @@ export default function ChannelDetailsView() {
                 <div className="space-y-3">
                   {formattedListings.map((listing) => {
                     const isListingSubmitting = isSubmitting && activeListingId === listing.id;
+                    const isExpanded = expandedListingIds.includes(listing.id);
+                    const tagList = buildListingTagList(listing.tags);
+                    const metaParts = [
+                      listing.pinDurationHours
+                        ? `Pinned ${formatDuration(listing.pinDurationHours)}`
+                        : null,
+                      listing.visibilityDurationHours
+                        ? `Visible ${formatDuration(listing.visibilityDurationHours)}`
+                        : null,
+                    ].filter(Boolean);
+                    const metaLabel = metaParts.join(" • ");
                     return (
                       <div
                         key={listing.id}
-                        className="rounded-xl border border-border/60 bg-card/70 p-4 space-y-3"
+                        className="rounded-xl border border-border/60 bg-card/70 p-3 space-y-2"
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Price</p>
-                            <p className="mt-1 text-lg font-semibold text-foreground">
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold text-foreground">
                               {listing.priceTon}
                             </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCreateDeal(listing.id)}
-                            disabled={isSubmitting}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-                          >
-                            {isListingSubmitting ? (
-                              <Loader2 size={14} className="animate-spin" />
+                            {metaLabel ? (
+                              <p className="text-[11px] text-muted-foreground">{metaLabel}</p>
                             ) : null}
-                            Create Deal
-                          </button>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-3">
-                          <div className="rounded-lg border border-border/60 bg-card/60 p-3">
-                            <p className="text-[11px] text-muted-foreground">Placement</p>
-                            <p className="mt-1 text-xs font-semibold text-foreground">
-                              {listing.format}
-                            </p>
                           </div>
-                          <div className="rounded-lg border border-border/60 bg-card/60 p-3">
-                            <p className="text-[11px] text-muted-foreground">Pinned</p>
-                            <p className="mt-1 text-xs font-semibold text-foreground">
-                              {listing.pinDurationHours
-                                ? formatDuration(listing.pinDurationHours)
-                                : "Not pinned"}
-                            </p>
-                          </div>
-                          <div className="rounded-lg border border-border/60 bg-card/60 p-3">
-                            <p className="text-[11px] text-muted-foreground">Visible</p>
-                            <p className="mt-1 text-xs font-semibold text-foreground">
-                              {formatDuration(listing.visibilityDurationHours ?? 24)}
-                            </p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleCreateDeal(listing.id)}
+                              disabled={isSubmitting}
+                              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                            >
+                              {isListingSubmitting ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : null}
+                              Select
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleListingExpanded(listing.id)}
+                              aria-expanded={isExpanded}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-background/70 text-muted-foreground transition hover:text-foreground"
+                            >
+                              <ChevronDown
+                                size={16}
+                                className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                              />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-                          {listing.allowEdits ? (
-                            <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
-                              Edits allowed
-                            </span>
-                          ) : null}
-                          {listing.allowLinkTracking ? (
-                            <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
-                              Tracking allowed
-                            </span>
-                          ) : null}
-                          {listing.allowPinnedPlacement || listing.pinDurationHours ? (
-                            <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
-                              Pinned available
-                            </span>
-                          ) : null}
-                        </div>
-                        {listing.tags.length > 0 ? (
-                          <div className="space-y-2">
-                            <p className="text-[11px] text-muted-foreground">Tags</p>
-                            <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
-                              {listing.tags.map((tag) => (
-                                <span
-                                  key={`${listing.id}-${tag}`}
-                                  className="rounded-full border border-border/60 bg-card px-2.5 py-1"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
+                        {tagList.visible.length > 0 ? (
+                          <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                            {tagList.visible.map((tag) => (
+                              <span
+                                key={`${listing.id}-${tag}`}
+                                className="rounded-full border border-border/60 bg-card px-2 py-0.5 text-foreground"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                            {tagList.hiddenCount > 0 ? (
+                              <span className="rounded-full border border-border/60 bg-card px-2 py-0.5">
+                                +{tagList.hiddenCount}
+                              </span>
+                            ) : null}
                           </div>
                         ) : null}
-                        {listing.contentRulesText ? (
-                          <div className="text-[11px] text-muted-foreground">
-                            <p className="font-semibold text-muted-foreground">Requirements</p>
-                            <p className="line-clamp-2">{listing.contentRulesText}</p>
+                        {isExpanded ? (
+                          <div className="space-y-2 text-[11px] text-muted-foreground">
+                            <div className="flex flex-wrap gap-2">
+                              <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
+                                Edits: {listing.allowEdits ? "Allowed" : "Not allowed"}
+                              </span>
+                              <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
+                                Link tracking: {listing.allowLinkTracking ? "Allowed" : "Not allowed"}
+                              </span>
+                            </div>
+                            {listing.tags.length > 0 ? (
+                              <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
+                                {listing.tags.map((tag) => (
+                                  <span
+                                    key={`${listing.id}-expanded-${tag}`}
+                                    className="rounded-full border border-border/60 bg-card px-2 py-0.5"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                            {listing.contentRulesText ? (
+                              <div>
+                                <p className="text-[11px] font-semibold text-muted-foreground">
+                                  Rules
+                                </p>
+                                <p className="line-clamp-3">{listing.contentRulesText}</p>
+                              </div>
+                            ) : null}
                           </div>
                         ) : null}
                       </div>

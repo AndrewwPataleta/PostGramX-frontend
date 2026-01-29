@@ -266,14 +266,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                       <span className="text-sm font-semibold text-foreground">
                         {formatListingPrice(listing.priceNano)} TON
                       </span>
-                      <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                        {listing.format}
-                      </span>
-                      {listing.isActive ? (
-                        <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
-                          Active
-                        </span>
-                      ) : null}
                     </div>
 
                     {tags.visible.length > 0 ? (

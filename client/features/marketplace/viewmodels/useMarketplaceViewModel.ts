@@ -15,7 +15,7 @@ const defaultFilters: FilterState = {
   languages: [],
   categories: [],
   tags: [],
-  verifiedOnly: true,
+  verifiedOnly: false,
   dateRange: ["", ""],
 };
 
@@ -69,7 +69,7 @@ export const useMarketplaceViewModel = () => {
         : filters.subscribersRange[1],
       minPriceTon: hasDefaultPriceRange ? undefined : filters.priceRange[0],
       maxPriceTon: hasDefaultPriceRange ? undefined : filters.priceRange[1],
-      verifiedOnly: filters.verifiedOnly,
+      ...(filters.verifiedOnly ? { verifiedOnly: true } : {}),
       page,
       limit,
       sort,

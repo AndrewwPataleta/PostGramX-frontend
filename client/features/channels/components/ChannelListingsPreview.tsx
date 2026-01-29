@@ -38,46 +38,40 @@ const buildTags = (tags: string[]) => {
   };
 };
 
+type ListingPreviewMode = "viewer" | "owner";
+
 interface ListingPreviewRowProps {
   channelId: string;
   listing: ListingListItem;
   rootBackTo?: string;
+  mode: ListingPreviewMode;
 }
 
-const ListingPreviewRow = memo(({ channelId, listing, rootBackTo }: ListingPreviewRowProps) => {
+const ListingPreviewRow = memo(
+  ({ channelId, listing, rootBackTo, mode }: ListingPreviewRowProps) => {
   const pinLabel = listing.pinDurationHours
     ? `Pinned ${listing.pinDurationHours}h`
     : "No pin";
   const visibilityLabel = `Visible ${listing.visibilityDurationHours}h`;
   const tags = buildTags(listing.tags ?? []);
+  const isInactive = listing.isActive === false;
 
   return (
-    <div className="flex items-center gap-3 py-3">
-      <div className="flex flex-col items-start gap-1">
-        <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-          {listing.format}
-        </span>
-        <span
-          className={cn(
-            "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-            listing.isActive
-              ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
-              : "border-muted-foreground/30 bg-muted/40 text-muted-foreground"
-          )}
-        >
-          {listing.isActive ? "Active" : "Inactive"}
-        </span>
-      </div>
-
-      <div className="flex-1">
+    <div
+      className={cn(
+        "flex items-center gap-3 py-3",
+        mode === "owner" && isInactive && "opacity-60"
+      )}
+    >
+      <div className="flex-1 space-y-1">
         <div className="text-sm font-semibold text-foreground">
           {formatTon(listing.priceNano)}
         </div>
-        <div className="mt-1 text-[11px] text-muted-foreground">
+        <div className="text-[11px] text-muted-foreground">
           {pinLabel} • {visibilityLabel}
         </div>
         {tags.shown.length > 0 ? (
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="mt-1 flex flex-wrap gap-1">
             {tags.shown.map((tag) => (
               <span
                 key={tag}
@@ -95,14 +89,16 @@ const ListingPreviewRow = memo(({ channelId, listing, rootBackTo }: ListingPrevi
         ) : null}
       </div>
 
-      <Link
-        to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
-        state={rootBackTo ? { rootBackTo } : undefined}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground transition hover:text-foreground"
-        aria-label="Edit listing"
-      >
-        <PencilLine size={14} />
-      </Link>
+      {mode === "owner" ? (
+        <Link
+          to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
+          state={rootBackTo ? { rootBackTo } : undefined}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground transition hover:text-foreground"
+          aria-label="Edit listing"
+        >
+          <PencilLine size={14} />
+        </Link>
+      ) : null}
     </div>
   );
 });
@@ -113,10 +109,11 @@ interface ChannelListingsPreviewProps {
   channelId: string;
   isExpanded: boolean;
   onSummaryChange?: (summary: { placementsCount: number; minPriceNano: string | null }) => void;
+  mode?: ListingPreviewMode;
 }
 
 const ChannelListingsPreview = memo(
-  ({ channelId, isExpanded, onSummaryChange }: ChannelListingsPreviewProps) => {
+  ({ channelId, isExpanded, onSummaryChange, mode = "owner" }: ChannelListingsPreviewProps) => {
   const location = useLocation();
   const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
   const query = useQuery<ListingsByChannelResponse>({
@@ -199,6 +196,7 @@ const ChannelListingsPreview = memo(
               channelId={channelId}
               listing={listing}
               rootBackTo={rootBackTo}
+              mode={mode}
             />
           ))}
         </div>
