@@ -20,15 +20,7 @@ interface FilterModalProps {
   onReset: () => void;
 }
 
-const languages = ["EN", "RU", "ES", "AR", "DE", "Other"];
-const categories = [
-  "Crypto",
-  "Finance",
-  "Gaming",
-  "Tech",
-  "Lifestyle",
-  "News",
-];
+
 
 export const FilterModal = ({
   isOpen,
@@ -306,76 +298,6 @@ export const FilterModal = ({
             )}
           </div>
 
-          {/* Language Section */}
-          <div className="space-y-3">
-            <button
-              onClick={() => toggleSection("language")}
-              className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
-            >
-              <span className="font-semibold text-foreground">Language</span>
-              <ChevronDown
-                size={18}
-                className={`text-muted-foreground transition-transform ${
-                  expandedSections.language ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            {expandedSections.language && (
-              <div className="px-3 pb-3">
-                <div className="flex flex-wrap gap-2">
-                  {languages.map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => toggleLanguage(lang)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        localFilters.languages.includes(lang)
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-foreground hover:bg-secondary/80"
-                      }`}
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Category Section */}
-          <div className="space-y-3">
-            <button
-              onClick={() => toggleSection("category")}
-              className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
-            >
-              <span className="font-semibold text-foreground">Category</span>
-              <ChevronDown
-                size={18}
-                className={`text-muted-foreground transition-transform ${
-                  expandedSections.category ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            {expandedSections.category && (
-              <div className="px-3 pb-3">
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => toggleCategory(cat)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        localFilters.categories.includes(cat)
-                          ? "bg-accent text-accent-foreground"
-                          : "bg-secondary text-foreground hover:bg-secondary/80"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Tags Section */}
           <div className="space-y-3">
             <button
@@ -478,57 +400,7 @@ export const FilterModal = ({
             )}
           </div>
 
-          {/* Availability Section */}
-          <div className="space-y-3">
-            <button
-              onClick={() => toggleSection("availability")}
-              className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
-            >
-              <span className="font-semibold text-foreground">Availability</span>
-              <ChevronDown
-                size={18}
-                className={`text-muted-foreground transition-transform ${
-                  expandedSections.availability ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            {expandedSections.availability && (
-              <div className="px-3 pb-3 space-y-3">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    From date
-                  </p>
-                  <input
-                    type="date"
-                    value={localFilters.dateRange[0]}
-                    onChange={(e) =>
-                      setLocalFilters((prev) => ({
-                        ...prev,
-                        dateRange: [e.target.value, prev.dateRange[1]],
-                      }))
-                    }
-                    className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    To date
-                  </p>
-                  <input
-                    type="date"
-                    value={localFilters.dateRange[1]}
-                    onChange={(e) =>
-                      setLocalFilters((prev) => ({
-                        ...prev,
-                        dateRange: [prev.dateRange[0], e.target.value],
-                      }))
-                    }
-                    className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+
 
           {/* Verification Section */}
           <div className="space-y-3">
