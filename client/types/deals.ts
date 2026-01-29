@@ -1,12 +1,20 @@
 export type DealStatus = "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELED";
 
 export type EscrowStatus =
-  | "NEGOTIATING"
-  | "AWAITING_PAYMENT"
+  | "SCHEDULING_PENDING"
+  | "CREATIVE_AWAITING_SUBMIT"
+  | "CREATIVE_AWAITING_CONFIRM"
+  | "ADMIN_REVIEW"
+  | "PAYMENT_WINDOW_PENDING"
+  | "PAYMENT_AWAITING"
+  | "FUNDS_PENDING"
   | "FUNDS_CONFIRMED"
+  | "APPROVED_SCHEDULED"
   | "POSTED_VERIFYING"
   | "COMPLETED"
-  | "CANCELED";
+  | "CANCELED"
+  | "REFUNDED"
+  | "DISPUTED";
 
 export type UserRoleInDeal = "advertiser" | "publisher" | "publisher_manager";
 
@@ -31,10 +39,20 @@ export interface DealListItem {
     tags: string[];
     placementHours: number;
     lifetimeHours: number;
+    pinDurationHours?: number | null;
+    visibilityDurationHours?: number | null;
+    allowEdits?: boolean;
+    allowLinkTracking?: boolean;
+    contentRulesText?: string | null;
+    requiresApproval?: boolean;
   };
   createdAt: string;
   lastActivityAt: string;
   scheduledAt?: string;
+  escrowExpiresAt?: string | null;
+  creativeText?: string | null;
+  postUrl?: string | null;
+  postMessageId?: string | null;
 }
 
 export interface DealsListGroup<TItem> {
@@ -69,7 +87,7 @@ export interface CreateDealPayload {
 export interface CreateDealResponse {
   id: string;
   status: "PENDING";
-  escrowStatus: "NEGOTIATING";
+  escrowStatus: "SCHEDULING_PENDING";
   listingId: string;
   channelId: string;
   initiatorSide: "ADVERTISER";
