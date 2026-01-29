@@ -46,14 +46,14 @@ const ListingsList = () => {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-2 rounded-full bg-secondary/40 p-1">
+        <div className="flex gap-2 rounded-lg bg-secondary/40 p-1">
           <button
             type="button"
             onClick={() => {
               setOnlyActive(true);
               setPage(1);
             }}
-            className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
               onlyActive
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -67,7 +67,7 @@ const ListingsList = () => {
               setOnlyActive(false);
               setPage(1);
             }}
-            className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
               !onlyActive
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -82,7 +82,7 @@ const ListingsList = () => {
             setSort(event.target.value as "recent" | "price_asc" | "price_desc");
             setPage(1);
           }}
-          className="rounded-full border border-border/60 bg-card px-3 py-2 text-xs text-foreground"
+          className="rounded-lg border border-border/60 bg-card px-3 py-2 text-xs text-foreground"
         >
           <option value="recent">Most recent</option>
           <option value="price_asc">Price: low to high</option>
@@ -122,7 +122,7 @@ const ListingsList = () => {
                 type="button"
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 disabled={page === 1}
-                className="rounded-full border border-border/60 px-3 py-1 text-xs disabled:opacity-50"
+                className="rounded-lg border border-border/60 px-3 py-1 text-xs disabled:opacity-50"
               >
                 Previous
               </button>
@@ -130,7 +130,7 @@ const ListingsList = () => {
                 type="button"
                 onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={page >= totalPages}
-                className="rounded-full border border-border/60 px-3 py-1 text-xs disabled:opacity-50"
+                className="rounded-lg border border-border/60 px-3 py-1 text-xs disabled:opacity-50"
               >
                 Next
               </button>
@@ -149,7 +149,7 @@ const ListingsList = () => {
           <Link
             to={`/channel-manage/${channelId}/listings/create`}
             state={rootBackTo ? { rootBackTo } : undefined}
-            className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
           >
             Create listing
           </Link>
@@ -159,7 +159,7 @@ const ListingsList = () => {
       <Link
         to={`/channel-manage/${channelId}/listings/create`}
         state={rootBackTo ? { rootBackTo } : undefined}
-        className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
+        className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
         aria-label="Create listing"
       >
         <Plus size={18} />

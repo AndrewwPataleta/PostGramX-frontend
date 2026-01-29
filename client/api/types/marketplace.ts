@@ -10,6 +10,7 @@ export type MarketplaceChannelItem = {
   minPriceNano: string;
   currency: "TON";
   tags: string[];
+  listingsPreview?: import("@/types/listings").ListingListItem[];
 };
 
 export type MarketplaceListChannelsParams = {

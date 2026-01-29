@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
-import ChannelCard from "@/features/channels/components/ChannelCard";
+import MyChannelsChannelCard from "@/components/channels/MyChannelsChannelCard";
 import ChannelListingsPreview from "@/features/channels/components/ChannelListingsPreview";
 import { useChannelsList } from "@/features/channels/hooks/useChannelsList";
 import ErrorState from "@/components/feedback/ErrorState";
 import BottomSheet from "@/components/BottomSheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { unlinkChannel } from "@/api/features/channelsApi";
 import { getErrorMessage } from "@/lib/api/errors";
 import type {
@@ -64,6 +65,14 @@ const getListingSummary = (listings?: ListingListItem[]) => {
     placementsCount: activeListings.length,
     minPriceNano: minPriceNano ? minPriceNano.toString() : null,
   };
+};
+
+const getAggregatedTags = (listings?: ListingListItem[]) => {
+  if (!listings?.length) {
+    return [];
+  }
+  const tags = listings.flatMap((listing) => listing.tags ?? []);
+  return Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
 };
 
 export default function Channels() {
@@ -181,146 +190,140 @@ export default function Channels() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pb-16 pt-4">
-      {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <ChannelCardSkeleton key={`channel-skeleton-${index}`} />
-          ))}
-        </div>
-      ) : error ? (
-        <ErrorState
-          message={getErrorMessage(error, "Unable to load channels")}
-          description="Please try again in a moment."
-          onRetry={() => refetch()}
-        />
-      ) : visibleItems.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border/60 bg-card/70 p-8 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
-            📡
+    <div className="mx-auto flex w-full max-w-2xl flex-col">
+      <PageContainer className="pt-4 space-y-6">
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <ChannelCardSkeleton key={`channel-skeleton-${index}`} />
+            ))}
           </div>
-          <p className="text-sm font-semibold text-foreground">No channels yet</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Connect your first Telegram channel to get started.
-          </p>
-          <Link
-            to="/add-channel/step-1"
-            className="mt-4 inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
-          >
-            Add Channel
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <div className="border-t border-border/50">
-            <div className="flex gap-6 bg-background/90 backdrop-blur-glass">
-              {(["verified", "pending"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === tab
-                      ? "text-primary border-b-primary"
-                      : "text-muted-foreground border-b-transparent"
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}{" "}
-                </button>
-              ))}
+        ) : error ? (
+          <ErrorState
+            message={getErrorMessage(error, "Unable to load channels")}
+            description="Please try again in a moment."
+            onRetry={() => refetch()}
+          />
+        ) : visibleItems.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border/60 bg-card/70 p-8 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
+              📡
             </div>
-          </div>
-          {tabbedChannels.length > 0 ? (
-            <div className="space-y-3">
-              {tabbedChannels.map((channel) => {
-                const isExpanded = expandedChannelIds.has(channel.id);
-                const canExpand = channel.status === "VERIFIED";
-                const listingSummary = getListingSummary(channel.listings);
-                const fallbackSummary = listingSummaries[channel.id];
-                const placementsCount =
-                  listingSummary?.placementsCount ?? fallbackSummary?.placementsCount ?? null;
-                const minPriceNano =
-                  listingSummary?.minPriceNano ?? fallbackSummary?.minPriceNano ?? null;
-                return (
-                  <ChannelCard
-                    key={channel.id}
-                    channel={channel}
-                    placementsCount={placementsCount}
-                    minPriceNano={minPriceNano}
-                    onClick={() => handleChannelClick(channel)}
-                    onVerify={() =>
-                      navigate(`/channels/pending/${channel.id}`, {
-                        state: { channel, rootBackTo: "/channels" },
-                      })
-                    }
-                    onUnlink={
-                      activeTab === "pending"
-                        ? () => {
-                          setUnlinkTarget(channel);
-                        }
-                        : undefined
-                    }
-                    isExpanded={isExpanded}
-                    onToggleExpand={
-                      canExpand ? () => handleToggleExpand(channel.id) : undefined
-                    }
-                    expandDisabled={!canExpand}
-                    expandTooltip={
-                      canExpand ? undefined : "Verify channel to add placements"
-                    }
-                    expandedContent={
-                      canExpand ? (
-                        <ChannelListingsPreview
-                          channelId={channel.id}
-                          isExpanded={isExpanded}
-                          onSummaryChange={(summary) => {
-                            setListingSummaries((prev) => ({
-                              ...prev,
-                              [channel.id]: summary,
-                            }));
-                          }}
-                        />
-                      ) : null
-                    }
-                    createListingTo={`/channel-manage/${channel.id}/listings/create`}
-                    createListingState={{ channel, rootBackTo: "/channels" }}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            <p
-              className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
-              {emptyCopy}
+            <p className="text-sm font-semibold text-foreground">No channels yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Connect your first Telegram channel to get started.
             </p>
-          )}
-        </div>
-      )}
-
-      {visibleItems.length > 0 ? (
-        <div className="flex flex-col items-center gap-3">
-          <p className="text-xs text-muted-foreground">
-            Showing {visibleItems.length} of {total}
-          </p>
-          {hasNextPage ? (
-            <button
-              type="button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-card"
+            <Link
+              to="/add-channel/step-1"
+              className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
             >
-              {isFetchingNextPage ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : null}
-              {isFetchingNextPage ? "Loading" : "Load more"}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+              Add Channel
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="border-t border-border/50">
+              <div className="flex gap-6 bg-background/90 backdrop-blur-glass">
+                {(["verified", "pending"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === tab
+                        ? "text-primary border-b-primary"
+                        : "text-muted-foreground border-b-transparent"
+                    }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}{" "}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {tabbedChannels.length > 0 ? (
+              <div className="space-y-3">
+                {tabbedChannels.map((channel) => {
+                  const isExpanded = expandedChannelIds.has(channel.id);
+                  const canExpand = channel.status === "VERIFIED";
+                  const listingSummary = getListingSummary(channel.listings);
+                  const fallbackSummary = listingSummaries[channel.id];
+                  const placementsCount =
+                    listingSummary?.placementsCount ?? fallbackSummary?.placementsCount ?? null;
+                  const minPriceNano =
+                    listingSummary?.minPriceNano ?? fallbackSummary?.minPriceNano ?? null;
+                  const tags = getAggregatedTags(channel.listings);
+                  return (
+                    <MyChannelsChannelCard
+                      key={channel.id}
+                      channel={channel}
+                      placementsCount={placementsCount}
+                      minPriceNano={minPriceNano}
+                      tags={tags}
+                      onClick={() => handleChannelClick(channel)}
+                      onUnlink={
+                        activeTab === "pending"
+                          ? () => {
+                              setUnlinkTarget(channel);
+                            }
+                          : undefined
+                      }
+                      isExpanded={isExpanded}
+                      onToggleExpand={
+                        canExpand ? () => handleToggleExpand(channel.id) : undefined
+                      }
+                      expandedContent={
+                        canExpand ? (
+                          <ChannelListingsPreview
+                            channelId={channel.id}
+                            isExpanded={isExpanded}
+                            onSummaryChange={(summary) => {
+                              setListingSummaries((prev) => ({
+                                ...prev,
+                                [channel.id]: summary,
+                              }));
+                            }}
+                          />
+                        ) : null
+                      }
+                      createListingTo={`/channel-manage/${channel.id}/listings/create`}
+                      createListingState={{ channel, rootBackTo: "/channels" }}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-border/60 bg-card/70 px-4 py-3 text-xs text-muted-foreground">
+                {emptyCopy}
+              </p>
+            )}
+          </div>
+        )}
+
+        {visibleItems.length > 0 ? (
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-xs text-muted-foreground">
+              Showing {visibleItems.length} of {total}
+            </p>
+            {hasNextPage ? (
+              <button
+                type="button"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card/80 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-card"
+              >
+                {isFetchingNextPage ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : null}
+                {isFetchingNextPage ? "Loading" : "Load more"}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </PageContainer>
 
       <button
         type="button"
         onClick={() => navigate("/add-channel/step-1")}
-        className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
+        className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
         aria-label="Add channel"
       >
         <Plus size={18} />
@@ -346,7 +349,7 @@ export default function Channels() {
           <button
             type="button"
             onClick={() => setUnlinkTarget(null)}
-            className="flex-1 rounded-full border border-border/60 bg-background px-4 py-2 text-sm font-semibold text-foreground"
+            className="flex-1 rounded-lg border border-border/60 bg-background px-4 py-2 text-sm font-semibold text-foreground"
             disabled={isUnlinking}
           >
             Отмена
@@ -354,7 +357,7 @@ export default function Channels() {
           <button
             type="button"
             onClick={handleUnlinkConfirm}
-            className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex-1 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isUnlinking}
           >
             {isUnlinking ? "Открепляем..." : "Открепить"}

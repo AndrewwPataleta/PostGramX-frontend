@@ -18,7 +18,6 @@ export default function Index() {
           <DetailFrame
             title="TON Launchpad"
             username="tonlaunchpad"
-            verified
             price="40 TON"
             dealId="DL-1002"
             status="Payment Required"
@@ -33,7 +32,6 @@ export default function Index() {
           <DetailFrame
             title="Crypto Atlas"
             username="cryptoatlas"
-            verified
             price="48 TON"
             dealId="DL-1006"
             status="Post Live — Verifying"

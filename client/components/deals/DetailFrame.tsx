@@ -6,7 +6,6 @@ import type { StatusKey } from "./statusStyles";
 interface DetailFrameProps {
   title: string;
   username: string;
-  verified: boolean;
   price: string;
   dealId: string;
   avatarUrl?: string;
@@ -23,7 +22,6 @@ interface DetailFrameProps {
 export default function DetailFrame({
   title,
   username,
-  verified,
   price,
   dealId,
   avatarUrl,
@@ -45,7 +43,6 @@ export default function DetailFrame({
           icon={icon}
           title={title}
           username={username}
-          verified={verified}
           price={price}
           dealId={dealId}
           avatarUrl={avatarUrl}
@@ -73,10 +70,10 @@ export default function DetailFrame({
           <p className="text-sm text-white">Submitted</p>
           <p>"Launching the new FlowgramX workflow today. Get your slot."</p>
           <div className="flex gap-2">
-            <button className="rounded-full bg-sky-500 px-3 py-2 text-xs font-semibold text-slate-950">
+            <button className="rounded-lg bg-sky-500 px-3 py-2 text-xs font-semibold text-slate-950">
               {statusKey === "paymentRequired" ? "Approve" : "Request edits"}
             </button>
-            <button className="rounded-full border border-white/10 px-3 py-2 text-xs text-slate-200">
+            <button className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-200">
               {statusKey === "paymentRequired" ? "Request edits" : "Approve"}
             </button>
           </div>
@@ -85,7 +82,7 @@ export default function DetailFrame({
 
         <InfoCard title="Schedule">
           <p className="text-sm text-white">Jan 30, 18:00 (UTC)</p>
-          <button className="rounded-full border border-white/10 px-3 py-2 text-xs text-slate-200">
+          <button className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-200">
             Select time
           </button>
         </InfoCard>
@@ -97,17 +94,17 @@ export default function DetailFrame({
             <span>Verifying integrity</span>
           </div>
           <p className="text-[11px] text-slate-400">Release in: 45m</p>
-          <button className="rounded-full bg-slate-800 px-3 py-2 text-xs text-slate-200">
+          <button className="rounded-lg bg-slate-800 px-3 py-2 text-xs text-slate-200">
             View in Telegram
           </button>
         </InfoCard>
       </div>
 
       <div className="sticky bottom-4 mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3">
-        <button className="flex-1 rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950">
+        <button className="flex-1 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950">
           {primary}
         </button>
-        <button className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200">
+        <button className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200">
           {secondary}
         </button>
       </div>

@@ -206,7 +206,7 @@ export default function AddChannel() {
             <div className="flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2">
               <span>Verification</span>
               <span className="flex items-center gap-1 text-emerald-400">
-                <ShieldCheck className="h-4 w-4" /> Verified via Telegram
+                <ShieldCheck className="h-4 w-4" /> Connected via Telegram
               </span>
             </div>
           </div>

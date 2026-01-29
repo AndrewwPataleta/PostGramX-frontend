@@ -51,7 +51,7 @@ const ChannelOverview = () => {
           </div>
           <Link
             to={`/channel-manage/${channel.id}/listings`}
-            className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-primary"
+            className="rounded-lg bg-primary/20 px-3 py-1 text-xs font-semibold text-primary"
           >
             View all listings
           </Link>
@@ -75,7 +75,7 @@ const ChannelOverview = () => {
             </p>
             <Link
               to={`/channel-manage/${channel.id}/listings/create`}
-              className="mt-3 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+              className="mt-3 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
             >
               Create listing
             </Link>

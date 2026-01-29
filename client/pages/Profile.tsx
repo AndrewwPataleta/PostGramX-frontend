@@ -27,6 +27,7 @@ import type { WalletTransaction } from "@/features/profile/types";
 import { getErrorMessage } from "@/lib/api/errors";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { Input } from "@/components/ui/input";
+import { PageContainer } from "@/components/layout/PageContainer";
 import {
   Sheet,
   SheetContent,
@@ -226,9 +227,7 @@ export default function Profile() {
 
   return (
     <div className="w-full max-w-6xl mx-auto">
-
-
-      <div className="px-4 py-6 space-y-6 pb-20">
+      <PageContainer className="py-6 space-y-6">
         {isLoading ? (
           <LoadingSkeleton items={2} />
         ) : error ? (
@@ -295,7 +294,7 @@ export default function Profile() {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
-                        className="button-primary rounded-2xl py-2 text-sm"
+                        className="button-primary rounded-lg py-2 text-sm"
                         onClick={() => {
                           setActiveSection("topup");
                           setIsTopUpSheetOpen(true);
@@ -305,7 +304,7 @@ export default function Profile() {
                       </button>
                       <button
                         type="button"
-                        className="button-primary rounded-2xl py-2 text-sm bg-primary/80 hover:bg-primary"
+                        className="button-primary rounded-lg py-2 text-sm bg-primary/80 hover:bg-primary"
                         onClick={() => {
                           setActiveSection("withdraw");
                           setIsWithdrawSheetOpen(true);
@@ -325,7 +324,7 @@ export default function Profile() {
                         </p>
                         <button
                           type="button"
-                          className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
+                          className="rounded-lg border border-border/40 px-3 py-1 text-xs text-muted-foreground"
                           onClick={() => {
                             setActiveSection("withdraw");
                             setIsWithdrawSheetOpen(true);
@@ -362,15 +361,15 @@ export default function Profile() {
                         label: t("profile.languageOptionRussian"),
                       },
                     ].map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setLanguage(option.value as "en" | "ru")}
-                        className={`rounded-full border px-3 py-1 text-xs transition ${
-                          language === option.value
-                            ? "border-primary/60 bg-primary/20 text-primary"
-                            : "border-border/40 text-muted-foreground hover:text-foreground"
-                        }`}
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setLanguage(option.value as "en" | "ru")}
+                          className={`rounded-lg border px-3 py-1 text-xs transition ${
+                            language === option.value
+                              ? "border-primary/60 bg-primary/20 text-primary"
+                              : "border-border/40 text-muted-foreground hover:text-foreground"
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -386,22 +385,22 @@ export default function Profile() {
                       { id: "history", label: t("profile.sectionHistory"), icon: History },
                       { id: "escrow", label: t("profile.sectionEscrow"), icon: Lock },
                     ].map(({ id, label, icon: Icon }) => (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => {
-                          if (id === "topup") {
-                            setIsTopUpSheetOpen(true);
-                          }
-                          setActiveSection(
-                            id as "history" | "topup" | "withdraw" | "escrow"
-                          );
-                        }}
-                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                          activeSection === id
-                            ? "border-primary/60 bg-primary/15 text-primary"
-                            : "border-border/40 text-muted-foreground hover:text-foreground"
-                        }`}
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => {
+                            if (id === "topup") {
+                              setIsTopUpSheetOpen(true);
+                            }
+                            setActiveSection(
+                              id as "history" | "topup" | "withdraw" | "escrow"
+                            );
+                          }}
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-xs font-medium transition ${
+                            activeSection === id
+                              ? "border-primary/60 bg-primary/15 text-primary"
+                              : "border-border/40 text-muted-foreground hover:text-foreground"
+                          }`}
                       >
                         <Icon size={14} />
                         {label}
@@ -473,7 +472,7 @@ export default function Profile() {
                         </div>
                         <button
                           type="button"
-                          className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
+                          className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
                           onClick={() => setIsTopUpSheetOpen(true)}
                         >
                           Change amount
@@ -501,7 +500,7 @@ export default function Profile() {
 
                       <button
                         type="button"
-                        className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
+                        className="button-primary rounded-lg py-4 disabled:pointer-events-none disabled:opacity-70"
                         onClick={handleTopUp}
                         disabled={isTopUpLoading}
                       >
@@ -554,7 +553,7 @@ export default function Profile() {
                           </div>
                           <button
                             type="button"
-                            className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground"
+                            className="rounded-lg border border-border/40 px-3 py-1 text-xs text-muted-foreground"
                             onClick={() =>
                               updateWithdrawAmount(availableBalance.toFixed(2))
                             }
@@ -564,7 +563,7 @@ export default function Profile() {
                         </div>
                         <button
                           type="button"
-                          className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
+                          className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
                           onClick={() => setIsWithdrawSheetOpen(true)}
                         >
                           {t("profile.changeAmount")}
@@ -589,7 +588,7 @@ export default function Profile() {
 
                       <button
                         type="button"
-                        className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
+                        className="button-primary rounded-lg py-4 disabled:pointer-events-none disabled:opacity-70"
                         onClick={() => setIsWithdrawSheetOpen(true)}
                         disabled={isWithdrawLoading}
                       >
@@ -654,7 +653,7 @@ export default function Profile() {
             </div>
           </>
         )}
-      </div>
+      </PageContainer>
       <Sheet open={isTopUpSheetOpen} onOpenChange={setIsTopUpSheetOpen}>
         <SheetContent
           side="bottom"
@@ -689,7 +688,7 @@ export default function Profile() {
                   key={amount}
                   type="button"
                   onClick={() => updateTopUpAmount(amount.toString())}
-                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                  className={`rounded-lg border px-3 py-1 text-xs transition ${
                     topUpAmount === amount
                       ? "border-primary/60 bg-primary/20 text-primary"
                       : "border-primary/40 bg-primary/10 text-primary/80"
@@ -701,7 +700,7 @@ export default function Profile() {
             </div>
             <button
               type="button"
-              className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
+              className="button-primary rounded-lg py-4 disabled:pointer-events-none disabled:opacity-70"
               onClick={handleTopUp}
               disabled={isTopUpLoading}
             >
@@ -746,7 +745,7 @@ export default function Profile() {
                   key={amount}
                   type="button"
                   onClick={() => updateWithdrawAmount(amount.toString())}
-                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                  className={`rounded-lg border px-3 py-1 text-xs transition ${
                     withdrawAmount === amount
                       ? "border-primary/60 bg-primary/20 text-primary"
                       : "border-primary/40 bg-primary/10 text-primary/80"
@@ -758,14 +757,14 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => updateWithdrawAmount(availableBalance.toFixed(2))}
-                className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
+                className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
               >
                 {t("profile.max")}
               </button>
             </div>
             <button
               type="button"
-              className="button-primary rounded-2xl py-4 disabled:pointer-events-none disabled:opacity-70"
+              className="button-primary rounded-lg py-4 disabled:pointer-events-none disabled:opacity-70"
               onClick={handleWithdraw}
               disabled={isWithdrawLoading}
             >
