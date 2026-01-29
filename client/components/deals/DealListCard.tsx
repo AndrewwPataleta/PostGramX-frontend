@@ -99,6 +99,13 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
+          <div className="flex flex-wrap gap-2">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
+            >
+              {roleLabelMap[deal.userRoleInDeal]}
+            </span>
+          </div>
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-secondary/60 text-lg font-semibold text-muted-foreground">
             {deal.channel.avatarUrl ? (
               <img
@@ -119,24 +126,9 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
         <div className="flex items-center gap-2">
           <div className="text-right">
             <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              {statusText}
+              {escrowText}
             </span>
-            <p className="mt-1 text-[11px] text-muted-foreground">{escrowText}</p>
           </div>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setExpanded((prev) => !prev);
-            }}
-            aria-expanded={expanded}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-background/70 text-muted-foreground transition hover:text-foreground"
-          >
-            <ChevronDown
-              size={16}
-              className={`transition-transform ${expanded ? "rotate-180" : ""}`}
-            />
-          </button>
         </div>
       </div>
 
@@ -171,17 +163,6 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
 
       {expanded ? (
         <div className="mt-3 space-y-3 text-xs text-muted-foreground">
-          <p>@{deal.channel.username}</p>
-          <div className="flex flex-wrap gap-2">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
-            >
-              {roleLabelMap[deal.userRoleInDeal]}
-            </span>
-            <span className="rounded-full bg-foreground/5 px-3 py-1 text-xs font-semibold text-foreground">
-              {escrowText}
-            </span>
-          </div>
           <div className="grid gap-2 sm:grid-cols-2">
             <div>
               <span className="font-medium text-foreground">Created:</span>{" "}

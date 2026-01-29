@@ -188,23 +188,9 @@ export default function Deals() {
 
         {isLoading && currentGroup.items.length === 0 ? (
           <div className="space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <ShoppingCart size={14} />
-                Buying ads
-                <span className="text-[11px] font-normal">·</span>
-                <span className="text-[11px] font-normal">--</span>
-              </div>
-              <LoadingSkeleton items={2} />
-            </div>
             <div className="border-t border-border/60" />
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <Megaphone size={14} />
-                Selling ads
-                <span className="text-[11px] font-normal">·</span>
-                <span className="text-[11px] font-normal">--</span>
-              </div>
+
               <LoadingSkeleton items={2} />
             </div>
           </div>
@@ -225,12 +211,6 @@ export default function Deals() {
           <div className="space-y-5">
             {buyerDeals.length > 0 ? (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <ShoppingCart size={14} />
-                  Buying ads
-                  <span className="text-[11px] font-normal">·</span>
-                  <span className="text-[11px] font-normal">{buyerDeals.length}</span>
-                </div>
                 <div className="space-y-3">
                   {buyerDeals.map((deal) => (
                     <DealListCard key={deal.id} deal={deal} onSelect={handleSelectDeal} />
