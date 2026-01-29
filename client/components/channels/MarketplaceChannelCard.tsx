@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getTelegramWebApp } from "@/lib/telegram";
 import ChannelCard, { type ChannelCardModel } from "@/components/channels/ChannelCard";
+import ChannelListingsPreview from "@/features/channels/components/ChannelListingsPreview";
 import type { MarketplaceChannelItem } from "@/api/types/marketplace";
 
 interface MarketplaceChannelCardProps {
@@ -10,6 +11,7 @@ interface MarketplaceChannelCardProps {
 
 export default function MarketplaceChannelCard({ channel }: MarketplaceChannelCardProps) {
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
   const trimmedUsername = channel.username?.replace(/^@/, "");
   const telegramLink = trimmedUsername ? `https://t.me/${trimmedUsername}` : null;
 
@@ -49,6 +51,9 @@ export default function MarketplaceChannelCard({ channel }: MarketplaceChannelCa
     <ChannelCard
       channel={cardModel}
       onClick={handleNavigate}
+      isExpanded={isExpanded}
+      onToggleExpand={() => setIsExpanded((prev) => !prev)}
+      expandedContent={<ChannelListingsPreview channelId={channel.id} isExpanded={isExpanded} />}
       actions={
         telegramLink ? (
           <button
