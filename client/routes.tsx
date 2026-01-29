@@ -8,10 +8,12 @@ import AppShell from "@/layout/AppShell";
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const ChannelDetails = lazy(() => import("./pages/ChannelDetails"));
 const CreateDeal = lazy(() => import("./pages/CreateDeal"));
+const CreatePreDeal = lazy(() => import("./pages/CreatePreDeal"));
 const Deals = lazy(() => import("./pages/Deals"));
 const DealDetails = lazy(() => import("./pages/DealDetails"));
 const EscrowPayment = lazy(() => import("./pages/EscrowPayment"));
 const FundsLocked = lazy(() => import("./pages/FundsLocked"));
+const PreDealStatus = lazy(() => import("./pages/PreDealStatus"));
 const Channels = lazy(() => import("./pages/Channels"));
 const ChannelPendingVerification = lazy(
   () => import("./pages/channels/ChannelPendingVerification"),
@@ -57,6 +59,8 @@ export const AppRoutes = () => {
             path="/marketplace/channels/:channelId/request"
             element={<CreateDeal />}
           />
+          <Route path="/deals/create/:listingId" element={<CreatePreDeal />} />
+          <Route path="/deals/predeal/:id" element={<PreDealStatus />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/deals/:dealId" element={<DealDetails />} />
           <Route path="/escrow/:dealId" element={<EscrowPayment />} />

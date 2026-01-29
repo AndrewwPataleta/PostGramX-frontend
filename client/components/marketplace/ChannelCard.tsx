@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { listingsByChannel } from "@/api/features/listingsApi";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getTelegramWebApp } from "@/lib/telegram";
+import { openTelegramLink } from "@/lib/telegramLinks";
 import { formatTonString, nanoToTonString } from "@/lib/ton";
 import { cn } from "@/lib/utils";
 import type { MarketplaceChannelItem } from "@/api/types/marketplace";
@@ -173,12 +173,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                   type="button"
                   onClick={(event) => {
                     event.stopPropagation();
-                    const webApp = getTelegramWebApp();
-                    if (webApp?.openTelegramLink) {
-                      webApp.openTelegramLink(telegramLink);
-                      return;
-                    }
-                    window.open(telegramLink, "_blank", "noopener,noreferrer");
+                    openTelegramLink(telegramLink);
                   }}
                   className="rounded-lg border border-border/60 bg-secondary/40 px-3 py-1 text-[11px] font-semibold text-primary transition hover:text-primary/90"
                 >

@@ -10,6 +10,8 @@ const titleMatchers = [
   { path: "/marketplace/channels/:channelId", title: "Channel" },
   { path: "/channels/:channelId", title: "Channel" },
   { path: "/marketplace", title: "Marketplace" },
+  { path: "/deals/create/:listingId", title: "Schedule ad post" },
+  { path: "/deals/predeal/:id", title: "Pre-deal status" },
   { path: "/deals/:dealId", title: "Deal" },
   { path: "/deals", title: "Deals" },
   { path: "/channel-manage/:id/listings/create", title: "Create listing" },
