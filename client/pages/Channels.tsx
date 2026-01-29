@@ -298,9 +298,6 @@ export default function Channels() {
 
       {visibleItems.length > 0 ? (
         <div className="flex flex-col items-center gap-3">
-          <p className="text-xs text-muted-foreground">
-            Showing {visibleItems.length} of {total}
-          </p>
           {hasNextPage ? (
             <button
               type="button"

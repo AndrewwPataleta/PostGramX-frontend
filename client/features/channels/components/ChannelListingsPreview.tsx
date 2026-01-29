@@ -164,11 +164,7 @@ const ChannelListingsPreview = memo(
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Placements
-        </h4>
-      </div>
+
 
       {query.isLoading ? (
         <div className="space-y-2">

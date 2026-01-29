@@ -215,9 +215,6 @@ export default function Deals() {
           />
         ) : showEmptyState ? (
           <div className="rounded-2xl border border-border/60 bg-card/80 p-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
-              📭
-            </div>
             <h2 className="text-base font-semibold text-foreground">No deals in this section</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Deals in this section will appear here once they are created.

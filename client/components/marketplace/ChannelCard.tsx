@@ -243,12 +243,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         )}
       >
         <div className="rounded-2xl border border-border/60 bg-background/60 p-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Placements
-            </h4>
-          </div>
-
           {listingsQuery.isLoading ? (
             <div className="mt-3 space-y-3">
               {Array.from({ length: 2 }).map((_, index) => (

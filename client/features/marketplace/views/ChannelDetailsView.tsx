@@ -120,30 +120,6 @@ export default function ChannelDetailsView() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/60 bg-card/80 p-6">
-              <p className="text-xs text-muted-foreground">Pricing</p>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-semibold text-foreground">
-                  {minPriceTon ?? "--"}
-                </span>
-                <span className="text-sm text-muted-foreground">TON per post</span>
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Pricing includes escrow protection and bot-assisted messaging.
-              </p>
-              <button
-                type="button"
-                onClick={handlePrimaryCta}
-                disabled={!primaryListing || isSubmitting}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-              >
-                {isSubmitting && activeListingId === primaryListing?.id ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : null}
-                Create Deal
-              </button>
-            </div>
-
             {activeListings.length > 0 ? (
               <div
                 ref={listingsSectionRef}
