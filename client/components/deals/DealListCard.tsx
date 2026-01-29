@@ -1,4 +1,5 @@
-import { memo } from "react";
+import { memo, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import type { DealListItem } from "@/types/deals";
 
 const formatTon = (priceNano: string) => {
@@ -31,6 +32,22 @@ const formatDate = (value?: string) => {
   });
 };
 
+const formatDateTime = (value?: string) => {
+  if (!value) {
+    return "-";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const roleLabelMap: Record<DealListItem["userRoleInDeal"], string> = {
   advertiser: "You are advertiser",
   publisher: "You are publisher",
@@ -51,93 +68,156 @@ interface DealListCardProps {
 }
 
 const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
+  const [expanded, setExpanded] = useState(false);
+  const visibilityLabel = deal.listing.lifetimeHours
+    ? `Visible ${deal.listing.lifetimeHours}h`
+    : null;
+  const pinnedLabel = deal.listing.placementHours
+    ? `Pinned ${deal.listing.placementHours}h`
+    : null;
+  const detailLine = [visibilityLabel, pinnedLabel].filter(Boolean).join(" • ");
+  const statusText = statusLabel(deal.status);
+  const escrowText = statusLabel(deal.escrowStatus);
+
   return (
-    <button
-      type="button"
+    <div
+      className={`w-full rounded-2xl border border-border/60 bg-card/80 p-4 text-left shadow-sm transition ${
+        onSelect ? "cursor-pointer hover:border-primary/40 hover:bg-card" : ""
+      }`}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
       onClick={() => onSelect(deal)}
-      className="w-full rounded-2xl border border-border/60 bg-card/80 p-4 text-left shadow-sm transition hover:border-primary/40 hover:bg-card"
+      onKeyDown={(event) => {
+        if (!onSelect) {
+          return;
+        }
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(deal);
+        }
+      }}
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-secondary/60 text-lg font-semibold text-muted-foreground">
-          {deal.channel.avatarUrl ? (
-            <img
-              src={deal.channel.avatarUrl}
-              alt={deal.channel.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            deal.channel.name.slice(0, 1)
-          )}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <span>{deal.channel.name}</span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-secondary/60 text-lg font-semibold text-muted-foreground">
+            {deal.channel.avatarUrl ? (
+              <img
+                src={deal.channel.avatarUrl}
+                alt={deal.channel.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              deal.channel.name.slice(0, 1)
+            )}
           </div>
-          <p className="text-xs text-muted-foreground">@{deal.channel.username}</p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <span className="truncate">{deal.channel.name}</span>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
-        <div>
-          <p className="text-xs uppercase tracking-wide">Price</p>
-          <p className="text-base font-semibold text-foreground">
-            {formatTon(deal.listing.priceNano)} TON
-          </p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide">Format</p>
-          <p className="text-sm font-semibold text-foreground">{deal.listing.format}</p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide">Placement</p>
-          <p className="text-sm font-semibold text-foreground">
-            Pinned {deal.listing.placementHours}h
-          </p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide">Lifetime</p>
-          <p className="text-sm font-semibold text-foreground">
-            Visible {deal.listing.lifetimeHours}h
-          </p>
-        </div>
-      </div>
-
-      {deal.listing.tags.length > 0 ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {deal.listing.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground"
-            >
-              #{tag}
+        <div className="flex items-center gap-2">
+          <div className="text-right">
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              {statusText}
             </span>
-          ))}
+            <p className="mt-1 text-[11px] text-muted-foreground">{escrowText}</p>
+          </div>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              setExpanded((prev) => !prev);
+            }}
+            aria-expanded={expanded}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-background/70 text-muted-foreground transition hover:text-foreground"
+          >
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${expanded ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-1">
+        <p className="text-sm font-semibold text-foreground">
+          {formatTon(deal.listing.priceNano)} TON
+        </p>
+        {detailLine ? (
+          <p className="text-xs text-muted-foreground">{detailLine}</p>
+        ) : null}
+        {deal.scheduledAt ? (
+          <p className="text-xs text-muted-foreground">
+            Scheduled: {formatDateTime(deal.scheduledAt)}
+          </p>
+        ) : null}
+      </div>
+
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          setExpanded((prev) => !prev);
+        }}
+        className="mt-3 flex w-full items-center justify-between rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+      >
+        <span>{expanded ? "Hide details" : "Show details"}</span>
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${expanded ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {expanded ? (
+        <div className="mt-3 space-y-3 text-xs text-muted-foreground">
+          <p>@{deal.channel.username}</p>
+          <div className="flex flex-wrap gap-2">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
+            >
+              {roleLabelMap[deal.userRoleInDeal]}
+            </span>
+            <span className="rounded-full bg-foreground/5 px-3 py-1 text-xs font-semibold text-foreground">
+              {escrowText}
+            </span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div>
+              <span className="font-medium text-foreground">Created:</span>{" "}
+              {formatDate(deal.createdAt)}
+            </div>
+            <div>
+              <span className="font-medium text-foreground">Scheduled:</span>{" "}
+              {formatDate(deal.scheduledAt)}
+            </div>
+          </div>
+          {deal.listing.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {deal.listing.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground">
+              Format: {deal.listing.format}
+            </span>
+            <span className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground">
+              {pinnedLabel ?? "No pin"}
+            </span>
+            <span className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground">
+              {visibilityLabel ?? "No visibility info"}
+            </span>
+          </div>
         </div>
       ) : null}
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
-        >
-          {roleLabelMap[deal.userRoleInDeal]}
-        </span>
-        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-          {statusLabel(deal.status)}
-        </span>
-        <span className="rounded-full bg-foreground/5 px-3 py-1 text-xs font-semibold text-foreground">
-          {statusLabel(deal.escrowStatus)}
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-        <div>
-          <span className="font-medium text-foreground">Created:</span> {formatDate(deal.createdAt)}
-        </div>
-        <div>
-          <span className="font-medium text-foreground">Scheduled:</span> {formatDate(deal.scheduledAt)}
-        </div>
-      </div>
-    </button>
+    </div>
   );
 };
 

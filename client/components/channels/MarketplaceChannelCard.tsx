@@ -53,7 +53,9 @@ export default function MarketplaceChannelCard({ channel }: MarketplaceChannelCa
       onClick={handleNavigate}
       isExpanded={isExpanded}
       onToggleExpand={() => setIsExpanded((prev) => !prev)}
-      expandedContent={<ChannelListingsPreview channelId={channel.id} isExpanded={isExpanded} />}
+      expandedContent={
+        <ChannelListingsPreview channelId={channel.id} isExpanded={isExpanded} mode="viewer" />
+      }
       actions={
         telegramLink ? (
           <button
