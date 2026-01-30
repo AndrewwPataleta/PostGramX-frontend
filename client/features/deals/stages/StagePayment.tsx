@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useTonConnectModal } from "@tonconnect/ui-react";
+import { useTonConnectModal, useTonConnectUI } from "@tonconnect/ui-react";
+import { beginCell } from "@ton/core";
+
 import InfoCard from "@/components/deals/InfoCard";
 import type { DealListItem } from "@/types/deals";
 import { DEAL_ESCROW_STATUS } from "@/constants/deals";
 import { cn } from "@/lib/utils";
 import { formatTon } from "@/i18n/formatters";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { buildTelegramWalletTransferLinkFromNano, buildTonTransferLinkFromNano } from "@/features/deals/payment";
 import { useWalletContext } from "@/contexts/WalletContext";
-import { openTelegramLink, openTonDeepLink } from "@/lib/telegramLinks";
 
 interface StagePaymentProps {
   deal: DealListItem;
@@ -30,35 +30,44 @@ const formatCountdown = (valueMs: number) => {
 };
 
 const formatShortAddress = (address: string) => {
-  if (address.length <= 10) {
-    return address;
-  }
+  if (address.length <= 10) return address;
   return `${address.slice(0, 3)}...${address.slice(-3)}`;
 };
 
+const toNanoString = (value: string | bigint) =>
+  typeof value === "bigint" ? value.toString() : value;
+
+// TON "text comment" payload: op(32)=0 + string tail
+const commentPayloadBase64 = (comment: string) =>
+  beginCell().storeUint(0, 32).storeStringTail(comment).endCell().toBoc().toString("base64");
+
 export default function StagePayment({
-  deal,
-  readonly,
-  onAction,
-  isRefreshing,
-}: StagePaymentProps) {
+                                       deal,
+                                       readonly,
+                                       onAction,
+                                       isRefreshing,
+                                     }: StagePaymentProps) {
   const { t, language } = useLanguage();
+
   const { open: openWalletModal } = useTonConnectModal();
+  const [tonConnectUI] = useTonConnectUI();
+
   const { isConnected, walletAppName, network } = useWalletContext();
+
   const [isWaiting, setIsWaiting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
+
   const paymentDeadlineAt = deal.paymentDeadlineAt ?? deal.paymentExpiresAt;
 
   const escrowAmountNano = deal.escrowAmountNano ?? deal.listing.priceNano;
   const paymentAddress = deal.escrowPaymentAddress ?? "";
+
   const displayAmount = escrowAmountNano
     ? `${formatTon(escrowAmountNano, language)} ${t("common.ton")}`
     : t("common.emptyValue");
 
   const walletStatusLabel = useMemo(() => {
-    if (!isConnected) {
-      return t("deals.stage.payment.walletDisconnected");
-    }
+    if (!isConnected) return t("deals.stage.payment.walletDisconnected");
     const networkLabel = network ? ` • ${network}` : "";
     return `${t("deals.stage.payment.walletConnected")}${walletAppName ? ` • ${walletAppName}` : ""}${networkLabel}`;
   }, [isConnected, network, t, walletAppName]);
@@ -94,41 +103,55 @@ export default function StagePayment({
   }
 
   const handleConnectWallet = () => {
-    if (readonly) {
-      return;
-    }
+    if (readonly) return;
     openWalletModal();
   };
 
-  const handlePayWithWallet = () => {
+  const handlePayWithWallet = async () => {
     if (readonly || !paymentAddress || !escrowAmountNano) return;
 
     try {
-      const link = buildTonTransferLinkFromNano({
-        address: paymentAddress,
-        amountNano: escrowAmountNano,
-        memo: `Deal:${deal.id}`,
+      // Если по какой-то причине UI думает что не подключено — открываем модалку
+      if (!tonConnectUI.connected) {
+        openWalletModal();
+        return;
+      }
+
+      setIsWaiting(true);
+
+      const validUntil = Math.floor(Date.now() / 1000) + 5 * 60; // 5 минут
+
+      await tonConnectUI.sendTransaction({
+        validUntil,
+        messages: [
+          {
+            address: paymentAddress,
+            amount: toNanoString(escrowAmountNano), // nanoTON строкой
+            payload: commentPayloadBase64(`Deal:${deal.id}`),
+          },
+        ],
       });
 
-      openTonDeepLink(link);
-      setIsWaiting(true);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Payment canceled");
+      toast.success(t("deals.stage.payment.paymentSent") ?? "Transaction sent. Waiting for confirmation...");
+      // дальше у тебя watcher/бек подтвердит поступление, либо пользователь нажмёт "Check status"
+    } catch (error: any) {
+      // Пользователь может отменить в кошельке — это норм
+      const message =
+        typeof error?.message === "string"
+          ? error.message
+          : t("deals.stage.payment.paymentCanceled") ?? "Payment canceled";
+      toast.error(message);
+      setIsWaiting(false);
     }
   };
 
-
   const handleCopyAddress = async () => {
-    if (!paymentAddress) {
-      return;
-    }
+    if (!paymentAddress) return;
     try {
       await navigator.clipboard.writeText(paymentAddress);
       toast.success(t("deals.stage.payment.addressCopied"));
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("deals.stage.payment.copyFailed")
-      );
+      toast.error(error instanceof Error ? error.message : t("deals.stage.payment.copyFailed"));
     }
   };
 
@@ -143,6 +166,7 @@ export default function StagePayment({
         />
         <span className="text-xs text-muted-foreground">{walletStatusLabel}</span>
       </div>
+
       <div className="space-y-3">
         <div className="rounded-xl border border-border/60 bg-background/40 p-3">
           <div className="space-y-2 text-xs text-muted-foreground">
@@ -152,12 +176,14 @@ export default function StagePayment({
               </span>
               : {displayAmount}
             </p>
+
             <p>
               <span className="font-semibold text-foreground">
                 {t("deals.stage.payment.receiver")}
               </span>
               : {paymentAddress ? formatShortAddress(paymentAddress) : t("common.emptyValue")}
             </p>
+
             {timeRemaining ? (
               <p>
                 <span className="font-semibold text-foreground">
@@ -167,16 +193,16 @@ export default function StagePayment({
             ) : null}
           </div>
         </div>
+
         {isWaiting ? (
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-secondary/30 px-3 py-2">
             <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border/60">
               <span className="h-2 w-2 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
             </span>
-            <span className="text-xs text-muted-foreground">
-              {t("deals.stage.payment.waiting")}
-            </span>
+            <span className="text-xs text-muted-foreground">{t("deals.stage.payment.waiting")}</span>
           </div>
         ) : null}
+
         <div className="flex flex-wrap gap-2">
           {!isConnected ? (
             <button
@@ -203,6 +229,7 @@ export default function StagePayment({
               >
                 {t("deals.stage.payment.payWithWallet")}
               </button>
+
               <button
                 type="button"
                 onClick={handleCopyAddress}
@@ -217,6 +244,7 @@ export default function StagePayment({
             </>
           )}
         </div>
+
         {isWaiting ? (
           <button
             type="button"
@@ -224,9 +252,7 @@ export default function StagePayment({
             disabled={isRefreshing || !onAction?.onRefresh}
             className={cn(
               "rounded-lg border border-border/60 px-4 py-2 text-xs font-semibold text-foreground",
-              isRefreshing || !onAction?.onRefresh
-                ? "cursor-not-allowed opacity-60"
-                : "hover:border-primary/40"
+              isRefreshing || !onAction?.onRefresh ? "cursor-not-allowed opacity-60" : "hover:border-primary/40"
             )}
           >
             {isRefreshing ? t("common.refreshing") : t("deals.stage.payment.checkStatus")}
