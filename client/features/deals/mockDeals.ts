@@ -27,7 +27,7 @@ const defaultDeals: Deal[] = [
       priceTon: mockChannels[0].priceTon,
     },
     escrow: {
-      status: LEGACY_ESCROW_STATUS.AWAITING_PAYMENT,
+      status: LEGACY_ESCROW_STATUS.PAYMENT_AWAITING,
       amountTon: 4.2,
       network: "TON",
       depositAddress: "EQC2MockDepositAddress1111",
@@ -271,7 +271,7 @@ export const createMockDeal = (payload: CreateDealPayload) => {
     ...baseDeal,
     status: LEGACY_DEAL_STATUS.OWNER_ACCEPTED,
     escrow: {
-      status: LEGACY_ESCROW_STATUS.AWAITING_PAYMENT,
+      status: LEGACY_ESCROW_STATUS.PAYMENT_AWAITING,
       amountTon: channel.priceTon,
       network: "TON",
       depositAddress: "EQC2MockDepositAddress2222",
@@ -321,7 +321,7 @@ export const requestMockEdits = (id: string, note?: string) =>
 export const simulateMockPayment = (id: string) =>
   updateDeal(id, (deal) => {
     const updatedAt = new Date().toISOString();
-    if (deal.escrow?.status === LEGACY_ESCROW_STATUS.AWAITING_PAYMENT) {
+    if (deal.escrow?.status === LEGACY_ESCROW_STATUS.PAYMENT_AWAITING) {
       return {
         ...deal,
         status: LEGACY_DEAL_STATUS.PAYMENT_CONFIRMING,

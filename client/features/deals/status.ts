@@ -164,7 +164,7 @@ export const getDealStage = (deal: Deal): DealStage => {
   if (
     deal.status === LEGACY_DEAL_STATUS.PAYMENT_REQUIRED ||
     deal.status === LEGACY_DEAL_STATUS.OWNER_ACCEPTED ||
-    deal.escrow?.status === LEGACY_ESCROW_STATUS.AWAITING_PAYMENT
+    deal.escrow?.status === LEGACY_ESCROW_STATUS.PAYMENT_AWAITING
   ) {
     return LEGACY_DEAL_STATUS.PAYMENT_REQUIRED;
   }

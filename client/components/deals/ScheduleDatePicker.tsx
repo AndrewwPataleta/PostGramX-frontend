@@ -2,10 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { addHours, isSameDay, startOfDay } from "date-fns";
 import { CalendarDays } from "lucide-react";
 
-import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface ScheduleDatePickerProps {
@@ -15,127 +13,142 @@ interface ScheduleDatePickerProps {
 
 const TIME_INTERVAL_MINUTES = 5;
 
-const padTime = (value: number) => value.toString().padStart(2, "0");
+const pad2 = (n: number) => n.toString().padStart(2, "0");
 
-const formatTime = (date: Date) =>
-  `${padTime(date.getHours())}:${padTime(date.getMinutes())}`;
+const roundUpToInterval = (date: Date, minutes: number) => {
+  const rounded = new Date(date);
+  const ms = minutes * 60 * 1000;
+  rounded.setTime(Math.ceil(rounded.getTime() / ms) * ms);
+  rounded.setSeconds(0, 0);
+  return rounded;
+};
+
+const clampToMin = (date: Date, min: Date) => (date < min ? new Date(min) : date);
 
 const formatDisplayDateTime = (date: Date | null) => {
-  if (!date) {
-    return "";
-  }
+  if (!date) return "";
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
 };
 
-const roundUpToInterval = (date: Date, minutes: number) => {
-  const rounded = new Date(date);
-  const ms = minutes * 60 * 1000;
-  rounded.setTime(Math.ceil(rounded.getTime() / ms) * ms);
-  return rounded;
-};
+const toDateInputValue = (date: Date) =>
+  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
-const clampToMin = (date: Date, min: Date) => (date < min ? new Date(min) : date);
+const toTimeInputValue = (date: Date) => `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 
-const buildTimeSlots = (interval: number) => {
-  const slots: { label: string; hours: number; minutes: number }[] = [];
-  for (let total = 0; total < 24 * 60; total += interval) {
-    const hours = Math.floor(total / 60);
-    const minutes = total % 60;
-    slots.push({
-      label: `${padTime(hours)}:${padTime(minutes)}`,
-      hours,
-      minutes,
-    });
-  }
-  return slots;
+// min для <input type="time">, если выбран день = сегодня(minSelectableDay)
+const minTimeStringForDay = (selectedDay: Date, minSelectableTime: Date) => {
+  if (!isSameDay(selectedDay, minSelectableTime)) return "00:00";
+  return toTimeInputValue(minSelectableTime);
 };
 
 export function ScheduleDatePicker({ value, onChange }: ScheduleDatePickerProps) {
+  // минимум = сейчас + 1 час, округлить вверх до 5 минут
   const minDateTime = useMemo(() => addHours(new Date(), 1), []);
   const minSelectableTime = useMemo(
     () => roundUpToInterval(minDateTime, TIME_INTERVAL_MINUTES),
     [minDateTime],
   );
-  const minSelectableDay = useMemo(
-    () => startOfDay(minSelectableTime),
-    [minSelectableTime],
-  );
+  const minSelectableDay = useMemo(() => startOfDay(minSelectableTime), [minSelectableTime]);
+
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"date" | "time">("date");
-  const [draftDate, setDraftDate] = useState<Date | null>(value);
-  const [calendarMonth, setCalendarMonth] = useState<Date>(minSelectableDay);
 
-  const timeSlots = useMemo(
-    () => buildTimeSlots(TIME_INTERVAL_MINUTES),
-    [],
-  );
+  // draft хранит выбранную пользователем дату-время внутри поповера
+  const [draft, setDraft] = useState<Date | null>(value);
 
+  // значения для native inputs
+  const [dateValue, setDateValue] = useState<string>("");
+  const [timeValue, setTimeValue] = useState<string>("");
+
+  // sync при открытии
   useEffect(() => {
-    if (open) {
-      setStep("date");
-      const nextDraft = draftDate ? clampToMin(draftDate, minSelectableTime) : minSelectableTime;
-      setDraftDate(nextDraft);
-      setCalendarMonth(startOfDay(nextDraft));
-      return;
-    }
-    setDraftDate(value);
-  }, [open, value, draftDate, minSelectableTime]);
-
-  const selectedTimeLabel = draftDate ? formatTime(draftDate) : null;
-
-  const getMinTimeForDate = (date: Date) =>
-    isSameDay(date, minSelectableTime) ? minSelectableTime : startOfDay(date);
-
-  const handleDateSelect = (date: Date | undefined) => {
-    if (!date) {
+    if (!open) {
+      setDraft(value);
       return;
     }
 
-    const baseTime = draftDate ?? minSelectableTime;
-    const nextDate = new Date(date);
-    nextDate.setHours(baseTime.getHours(), baseTime.getMinutes(), 0, 0);
+    setStep("date");
 
-    const minTime = getMinTimeForDate(date);
-    const clamped = clampToMin(nextDate, minTime);
-    setDraftDate(clamped);
+    const base = value ? clampToMin(value, minSelectableTime) : minSelectableTime;
+    setDraft(base);
+
+    setDateValue(toDateInputValue(base));
+    setTimeValue(toTimeInputValue(base));
+  }, [open, value, minSelectableTime]);
+
+  const displayValue = formatDisplayDateTime(value);
+
+  const handlePickDate = (nextDateStr: string) => {
+    // nextDateStr: "YYYY-MM-DD"
+    if (!nextDateStr) return;
+
+    const [y, m, d] = nextDateStr.split("-").map((x) => Number(x));
+    if (!y || !m || !d) return;
+
+    const base = draft ?? minSelectableTime;
+
+    const next = new Date(base);
+    next.setFullYear(y, m - 1, d);
+    next.setSeconds(0, 0);
+
+    // если выбрали сегодня — время не меньше minSelectableTime
+    const minForThisDay = isSameDay(next, minSelectableTime)
+      ? minSelectableTime
+      : startOfDay(next);
+
+    const clamped = clampToMin(next, minForThisDay);
+
+    setDraft(clamped);
+    setDateValue(nextDateStr);
+
+    // если после clamp время "сдвинулось" — обновим time input
+    setTimeValue(toTimeInputValue(clamped));
+
+    // перейти к времени
     setStep("time");
   };
 
-  const handleTimeSelect = (hours: number, minutes: number) => {
-    if (!draftDate) {
-      return;
-    }
-    const nextDate = new Date(draftDate);
-    nextDate.setHours(hours, minutes, 0, 0);
-    const clamped = clampToMin(nextDate, minSelectableTime);
-    setDraftDate(clamped);
+  const handlePickTime = (nextTimeStr: string) => {
+    // nextTimeStr: "HH:MM"
+    if (!nextTimeStr) return;
+
+    const [hh, mm] = nextTimeStr.split(":").map((x) => Number(x));
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return;
+
+    const base = draft ?? minSelectableTime;
+
+    const next = new Date(base);
+    next.setHours(hh, mm, 0, 0);
+
+    // общий минимальный clamp (сейчас+1ч)
+    const clamped = clampToMin(next, minSelectableTime);
+
+    setDraft(clamped);
+    setTimeValue(nextTimeStr);
+
     onChange(clamped);
     setOpen(false);
   };
 
-  const isTimeDisabled = (hours: number, minutes: number) => {
-    const baseDate = draftDate ?? minSelectableTime;
-    const target = new Date(baseDate);
-    target.setHours(hours, minutes, 0, 0);
-    const minTime = getMinTimeForDate(baseDate);
-    return target < minTime;
-  };
+  // ограничения для инпутов
+  const minDateStr = useMemo(() => toDateInputValue(minSelectableDay), [minSelectableDay]);
 
-  const filteredTimeSlots = useMemo(() => {
-    const baseDate = draftDate ?? minSelectableTime;
-    if (!isSameDay(baseDate, minSelectableTime)) {
-      return timeSlots;
-    }
-    const minMinutes = minSelectableTime.getHours() * 60 + minSelectableTime.getMinutes();
-    return timeSlots.filter(
-      (slot) => slot.hours * 60 + slot.minutes >= minMinutes,
-    );
-  }, [draftDate, minSelectableTime, timeSlots]);
+  const selectedDayForMinTime = useMemo(() => {
+    if (!dateValue) return minSelectableDay;
+    const [y, m, d] = dateValue.split("-").map((x) => Number(x));
+    const day = new Date(minSelectableDay);
+    day.setFullYear(y, (m || 1) - 1, d || 1);
+    day.setHours(0, 0, 0, 0);
+    return day;
+  }, [dateValue, minSelectableDay]);
 
-  const displayValue = formatDisplayDateTime(value);
+  const minTimeStr = useMemo(
+    () => minTimeStringForDay(selectedDayForMinTime, minSelectableTime),
+    [selectedDayForMinTime, minSelectableTime],
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -152,6 +165,7 @@ export function ScheduleDatePicker({ value, onChange }: ScheduleDatePickerProps)
           </div>
         </button>
       </PopoverTrigger>
+
       <PopoverContent
         align="start"
         side="bottom"
@@ -161,6 +175,7 @@ export function ScheduleDatePicker({ value, onChange }: ScheduleDatePickerProps)
           <p className="text-sm font-semibold text-primary/90">
             {step === "date" ? "Select date" : "Select time"}
           </p>
+
           {step === "time" && (
             <button
               type="button"
@@ -173,72 +188,39 @@ export function ScheduleDatePicker({ value, onChange }: ScheduleDatePickerProps)
         </div>
 
         {step === "date" ? (
-          <Calendar
-            mode="single"
-            selected={draftDate ?? undefined}
-            onSelect={handleDateSelect}
-
-            // 1) Запрещаем прошлые даты
-            disabled={{ before: minSelectableDay }}
-
-            // 2) Запрещаем навигацию в прошлые месяцы (стрелки назад перестанут работать)
-            fromDate={minSelectableDay}
-
-            // Если хочешь ограничить далеко вперёд — раскомментируй:
-            // toDate={addMonths(minSelectableDay, 12)}
-
-            month={calendarMonth}
-            onMonthChange={setCalendarMonth}
-            initialFocus
-            className="w-full rounded-xl border border-primary/20 bg-background/70 p-2"
-
-            // 3) Убираем переносы в заголовке weekdays + делаем 1 букву (локаль-авто)
-            formatters={{
-              formatWeekdayName: (date) =>
-                new Intl.DateTimeFormat(undefined, { weekday: "narrow" }).format(date),
-            }}
-
-            classNames={{
-              months: "w-full space-y-4",
-              table: "w-full border-collapse space-y-2",
-
-              // важно: запрет переносов, иначе опять будет “Mon” -> “M” + “on”
-              head_cell:
-                "w-9 text-xs font-medium text-muted-foreground whitespace-nowrap",
-
-              // если хочешь просто серым, без зачёркивания
-              day_disabled: "text-muted-foreground/40 opacity-50",
-            }}
-          />
-
+          <div className="space-y-2">
+            <label className="block text-xs text-muted-foreground">Date</label>
+            <input
+              type="date"
+              value={dateValue}
+              min={minDateStr}
+              onChange={(e) => handlePickDate(e.target.value)}
+              className={cn(
+                "w-full rounded-xl border border-primary/20 bg-background/70 px-3 py-2 text-sm text-foreground",
+                "focus:outline-none focus:ring-2 focus:ring-primary/40",
+              )}
+            />
+            <p className="text-[11px] text-muted-foreground/80">
+              Earliest: {formatDisplayDateTime(minSelectableTime)}
+            </p>
+          </div>
         ) : (
-          <div className="w-full">
-            <ScrollArea className="h-64 rounded-xl border border-primary/20 bg-background/70">
-              <div className="grid grid-cols-3 gap-2 p-2">
-                {filteredTimeSlots.map((slot) => {
-                  const disabled = isTimeDisabled(slot.hours, slot.minutes);
-                  const isSelected = selectedTimeLabel === slot.label;
-                  return (
-                    <button
-                      key={slot.label}
-                      type="button"
-                      onClick={() => handleTimeSelect(slot.hours, slot.minutes)}
-                      disabled={disabled}
-                      className={cn(
-                        "rounded-xl border px-2 py-2 text-sm font-medium text-foreground transition",
-                        disabled
-                          ? "cursor-not-allowed border-border/40 opacity-40"
-                          : "border-border hover:bg-primary/10",
-                        isSelected &&
-                          "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
-                      )}
-                    >
-                      {slot.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </ScrollArea>
+          <div className="space-y-2">
+            <label className="block text-xs text-muted-foreground">Time</label>
+            <input
+              type="time"
+              value={timeValue}
+              step={TIME_INTERVAL_MINUTES * 60}
+              min={minTimeStr}
+              onChange={(e) => handlePickTime(e.target.value)}
+              className={cn(
+                "w-full rounded-xl border border-primary/20 bg-background/70 px-3 py-2 text-sm text-foreground",
+                "focus:outline-none focus:ring-2 focus:ring-primary/40",
+              )}
+            />
+            <p className="text-[11px] text-muted-foreground/80">
+              Min time for this date: {minTimeStr}
+            </p>
           </div>
         )}
       </PopoverContent>

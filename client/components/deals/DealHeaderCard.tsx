@@ -63,11 +63,6 @@ export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <span className="truncate">{deal.channel.name}</span>
-            {deal.channel.verified ? (
-              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                {t("channels.verifiedBadge")}
-              </span>
-            ) : null}
           </div>
           <p className="text-xs text-muted-foreground">@{deal.channel.username}</p>
         </div>

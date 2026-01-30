@@ -54,7 +54,7 @@ export default function DealDetails() {
       if (data.escrowStatus === DEAL_ESCROW_STATUS.CREATIVE_AWAITING_ADMIN_REVIEW) {
         return 10000;
       }
-      if (data.escrowStatus === DEAL_ESCROW_STATUS.AWAITING_PAYMENT) {
+      if (data.escrowStatus === DEAL_ESCROW_STATUS.PAYMENT_AWAITING) {
         return 12000;
       }
       return [DEAL_ESCROW_STATUS.FUNDS_PENDING, DEAL_ESCROW_STATUS.POSTED_VERIFYING].includes(
@@ -121,7 +121,7 @@ export default function DealDetails() {
       [DEAL_ESCROW_STATUS.CREATIVE_AWAITING_ADMIN_REVIEW]: (
         <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />
       ),
-      [DEAL_ESCROW_STATUS.AWAITING_PAYMENT]: (
+      [DEAL_ESCROW_STATUS.PAYMENT_AWAITING]: (
         <StagePayment
           deal={resolvedDeal}
           readonly={readonlyForPublisher}

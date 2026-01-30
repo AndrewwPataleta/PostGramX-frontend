@@ -159,7 +159,7 @@
   "deals.detailTitle": "Детали сделки",
   "deals.escrowStatus.ADMIN_REVIEW": "Проверка администратором",
   "deals.escrowStatus.APPROVED_SCHEDULED": "Запланировано",
-  "deals.escrowStatus.AWAITING_PAYMENT": "Ожидает оплаты",
+  "deals.escrowStatus.PAYMENT_AWAITING": "Ожидает оплаты",
   "deals.escrowStatus.CANCELED": "Отменено",
   "deals.escrowStatus.COMPLETED": "Завершено",
   "deals.escrowStatus.CREATIVE_AWAITING_CONFIRM": "Ожидает подтверждения",

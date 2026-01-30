@@ -114,7 +114,7 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
     }),
     buildMockDeal({
       status: DEAL_STATUS.PENDING,
-      escrowStatus: DEAL_ESCROW_STATUS.AWAITING_PAYMENT,
+      escrowStatus: DEAL_ESCROW_STATUS.PAYMENT_AWAITING,
       channel: {
         id: "channel_2",
         name: "Web3 Pulse",
@@ -139,7 +139,7 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
     }),
     buildMockDeal({
       status: DEAL_STATUS.PENDING,
-      escrowStatus: DEAL_ESCROW_STATUS.AWAITING_PAYMENT,
+      escrowStatus: DEAL_ESCROW_STATUS.PAYMENT_AWAITING,
       channel: {
         id: "channel_3",
         name: "TON Launchpad",

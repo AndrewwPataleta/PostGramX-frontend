@@ -89,7 +89,7 @@ export default function StagePayment({
     setIsWaiting(false);
   }, [deal.id, deal.escrowStatus]);
 
-  if (deal.escrowStatus !== DEAL_ESCROW_STATUS.AWAITING_PAYMENT) {
+  if (deal.escrowStatus !== DEAL_ESCROW_STATUS.PAYMENT_AWAITING) {
     return null;
   }
 

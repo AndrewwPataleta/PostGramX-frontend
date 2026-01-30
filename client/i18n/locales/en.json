@@ -159,7 +159,7 @@
   "deals.detailTitle": "Deal details",
   "deals.escrowStatus.ADMIN_REVIEW": "Admin review",
   "deals.escrowStatus.APPROVED_SCHEDULED": "Scheduled",
-  "deals.escrowStatus.AWAITING_PAYMENT": "Awaiting payment",
+  "deals.escrowStatus.PAYMENT_AWAITING": "Awaiting payment",
   "deals.escrowStatus.CANCELED": "Canceled",
   "deals.escrowStatus.COMPLETED": "Completed",
   "deals.escrowStatus.CREATIVE_AWAITING_CONFIRM": "Awaiting confirmation",
