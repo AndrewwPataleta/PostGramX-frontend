@@ -46,6 +46,8 @@ export default function StageTimeline({
             <ChevronLeft className="h-4 w-4" />
           </button>
         ) : null}
+
+
         <div className="flex flex-1 flex-wrap gap-2">
           {stages.map((stage) => {
             const isActive = stage === selectedStage;
@@ -53,7 +55,7 @@ export default function StageTimeline({
             const sharedClasses = cn(
               "rounded-full border px-3 py-1 text-xs font-semibold transition",
               isActive
-                ? "border-blue-500 bg-blue-600 text-white"
+                ? "bg-primary text-white"
                 : "border-border/60 bg-background/50 text-muted-foreground",
               isInteractive && !isDisabled ? "hover:border-primary/40 hover:text-foreground" : "opacity-70"
             );
