@@ -1,0 +1,1 @@
+function o(e){const n=window.Telegram?.WebApp;n?.openTelegramLink?n.openTelegramLink(e):window.open(e,"_blank","noopener,noreferrer")}function i(e){const n=window.Telegram?.WebApp;if(n?.openLink){n.openLink(e);return}window.location.href=e}export{i as a,o};
