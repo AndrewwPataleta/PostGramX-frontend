@@ -7,3 +7,15 @@ export function openTelegramLink(url: string) {
     window.open(url, "_blank", "noopener,noreferrer");
   }
 }
+
+export function openTonDeepLink(url: string) {
+  const tg = (window as any).Telegram?.WebApp;
+
+  if (tg?.openLink) {
+    tg.openLink(url);
+    return;
+  }
+
+  // fallback
+  window.location.href = url;
+}

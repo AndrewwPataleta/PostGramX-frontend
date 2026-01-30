@@ -7,9 +7,9 @@ import { DEAL_ESCROW_STATUS } from "@/constants/deals";
 import { cn } from "@/lib/utils";
 import { formatTon } from "@/i18n/formatters";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { buildTelegramWalletTransferLinkFromNano } from "@/features/deals/payment";
+import { buildTelegramWalletTransferLinkFromNano, buildTonTransferLinkFromNano } from "@/features/deals/payment";
 import { useWalletContext } from "@/contexts/WalletContext";
-import { openTelegramLink } from "@/lib/telegramLinks";
+import { openTelegramLink, openTonDeepLink } from "@/lib/telegramLinks";
 
 interface StagePaymentProps {
   deal: DealListItem;
@@ -101,23 +101,22 @@ export default function StagePayment({
   };
 
   const handlePayWithWallet = () => {
-    if (readonly || !paymentAddress || !escrowAmountNano) {
-      return;
-    }
+    if (readonly || !paymentAddress || !escrowAmountNano) return;
+
     try {
-      const link = buildTelegramWalletTransferLinkFromNano({
+      const link = buildTonTransferLinkFromNano({
         address: paymentAddress,
         amountNano: escrowAmountNano,
         memo: `Deal:${deal.id}`,
       });
-      openTelegramLink(link);
+
+      openTonDeepLink(link);
       setIsWaiting(true);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("deals.stage.payment.paymentCanceled")
-      );
+      toast.error(error instanceof Error ? error.message : "Payment canceled");
     }
   };
+
 
   const handleCopyAddress = async () => {
     if (!paymentAddress) {
