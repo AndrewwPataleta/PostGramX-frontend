@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import InfoCard from "@/components/deals/InfoCard";
@@ -17,6 +18,22 @@ interface StageAdminApprovalProps {
   };
 }
 
+const formatAdminCountdown = (deadline: string | null | undefined) => {
+  if (!deadline) {
+    return null;
+  }
+  const deadlineMs = new Date(deadline).getTime();
+  if (Number.isNaN(deadlineMs)) {
+    return null;
+  }
+  const diff = Math.max(0, deadlineMs - Date.now());
+  const hours = Math.floor(diff / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  const seconds = Math.floor((diff % 60_000) / 1000);
+  const pad = (value: number) => value.toString().padStart(2, "0");
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+};
+
 export default function StageAdminApproval({
   deal,
   readonly,
@@ -24,6 +41,22 @@ export default function StageAdminApproval({
 }: StageAdminApprovalProps) {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const [countdown, setCountdown] = useState<string | null>(() =>
+    formatAdminCountdown(deal.adminReviewDeadlineAt)
+  );
+
+  useEffect(() => {
+    if (!deal.adminReviewDeadlineAt) {
+      setCountdown(null);
+      return;
+    }
+    const updateCountdown = () => {
+      setCountdown(formatAdminCountdown(deal.adminReviewDeadlineAt));
+    };
+    updateCountdown();
+    const interval = window.setInterval(updateCountdown, 1000);
+    return () => window.clearInterval(interval);
+  }, [deal.adminReviewDeadlineAt]);
 
   const approveMutation = useMutation({
     mutationFn: async () => {
@@ -88,6 +121,11 @@ export default function StageAdminApproval({
         <p className="text-xs text-muted-foreground">
           {t("deals.stage.adminApproval.readonly")}
         </p>
+        {countdown ? (
+          <p className="text-xs text-muted-foreground">
+            {t("deals.stage.adminApproval.timeLeft", { time: countdown })}
+          </p>
+        ) : null}
       </InfoCard>
     );
   }
@@ -121,6 +159,11 @@ export default function StageAdminApproval({
       <p className="text-xs text-muted-foreground">
         {t("deals.stage.adminApproval.description")}
       </p>
+      {countdown ? (
+        <p className="text-xs text-muted-foreground">
+          {t("deals.stage.adminApproval.timeLeft", { time: countdown })}
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-2">
         <button
           type="button"

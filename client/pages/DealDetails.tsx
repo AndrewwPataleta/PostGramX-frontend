@@ -51,7 +51,10 @@ export default function DealDetails() {
       if (!data) {
         return false;
       }
-      if (data.escrowStatus === "CREATIVE_AWAITING_ADMIN_REVIEW") {
+      if (
+        data.escrowStatus === "CREATIVE_AWAITING_ADMIN_REVIEW" ||
+        data.escrowStatus === "ADMIN_REVIEW"
+      ) {
         return 10000;
       }
       if (data.escrowStatus === "PAYMENT_AWAITING") {
@@ -112,6 +115,7 @@ export default function DealDetails() {
       CREATIVE_AWAITING_ADMIN_REVIEW: (
         <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />
       ),
+      ADMIN_REVIEW: <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />,
       CREATIVE_AWAITING_CONFIRM: (
         <StageConfirmPost deal={resolvedDeal} readonly={!isAdvertiser} />
       ),

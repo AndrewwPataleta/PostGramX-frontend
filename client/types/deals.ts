@@ -5,6 +5,7 @@ export type EscrowStatus =
   | "CREATIVE_AWAITING_SUBMIT"
   | "CREATIVE_AWAITING_CONFIRM"
   | "CREATIVE_AWAITING_ADMIN_REVIEW"
+  | "ADMIN_REVIEW"
   | "PAYMENT_AWAITING"
   | "FUNDS_PENDING"
   | "FUNDS_CONFIRMED"
@@ -58,6 +59,7 @@ export interface DealListItem {
   escrowPaymentAddress?: string | null;
   paymentExpiresAt?: string | null;
   paymentDeadlineAt?: string | null;
+  adminReviewDeadlineAt?: string | null;
 }
 
 export interface DealsListGroup<TItem> {
