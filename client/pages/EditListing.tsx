@@ -21,6 +21,7 @@ import {
 import { listingTagCategories } from "@/features/listings/tagOptions";
 import { getErrorMessage } from "@/lib/api/errors";
 import { nanoToTonString } from "@/lib/ton";
+import { toUtcIsoString } from "@/utils/date";
 import type { ListingListItem } from "@/types/listings";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 
@@ -176,8 +177,8 @@ export default function EditListing() {
 
     updateListing(listing.id, {
       priceTon: Number(priceTon || 0),
-      availabilityFrom: listing.availabilityFrom,
-      availabilityTo: listing.availabilityTo,
+      availabilityFrom: toUtcIsoString(listing.availabilityFrom),
+      availabilityTo: toUtcIsoString(listing.availabilityTo),
       pinDurationHours,
       visibilityDurationHours,
       allowEdits,

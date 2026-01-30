@@ -4,6 +4,7 @@ import { getTelegramWebApp } from "@/lib/telegram";
 import { useCreateDealMutation } from "@/hooks/use-deals";
 import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { toUtcIsoString } from "@/utils/date";
 
 interface CreateDealLocationState {
   listingId?: string;
@@ -26,11 +27,11 @@ export default function CreateDeal() {
     if (!scheduledAt) {
       return undefined;
     }
-    const date = new Date(scheduledAt);
-    if (Number.isNaN(date.getTime())) {
+    try {
+      return toUtcIsoString(scheduledAt);
+    } catch {
       return undefined;
     }
-    return date.toISOString();
   }, [scheduledAt]);
 
   useEffect(() => {
@@ -52,6 +53,10 @@ export default function CreateDeal() {
     }
 
     try {
+      if (scheduledIso && !scheduledIso.endsWith("Z")) {
+        console.error("Scheduled date must be UTC ISO:", scheduledIso);
+        throw new Error("Invalid datetime format");
+      }
       await createDealMutation.mutateAsync({
         listingId,
         brief: brief.trim() || undefined,

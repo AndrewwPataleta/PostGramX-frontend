@@ -14,6 +14,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import { getListingTagLabel } from "@/features/listings/tagOptions";
 import { formatNumber } from "@/i18n/formatters";
 import { formatDuration } from "@/i18n/labels";
+import { toUtcIsoString } from "@/utils/date";
 
 const resolveHours = (choice: string, customValue: string, fallback: number) => {
   if (choice === "custom") {
@@ -102,8 +103,8 @@ export default function CreateListing() {
       channelId: channel.id,
       format: "POST",
       priceTon: Number(priceTon || 0),
-      availabilityFrom: availabilityFrom.toISOString(),
-      availabilityTo: availabilityTo.toISOString(),
+      availabilityFrom: toUtcIsoString(availabilityFrom),
+      availabilityTo: toUtcIsoString(availabilityTo),
       pinDurationHours,
       visibilityDurationHours,
       allowEdits,
