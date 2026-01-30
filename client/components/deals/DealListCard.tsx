@@ -4,11 +4,12 @@ import type { DealListItem } from "@/types/deals";
 import { formatDate, formatDateTime, formatTon } from "@/i18n/formatters";
 import { getDealRoleLabel, getEscrowStatusLabel, getListingFormatLabel, getPinnedDurationLabel, getVisibilityDurationLabel } from "@/i18n/labels";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { USER_ROLE } from "@/constants/roles";
 
 const roleToneMap: Record<DealListItem["userRoleInDeal"], string> = {
-  advertiser: "bg-emerald-500/10 text-emerald-400",
-  publisher: "bg-emerald-500/10 text-emerald-400",
-  publisher_manager: "bg-emerald-500/10 text-emerald-400",
+  [USER_ROLE.ADVERTISER]: "bg-emerald-500/10 text-emerald-400",
+  [USER_ROLE.PUBLISHER]: "bg-emerald-500/10 text-emerald-400",
+  [USER_ROLE.PUBLISHER_MANAGER]: "bg-emerald-500/10 text-emerald-400",
 };
 
 interface DealListCardProps {

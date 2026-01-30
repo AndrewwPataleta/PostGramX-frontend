@@ -24,7 +24,6 @@ import { useBalance, useProfile } from "@/features/profile/hooks";
 import ErrorState from "@/components/feedback/ErrorState";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import { getErrorMessage } from "@/lib/api/errors";
-import { formatStatusLabel } from "@/lib/formatting";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { Input } from "@/components/ui/input";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -51,14 +50,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TRANSACTION_DIRECTION, TRANSACTION_STATUS, TRANSACTION_TYPE } from "@/constants/payments";
+import { TRANSACTION_STATUS_LABELS, TRANSACTION_TYPE_LABELS } from "@/constants/ui";
 
 const statusStyles: Record<TransactionStatus, string> = {
-  PENDING: "bg-amber-500/15 text-amber-300",
-  AWAITING_CONFIRMATION: "bg-sky-500/15 text-sky-300",
-  CONFIRMED: "bg-emerald-500/15 text-emerald-300",
-  COMPLETED: "bg-emerald-500/15 text-emerald-300",
-  FAILED: "bg-rose-500/15 text-rose-300",
-  CANCELED: "bg-rose-500/15 text-rose-300",
+  [TRANSACTION_STATUS.PENDING]: "bg-amber-500/15 text-amber-300",
+  [TRANSACTION_STATUS.AWAITING_CONFIRMATION]: "bg-sky-500/15 text-sky-300",
+  [TRANSACTION_STATUS.CONFIRMED]: "bg-emerald-500/15 text-emerald-300",
+  [TRANSACTION_STATUS.COMPLETED]: "bg-emerald-500/15 text-emerald-300",
+  [TRANSACTION_STATUS.FAILED]: "bg-rose-500/15 text-rose-300",
+  [TRANSACTION_STATUS.CANCELED]: "bg-rose-500/15 text-rose-300",
 };
 
 const topUpChips = [10, 25, 50];
@@ -247,41 +248,11 @@ export default function Profile() {
   };
 
   const getTransactionTypeLabel = (type: TransactionType) => {
-    switch (type) {
-      case "DEPOSIT":
-        return "Deposit";
-      case "WITHDRAW":
-        return "Withdraw";
-      case "ESCROW_HOLD":
-        return "Escrow hold";
-      case "ESCROW_RELEASE":
-        return "Escrow release";
-      case "ESCROW_REFUND":
-        return "Escrow refund";
-      case "FEE":
-        return "Fee";
-      default:
-        return type;
-    }
+    return TRANSACTION_TYPE_LABELS[type] ?? type;
   };
 
   const getTransactionStatusLabel = (status: TransactionStatus) => {
-    switch (status) {
-      case "PENDING":
-        return "Pending";
-      case "AWAITING_CONFIRMATION":
-        return "Awaiting confirmation";
-      case "CONFIRMED":
-        return "Confirmed";
-      case "COMPLETED":
-        return "Completed";
-      case "FAILED":
-        return "Failed";
-      case "CANCELED":
-        return "Canceled";
-      default:
-        return status;
-    }
+    return TRANSACTION_STATUS_LABELS[status] ?? status;
   };
 
   const formatShortId = (value: string, left = 6, right = 4) => {
@@ -305,13 +276,18 @@ export default function Profile() {
   };
 
   const getTransactionIcon = (transaction: TransactionListItem) => {
-    if (transaction.type.startsWith("ESCROW")) {
+    const escrowTypes = [
+      TRANSACTION_TYPE.ESCROW_HOLD,
+      TRANSACTION_TYPE.ESCROW_RELEASE,
+      TRANSACTION_TYPE.ESCROW_REFUND,
+    ];
+    if (escrowTypes.includes(transaction.type)) {
       return Lock;
     }
-    if (transaction.direction === "IN") {
+    if (transaction.direction === TRANSACTION_DIRECTION.IN) {
       return ArrowDownLeft;
     }
-    if (transaction.direction === "OUT") {
+    if (transaction.direction === TRANSACTION_DIRECTION.OUT) {
       return ArrowUpRight;
     }
     return Send;
@@ -320,25 +296,13 @@ export default function Profile() {
   const formatTransactionAmount = (transaction: TransactionListItem) => {
     const value = formatTonFromNano(transaction.amountNano);
     const sign =
-      transaction.direction === "OUT"
+      transaction.direction === TRANSACTION_DIRECTION.OUT
         ? "-"
-        : transaction.direction === "IN"
+        : transaction.direction === TRANSACTION_DIRECTION.IN
           ? "+"
           : "";
     return `${sign}${value} ${transaction.currency}`;
   };
-  const transactionTypeLabel = (type: string) =>
-    ({
-      Deposit: t("profile.transactionTypeDeposit"),
-      Withdrawal: t("profile.transactionTypeWithdrawal"),
-    })[type] ?? type;
-  const transactionStatusLabel = (status: string) =>
-    ({
-      Confirmed: t("profile.transactionStatusConfirmed"),
-      Pending: t("profile.transactionStatusPending"),
-      Processing: t("profile.transactionStatusProcessing"),
-      Failed: t("profile.transactionStatusFailed"),
-    })[status] ?? formatStatusLabel(status) ?? status;
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -547,10 +511,18 @@ export default function Profile() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All statuses</SelectItem>
-                            <SelectItem value="PENDING">Pending</SelectItem>
-                            <SelectItem value="COMPLETED">Completed</SelectItem>
-                            <SelectItem value="FAILED">Failed</SelectItem>
-                            <SelectItem value="CANCELED">Canceled</SelectItem>
+                            <SelectItem value={TRANSACTION_STATUS.PENDING}>
+                              {TRANSACTION_STATUS_LABELS[TRANSACTION_STATUS.PENDING]}
+                            </SelectItem>
+                            <SelectItem value={TRANSACTION_STATUS.COMPLETED}>
+                              {TRANSACTION_STATUS_LABELS[TRANSACTION_STATUS.COMPLETED]}
+                            </SelectItem>
+                            <SelectItem value={TRANSACTION_STATUS.FAILED}>
+                              {TRANSACTION_STATUS_LABELS[TRANSACTION_STATUS.FAILED]}
+                            </SelectItem>
+                            <SelectItem value={TRANSACTION_STATUS.CANCELED}>
+                              {TRANSACTION_STATUS_LABELS[TRANSACTION_STATUS.CANCELED]}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <Select
@@ -564,11 +536,21 @@ export default function Profile() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All types</SelectItem>
-                            <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                            <SelectItem value="WITHDRAW">Withdraw</SelectItem>
-                            <SelectItem value="ESCROW_HOLD">Escrow hold</SelectItem>
-                            <SelectItem value="ESCROW_REFUND">Refund</SelectItem>
-                            <SelectItem value="FEE">Fee</SelectItem>
+                            <SelectItem value={TRANSACTION_TYPE.DEPOSIT}>
+                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.DEPOSIT]}
+                            </SelectItem>
+                            <SelectItem value={TRANSACTION_TYPE.WITHDRAW}>
+                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.WITHDRAW]}
+                            </SelectItem>
+                            <SelectItem value={TRANSACTION_TYPE.ESCROW_HOLD}>
+                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.ESCROW_HOLD]}
+                            </SelectItem>
+                            <SelectItem value={TRANSACTION_TYPE.ESCROW_REFUND}>
+                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.ESCROW_REFUND]}
+                            </SelectItem>
+                            <SelectItem value={TRANSACTION_TYPE.FEE}>
+                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.FEE]}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <Input

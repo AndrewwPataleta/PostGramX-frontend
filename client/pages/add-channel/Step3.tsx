@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAddChannelFlow } from "@/pages/add-channel/useAddChannelFlow";
 import type { ChannelListItem } from "@/types/channels";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { CHANNEL_ROLE, CHANNEL_STATUS } from "@/constants/channels";
+import { ROUTES } from "@/constants/routes";
 
 const AddChannelStep3 = () => {
   const navigate = useNavigate();
@@ -15,11 +17,11 @@ const AddChannelStep3 = () => {
 
   useEffect(() => {
     if (!preview) {
-      navigate("/add-channel/step-1", { replace: true });
+      navigate(ROUTES.ADD_CHANNEL_STEP("step-1"), { replace: true });
       return;
     }
     if (state.verifyStatus === "idle") {
-      navigate("/add-channel/step-2", { replace: true });
+      navigate(ROUTES.ADD_CHANNEL_STEP("step-2"), { replace: true });
     }
   }, [navigate, preview, state.verifyStatus]);
 
@@ -41,13 +43,13 @@ const AddChannelStep3 = () => {
           id: linkedChannelId,
           username: (preview.username || preview.normalizedUsername || "").replace(/^@/, ""),
           title: preview.title || t("channels.untitled"),
-          status: "VERIFIED",
+          status: CHANNEL_STATUS.VERIFIED,
           telegramChatId: preview.telegramChatId ?? null,
           memberCount: preview.memberCount ?? null,
           verifiedAt: new Date().toISOString(),
           lastCheckedAt: new Date().toISOString(),
           membership: {
-            role: "OWNER",
+            role: CHANNEL_ROLE.OWNER,
             telegramAdminStatus: "administrator",
             lastRecheckAt: new Date().toISOString(),
           },
@@ -89,7 +91,7 @@ const AddChannelStep3 = () => {
         {isSuccess ? (
           <>
             <Button
-              onClick={() => navigate("/channels")}
+              onClick={() => navigate(ROUTES.CHANNELS)}
               className="w-full text-sm font-semibold"
             >
               {t("channels.add.step3.goToChannels")}
@@ -98,10 +100,10 @@ const AddChannelStep3 = () => {
               variant="secondary"
               onClick={() =>
                 linkedChannelId
-                  ? navigate(`/channel-manage/${linkedChannelId}/listings`, {
+                  ? navigate(ROUTES.CHANNEL_MANAGE_LISTINGS(linkedChannelId), {
                       state: channelState
-                        ? { channel: channelState, rootBackTo: "/channels" }
-                        : { rootBackTo: "/channels" },
+                        ? { channel: channelState, rootBackTo: ROUTES.CHANNELS }
+                        : { rootBackTo: ROUTES.CHANNELS },
                     })
                   : undefined
               }
@@ -114,14 +116,14 @@ const AddChannelStep3 = () => {
         ) : (
           <>
             <Button
-              onClick={() => navigate("/add-channel/step-2")}
+              onClick={() => navigate(ROUTES.ADD_CHANNEL_STEP("step-2"))}
               className="w-full text-sm font-semibold"
             >
               {t("channels.add.step3.retryVerification")}
             </Button>
             <Button
               variant="secondary"
-              onClick={() => navigate("/channels")}
+              onClick={() => navigate(ROUTES.CHANNELS)}
               className="w-full text-sm font-semibold"
             >
               {t("channels.add.step3.backToChannels")}

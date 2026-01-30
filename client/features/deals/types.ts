@@ -1,24 +1,8 @@
-export type DealStatus =
-  | "REQUESTED"
-  | "OWNER_ACCEPTED"
-  | "PAYMENT_REQUIRED"
-  | "PAYMENT_CONFIRMING"
-  | "FUNDS_LOCKED"
-  | "CREATIVE_DRAFTING"
-  | "CREATIVE_SUBMITTED"
-  | "CREATIVE_APPROVED"
-  | "SCHEDULED"
-  | "POSTED"
-  | "VERIFYING"
-  | "RELEASED"
-  | "REFUNDED";
+import type { LegacyDealStatus, LegacyEscrowStatus } from "@/constants/deals";
 
-export type EscrowStatus =
-  | "AWAITING_PAYMENT"
-  | "PAYMENT_CONFIRMING"
-  | "FUNDS_LOCKED"
-  | "RELEASED"
-  | "REFUNDED";
+export type DealStatus = LegacyDealStatus;
+
+export type EscrowStatus = LegacyEscrowStatus;
 
 export interface DealChannel {
   id: string;

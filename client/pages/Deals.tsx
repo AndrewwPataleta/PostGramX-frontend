@@ -9,6 +9,9 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
 import { getTelegramWebApp } from "@/lib/telegram";
 import { useDealsListQuery } from "@/hooks/use-deals";
+import { ROUTES } from "@/constants/routes";
+import { USER_ROLE } from "@/constants/roles";
+import { DEAL_STATUS_LABELS } from "@/constants/ui";
 import type { DealsListGroup, DealListItem } from "@/types/deals";
 
 const DEFAULT_LIMIT = 5;
@@ -44,9 +47,9 @@ const mergeGroup = (
 };
 
 const sectionLabels: Record<DealSectionKey, string> = {
-  pending: "Pending",
-  active: "Active",
-  completed: "Completed",
+  pending: DEAL_STATUS_LABELS.PENDING,
+  active: DEAL_STATUS_LABELS.ACTIVE,
+  completed: DEAL_STATUS_LABELS.COMPLETED,
 };
 
 export default function Deals() {
@@ -144,7 +147,7 @@ export default function Deals() {
   const handleSelectDeal = useCallback(
     (deal: DealListItem) => {
       queryClient.setQueryData(["dealById", deal.id], deal);
-      navigate(`/deals/${deal.id}`, { state: { deal, rootBackTo: "/deals" } });
+      navigate(ROUTES.DEAL_DETAILS(deal.id), { state: { deal, rootBackTo: ROUTES.DEALS } });
     },
     [navigate, queryClient]
   );
@@ -152,10 +155,10 @@ export default function Deals() {
   const currentGroup = groups[activeTab];
   const { buyerDeals, sellerDeals } = useMemo(() => {
     const buyer = currentGroup.items.filter(
-      (deal) => deal.userRoleInDeal === "advertiser"
+      (deal) => deal.userRoleInDeal === USER_ROLE.ADVERTISER
     );
     const seller = currentGroup.items.filter(
-      (deal) => deal.userRoleInDeal !== "advertiser"
+      (deal) => deal.userRoleInDeal !== USER_ROLE.ADVERTISER
     );
     return { buyerDeals: buyer, sellerDeals: seller };
   }, [currentGroup.items]);

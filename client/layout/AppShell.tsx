@@ -3,8 +3,9 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { Store, TrendingUp, User, Zap } from "lucide-react";
 import TopToolbar from "@/components/TopToolbar";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { ROUTES } from "@/constants/routes";
 
-const mainNavPaths = ["/marketplace", "/deals", "/channels", "/profile"];
+const mainNavPaths = [ROUTES.MARKETPLACE, ROUTES.DEALS, ROUTES.CHANNELS, ROUTES.PROFILE];
 
 const AppShell = () => {
   const location = useLocation();
@@ -16,20 +17,20 @@ const AppShell = () => {
 
   const isMainNavRoute = mainNavPaths.includes(location.pathname);
   const shouldHideBottomNav =
-    !isMainNavRoute || (location.pathname === "/marketplace" && isKeyboardOpen);
+    !isMainNavRoute || (location.pathname === ROUTES.MARKETPLACE && isKeyboardOpen);
   const bottomNavOffset = 8;
   const bottomNavHeight = shouldHideBottomNav ? 0 : 104 + bottomNavOffset;
-  const isAddChannelRoute = location.pathname.startsWith("/add-channel");
+  const isAddChannelRoute = location.pathname.startsWith(ROUTES.ADD_CHANNEL);
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const navItems = useMemo(
     () => [
-      { path: "/marketplace", label: t("nav.marketplace"), icon: Store },
-      { path: "/deals", label: t("nav.deals"), icon: TrendingUp },
-      { path: "/channels", label: t("nav.channels"), icon: Zap },
-      { path: "/profile", label: t("nav.profile"), icon: User },
+      { path: ROUTES.MARKETPLACE, label: t("nav.marketplace"), icon: Store },
+      { path: ROUTES.DEALS, label: t("nav.deals"), icon: TrendingUp },
+      { path: ROUTES.CHANNELS, label: t("nav.channels"), icon: Zap },
+      { path: ROUTES.PROFILE, label: t("nav.profile"), icon: User },
     ],
     [t],
   );
@@ -55,7 +56,7 @@ const AppShell = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (location.pathname !== "/marketplace") {
+    if (location.pathname !== ROUTES.MARKETPLACE) {
       setIsKeyboardOpen(false);
       return;
     }

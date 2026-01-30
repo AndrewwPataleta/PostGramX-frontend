@@ -12,6 +12,8 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import type { ChannelListItem } from "@/types/channels";
 import { formatNumber } from "@/i18n/formatters";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { CHANNEL_STATUS } from "@/constants/channels";
+import { ROUTES } from "@/constants/routes";
 
 export type ChannelManageContext = {
   channel: ManagedChannel;
@@ -23,7 +25,7 @@ const mapChannelFromListItem = (channel: ChannelListItem, untitledLabel: string)
   username: channel.username.startsWith("@") ? channel.username : `@${channel.username}`,
   avatar: "📣",
   status: channel.status,
-  verified: channel.status === "VERIFIED",
+  verified: channel.status === CHANNEL_STATUS.VERIFIED,
   subscribers: channel.memberCount ?? 0,
   activeDeals: 0,
   description: undefined,
@@ -69,7 +71,7 @@ const ChannelManageLayout = () => {
     });
   }, [fallbackChannel, id]);
 
-  const isPendingVerification = channel?.status === "PENDING_VERIFY";
+  const isPendingVerification = channel?.status === CHANNEL_STATUS.PENDING_VERIFY;
   if (!channel) {
     return (
       <div className="w-full max-w-2xl mx-auto">
@@ -88,11 +90,11 @@ const ChannelManageLayout = () => {
     setInlineError(null);
     try {
       const response = await mutateAsync(id);
-      if (response.status === "VERIFIED") {
+      if (response.status === CHANNEL_STATUS.VERIFIED) {
         const nextChannel = fallbackListItem
-          ? { ...fallbackListItem, status: "VERIFIED" }
+          ? { ...fallbackListItem, status: CHANNEL_STATUS.VERIFIED }
           : undefined;
-        navigate(`/channel-manage/${id}/listings`, {
+        navigate(ROUTES.CHANNEL_MANAGE_LISTINGS(id), {
           replace: true,
           state: nextChannel
             ? { channel: nextChannel, rootBackTo }
@@ -118,7 +120,7 @@ const ChannelManageLayout = () => {
     }
   };
 
-  const basePath = `/channel-manage/${channel.id}`;
+  const basePath = ROUTES.CHANNEL_MANAGE(channel.id);
 
   const outletContext = {
     channel,

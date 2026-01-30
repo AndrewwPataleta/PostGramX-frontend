@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { AddChannelFlowProvider } from "@/pages/add-channel/useAddChannelFlow";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { ROUTES } from "@/constants/routes";
 
 const AddChannelLayout = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const AddChannelLayout = () => {
             </div>
             <button
               type="button"
-              onClick={() => navigate("/channels", { replace: true })}
+              onClick={() => navigate(ROUTES.CHANNELS, { replace: true })}
               className="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
               aria-label={t("common.close")}
             >

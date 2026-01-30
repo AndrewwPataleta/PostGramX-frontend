@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight, Bot, Check, Loader2, ShieldCheck, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FlowLayout from "@/components/add-channel/FlowLayout";
+import { ROUTES } from "@/constants/routes";
 
 export default function AddChannel() {
   const steps = [
@@ -71,13 +72,13 @@ export default function AddChannel() {
         ) : (
           <div className="space-y-2">
             <button
-              onClick={() => navigate("/channel-manage/1/listings/create")}
+              onClick={() => navigate(ROUTES.CHANNEL_MANAGE_LISTINGS_CREATE("1"))}
               className="button-primary text-base font-semibold"
             >
               Create listing
             </button>
             <button
-              onClick={() => navigate("/channels")}
+              onClick={() => navigate(ROUTES.CHANNELS)}
               className="button-secondary text-base font-semibold"
             >
               Back to My Channels

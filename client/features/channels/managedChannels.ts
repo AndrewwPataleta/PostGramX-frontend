@@ -1,9 +1,11 @@
+import { CHANNEL_STATUS, type ChannelStatus } from "@/constants/channels";
+
 export interface ManagedChannel {
   id: string;
   name: string;
   username: string;
   avatar: string;
-  status: "PENDING_VERIFY" | "VERIFIED" | "FAILED" | "REVOKED" | "DRAFT";
+  status: ChannelStatus;
   verified: boolean;
   subscribers: number;
   activeDeals: number;
@@ -16,7 +18,7 @@ export const managedChannelData: Record<string, ManagedChannel> = {
     name: "My Crypto Channel",
     username: "@mycryptocha",
     avatar: "📰",
-    status: "VERIFIED",
+    status: CHANNEL_STATUS.VERIFIED,
     verified: true,
     subscribers: 45000,
     activeDeals: 1,

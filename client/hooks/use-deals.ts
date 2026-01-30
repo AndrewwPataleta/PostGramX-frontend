@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { createDeal, fetchDealsList } from "@/api/features/dealsApi";
 import { getTelegramWebApp } from "@/lib/telegram";
+import { ROUTES } from "@/constants/routes";
 import type {
   CreateDealPayload,
   CreateDealResponse,
@@ -35,7 +36,7 @@ export const useCreateDealMutation = () => {
       const webApp = getTelegramWebApp();
       webApp?.HapticFeedback?.notificationOccurred?.("success");
       queryClient.invalidateQueries({ queryKey: ["deals"] });
-      navigate("/deals", { state: { activeTab: "pending" }, replace: true });
+      navigate(ROUTES.DEALS, { state: { activeTab: "pending" }, replace: true });
     },
     onError: (error) => {
       toast.error(error.message);

@@ -1,4 +1,6 @@
-export type ChannelVerificationStatus = "verified" | "pending" | "failed";
+import type { ChannelVerificationStatus } from "@/constants/channels";
+
+export type { ChannelVerificationStatus } from "@/constants/channels";
 
 export interface Channel {
   id: string;

@@ -1,6 +1,7 @@
 import { CheckCircle2 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { ROUTES } from "@/constants/routes";
 
 export default function ListingSuccess() {
   const { id } = useParams<{ id: string }>();
@@ -20,13 +21,13 @@ export default function ListingSuccess() {
           </div>
           <div className="w-full space-y-3 mt-6">
             <Link
-              to="/marketplace"
+              to={ROUTES.MARKETPLACE}
               className="w-full button-primary py-3 text-base font-semibold text-center"
             >
               View in Marketplace
             </Link>
             <Link
-              to={`/channel-manage/${id}/listings/create`}
+              to={ROUTES.CHANNEL_MANAGE_LISTINGS_CREATE(id ?? "")}
               className="w-full rounded-lg border border-border/60 bg-card px-3 py-3 text-sm font-medium text-foreground text-center"
             >
               Create another listing

@@ -10,6 +10,7 @@ import { previewChannel } from "@/api/features/channelsApi";
 import { getChannelErrorMessage } from "@/pages/add-channel/errorMapping";
 import { useAddChannelFlow } from "@/pages/add-channel/useAddChannelFlow";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { ROUTES } from "@/constants/routes";
 
 const AddChannelStep1 = () => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const AddChannelStep1 = () => {
       setVerifyStatus("idle");
       setLastError(null);
       setInlineError(null);
-      navigate("/add-channel/step-2");
+      navigate(ROUTES.ADD_CHANNEL_STEP("step-2"));
     },
     onError: (error) => {
       const message = getChannelErrorMessage(error);

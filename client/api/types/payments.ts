@@ -1,20 +1,8 @@
-export type TransactionType =
-  | "DEPOSIT"
-  | "WITHDRAW"
-  | "ESCROW_HOLD"
-  | "ESCROW_RELEASE"
-  | "ESCROW_REFUND"
-  | "FEE";
-
-export type TransactionStatus =
-  | "PENDING"
-  | "AWAITING_CONFIRMATION"
-  | "CONFIRMED"
-  | "COMPLETED"
-  | "FAILED"
-  | "CANCELED";
-
-export type TransactionDirection = "IN" | "OUT" | "INTERNAL";
+export type {
+  TransactionDirection,
+  TransactionStatus,
+  TransactionType,
+} from "@/constants/payments";
 
 export type TransactionsListFilters = {
   page?: number;

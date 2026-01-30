@@ -6,6 +6,7 @@ import ErrorState from "@/components/feedback/ErrorState";
 import { ScheduleDatePicker } from "@/components/deals/ScheduleDatePicker";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { toUtcIsoString } from "@/utils/date";
+import { ROUTES } from "@/constants/routes";
 
 interface CreateDealLocationState {
   listingId?: string;
@@ -80,7 +81,7 @@ export default function CreateDeal() {
           <ErrorState
             message="Listing not selected"
             description="Please return to the marketplace and select a listing to continue."
-            onRetry={() => navigate("/marketplace")}
+            onRetry={() => navigate(ROUTES.MARKETPLACE)}
           />
         </PageContainer>
       </div>

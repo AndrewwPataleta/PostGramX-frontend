@@ -2,6 +2,7 @@ import { ShieldAlert } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { ROUTES } from "@/constants/routes";
 
 const AuthRequired = () => {
   const { t } = useLanguage();
@@ -24,7 +25,7 @@ const AuthRequired = () => {
           {t("auth.marketplaceHint")}
         </p>
         <Button asChild className="mt-2">
-          <Link to="/marketplace">{t("auth.marketplaceCta")}</Link>
+          <Link to={ROUTES.MARKETPLACE}>{t("auth.marketplaceCta")}</Link>
         </Button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PageLoader from "@/components/PageLoader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AppShell from "@/layout/AppShell";
+import { ROUTES } from "@/constants/routes";
 
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const ChannelDetails = lazy(() => import("./pages/ChannelDetails"));
@@ -39,7 +40,7 @@ export const AppRoutes = () => {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/splash" element={<Splash />} />
+        <Route path={ROUTES.SPLASH} element={<Splash />} />
         <Route
           element={
             <ProtectedRoute>
@@ -49,38 +50,38 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/marketplace" replace />} />
-          <Route path="/marketplace" element={<Marketplace />} />
+          <Route index element={<Navigate to={ROUTES.MARKETPLACE} replace />} />
+          <Route path={ROUTES.MARKETPLACE} element={<Marketplace />} />
           <Route
-            path="/marketplace/channels/:channelId"
+            path={ROUTES.MARKETPLACE_CHANNEL_DETAILS(":channelId")}
             element={<ChannelDetails />}
           />
           <Route
-            path="/marketplace/channels/:channelId/request"
+            path={ROUTES.MARKETPLACE_CHANNEL_REQUEST(":channelId")}
             element={<CreateDeal />}
           />
-          <Route path="/deals/create/:listingId" element={<CreatePreDeal />} />
-          <Route path="/deals/predeal/:id" element={<PreDealStatus />} />
-          <Route path="/deals" element={<Deals />} />
-          <Route path="/deals/:dealId" element={<DealDetails />} />
-          <Route path="/escrow/:dealId" element={<EscrowPayment />} />
-          <Route path="/funds-locked" element={<FundsLocked />} />
-          <Route path="/channels" element={<Channels />} />
+          <Route path={ROUTES.DEAL_CREATE(":listingId")} element={<CreatePreDeal />} />
+          <Route path={ROUTES.DEAL_PREDEAL(":id")} element={<PreDealStatus />} />
+          <Route path={ROUTES.DEALS} element={<Deals />} />
+          <Route path={ROUTES.DEAL_DETAILS(":dealId")} element={<DealDetails />} />
+          <Route path={ROUTES.ESCROW(":dealId")} element={<EscrowPayment />} />
+          <Route path={ROUTES.FUNDS_LOCKED} element={<FundsLocked />} />
+          <Route path={ROUTES.CHANNELS} element={<Channels />} />
           <Route
-            path="/channels/pending/:id"
+            path={ROUTES.CHANNEL_PENDING(":id")}
             element={<ChannelPendingVerification />}
           />
-          <Route path="/channels/:channelId" element={<ChannelDetails />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path={ROUTES.CHANNEL_DETAILS(":channelId")} element={<ChannelDetails />} />
+          <Route path={ROUTES.PROFILE} element={<Profile />} />
 
-          <Route path="/add-channel" element={<AddChannelLayout />}>
+          <Route path={ROUTES.ADD_CHANNEL} element={<AddChannelLayout />}>
             <Route index element={<Navigate to="step-1" replace />} />
             <Route path="step-1" element={<AddChannelStep1 />} />
             <Route path="step-2" element={<AddChannelStep2 />} />
             <Route path="step-3" element={<AddChannelStep3 />} />
           </Route>
 
-          <Route path="/channel-manage/:id" element={<ChannelManageLayout />}>
+          <Route path={ROUTES.CHANNEL_MANAGE(":id")} element={<ChannelManageLayout />}>
             <Route index element={<Navigate to="listings" replace />} />
             <Route path="overview" element={<Navigate to="../listings" replace />} />
             <Route path="listings" element={<ListingsList />} />

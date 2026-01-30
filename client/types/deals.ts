@@ -1,21 +1,11 @@
-export type DealStatus = "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELED";
+import type { DealEscrowStatus, DealStatus } from "@/constants/deals";
+import type { UserRole } from "@/constants/roles";
 
-export type EscrowStatus =
-  | "SCHEDULING_PENDING"
-  | "CREATIVE_AWAITING_SUBMIT"
-  | "CREATIVE_AWAITING_CONFIRM"
-  | "CREATIVE_AWAITING_ADMIN_REVIEW"
-  | "PAYMENT_AWAITING"
-  | "FUNDS_PENDING"
-  | "FUNDS_CONFIRMED"
-  | "APPROVED_SCHEDULED"
-  | "POSTED_VERIFYING"
-  | "COMPLETED"
-  | "CANCELED"
-  | "REFUNDED"
-  | "DISPUTED";
+export type { DealStatus } from "@/constants/deals";
 
-export type UserRoleInDeal = "advertiser" | "publisher" | "publisher_manager";
+export type EscrowStatus = DealEscrowStatus;
+
+export type UserRoleInDeal = UserRole;
 
 export interface DealListItem {
   id: string;
@@ -74,7 +64,7 @@ export interface DealsListResponse {
 }
 
 export interface DealsListParams {
-  role?: "all" | "advertiser" | "publisher";
+  role?: "all" | UserRole;
   pendingPage?: number;
   pendingLimit?: number;
   activePage?: number;
@@ -91,8 +81,8 @@ export interface CreateDealPayload {
 
 export interface CreateDealResponse {
   id: string;
-  status: "PENDING";
-  escrowStatus: "SCHEDULING_PENDING";
+  status: DealStatus;
+  escrowStatus: EscrowStatus;
   listingId: string;
   channelId: string;
   initiatorSide: "ADVERTISER";

@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { authTelegram } from "@/api/features/authApi";
 import type { ApiError } from "@/api/core/apiErrors";
 import type { TelegramUserLike } from "@/types/auth";
+import { ROUTES } from "@/constants/routes";
 
 type AuthError = {
   type: "missing_telegram" | "auth_failed";
@@ -147,8 +148,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       toast.error("Session expired. Please sign in again.");
 
-      if (location.pathname !== "/splash") {
-        navigate("/splash", {
+      if (location.pathname !== ROUTES.SPLASH) {
+        navigate(ROUTES.SPLASH, {
           replace: true,
           state: { returnTo: location.pathname },
         });

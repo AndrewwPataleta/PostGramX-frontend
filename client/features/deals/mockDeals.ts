@@ -1,4 +1,5 @@
 import { mockChannels } from "@/features/marketplace/api/mockChannels";
+import { LEGACY_DEAL_STATUS, LEGACY_ESCROW_STATUS } from "@/constants/deals";
 import type { CreateDealPayload, Deal } from "./types";
 
 const STORAGE_KEY = "flowgramx.mockDeals";
@@ -11,7 +12,7 @@ const hoursFromNow = (hours: number) => new Date(now + hours * 3_600_000).toISOS
 const defaultDeals: Deal[] = [
   {
     id: "DL-2001",
-    status: "OWNER_ACCEPTED",
+    status: LEGACY_DEAL_STATUS.OWNER_ACCEPTED,
     updatedAt: minutesAgo(8),
     priceTon: 4.2,
     briefText: "Launch teaser for FlowgramX with CTA to beta waitlist.",
@@ -26,7 +27,7 @@ const defaultDeals: Deal[] = [
       priceTon: mockChannels[0].priceTon,
     },
     escrow: {
-      status: "AWAITING_PAYMENT",
+      status: LEGACY_ESCROW_STATUS.AWAITING_PAYMENT,
       amountTon: 4.2,
       network: "TON",
       depositAddress: "EQC2MockDepositAddress1111",
@@ -36,7 +37,7 @@ const defaultDeals: Deal[] = [
   },
   {
     id: "DL-2002",
-    status: "CREATIVE_SUBMITTED",
+    status: LEGACY_DEAL_STATUS.CREATIVE_SUBMITTED,
     updatedAt: minutesAgo(18),
     priceTon: 3.5,
     briefText: "Promote new campaign dashboard with a short CTA to try demo.",
@@ -51,7 +52,7 @@ const defaultDeals: Deal[] = [
       priceTon: mockChannels[1].priceTon,
     },
     escrow: {
-      status: "FUNDS_LOCKED",
+      status: LEGACY_ESCROW_STATUS.FUNDS_LOCKED,
       amountTon: 3.5,
       network: "TON",
       updatedAt: minutesAgo(20),
@@ -64,7 +65,7 @@ const defaultDeals: Deal[] = [
   },
   {
     id: "DL-2003",
-    status: "SCHEDULED",
+    status: LEGACY_DEAL_STATUS.SCHEDULED,
     updatedAt: minutesAgo(40),
     priceTon: 2.6,
     briefText: "Drive signups for creator waitlist with emphasis on verified channels.",
@@ -79,7 +80,7 @@ const defaultDeals: Deal[] = [
       priceTon: mockChannels[2].priceTon,
     },
     escrow: {
-      status: "FUNDS_LOCKED",
+      status: LEGACY_ESCROW_STATUS.FUNDS_LOCKED,
       amountTon: 2.6,
       network: "TON",
       updatedAt: minutesAgo(40),
@@ -96,7 +97,7 @@ const defaultDeals: Deal[] = [
   },
   {
     id: "DL-2004",
-    status: "POSTED",
+    status: LEGACY_DEAL_STATUS.POSTED,
     updatedAt: minutesAgo(6),
     priceTon: 5.1,
     briefText: "Highlight escrow safety and bot-assisted messaging for advertisers.",
@@ -111,7 +112,7 @@ const defaultDeals: Deal[] = [
       priceTon: mockChannels[3].priceTon,
     },
     escrow: {
-      status: "FUNDS_LOCKED",
+      status: LEGACY_ESCROW_STATUS.FUNDS_LOCKED,
       amountTon: 5.1,
       network: "TON",
       updatedAt: minutesAgo(8),
@@ -134,7 +135,7 @@ const defaultDeals: Deal[] = [
   },
   {
     id: "DL-2005",
-    status: "RELEASED",
+    status: LEGACY_DEAL_STATUS.RELEASED,
     updatedAt: minutesAgo(55),
     priceTon: 3.1,
     briefText: "Showcase creative review and scheduling in the mini app.",
@@ -149,7 +150,7 @@ const defaultDeals: Deal[] = [
       priceTon: mockChannels[4].priceTon,
     },
     escrow: {
-      status: "RELEASED",
+      status: LEGACY_ESCROW_STATUS.RELEASED,
       amountTon: 3.1,
       network: "TON",
       updatedAt: minutesAgo(55),
@@ -172,7 +173,7 @@ const defaultDeals: Deal[] = [
   },
   {
     id: "DL-2006",
-    status: "REFUNDED",
+    status: LEGACY_DEAL_STATUS.REFUNDED,
     updatedAt: minutesAgo(90),
     priceTon: 3.8,
     briefText: "Russian audience campaign for product launch update.",
@@ -187,7 +188,7 @@ const defaultDeals: Deal[] = [
       priceTon: mockChannels[5].priceTon,
     },
     escrow: {
-      status: "REFUNDED",
+      status: LEGACY_ESCROW_STATUS.REFUNDED,
       amountTon: 3.8,
       network: "TON",
       updatedAt: minutesAgo(90),
@@ -249,7 +250,7 @@ export const createMockDeal = (payload: CreateDealPayload) => {
 
   const baseDeal: Deal = {
     id: createDealId(),
-    status: "REQUESTED",
+    status: LEGACY_DEAL_STATUS.REQUESTED,
     updatedAt: createdAt,
     priceTon: channel.priceTon,
     briefText: payload.briefText,
@@ -268,9 +269,9 @@ export const createMockDeal = (payload: CreateDealPayload) => {
 
   const acceptedDeal: Deal = {
     ...baseDeal,
-    status: "OWNER_ACCEPTED",
+    status: LEGACY_DEAL_STATUS.OWNER_ACCEPTED,
     escrow: {
-      status: "AWAITING_PAYMENT",
+      status: LEGACY_ESCROW_STATUS.AWAITING_PAYMENT,
       amountTon: channel.priceTon,
       network: "TON",
       depositAddress: "EQC2MockDepositAddress2222",
@@ -291,7 +292,7 @@ export const approveMockCreative = (id: string) =>
     const hasSchedule = Boolean(deal.schedule?.scheduledAt);
     return {
       ...deal,
-      status: hasSchedule ? "SCHEDULED" : "CREATIVE_APPROVED",
+      status: hasSchedule ? LEGACY_DEAL_STATUS.SCHEDULED : LEGACY_DEAL_STATUS.CREATIVE_APPROVED,
       updatedAt: approvedAt,
       creative: {
         ...deal.creative,
@@ -305,7 +306,7 @@ export const requestMockEdits = (id: string, note?: string) =>
     const updatedAt = new Date().toISOString();
     return {
       ...deal,
-      status: "CREATIVE_DRAFTING",
+      status: LEGACY_DEAL_STATUS.CREATIVE_DRAFTING,
       updatedAt,
       creative: {
         ...deal.creative,
@@ -320,27 +321,27 @@ export const requestMockEdits = (id: string, note?: string) =>
 export const simulateMockPayment = (id: string) =>
   updateDeal(id, (deal) => {
     const updatedAt = new Date().toISOString();
-    if (deal.escrow?.status === "AWAITING_PAYMENT") {
+    if (deal.escrow?.status === LEGACY_ESCROW_STATUS.AWAITING_PAYMENT) {
       return {
         ...deal,
-        status: "PAYMENT_CONFIRMING",
+        status: LEGACY_DEAL_STATUS.PAYMENT_CONFIRMING,
         updatedAt,
         escrow: {
           ...deal.escrow,
-          status: "PAYMENT_CONFIRMING",
+          status: LEGACY_ESCROW_STATUS.PAYMENT_CONFIRMING,
           updatedAt,
         },
       };
     }
 
-    if (deal.escrow?.status === "PAYMENT_CONFIRMING") {
+    if (deal.escrow?.status === LEGACY_ESCROW_STATUS.PAYMENT_CONFIRMING) {
       return {
         ...deal,
-        status: "FUNDS_LOCKED",
+        status: LEGACY_DEAL_STATUS.FUNDS_LOCKED,
         updatedAt,
         escrow: {
           ...deal.escrow,
-          status: "FUNDS_LOCKED",
+          status: LEGACY_ESCROW_STATUS.FUNDS_LOCKED,
           updatedAt,
         },
         creative: deal.creative ?? {
@@ -359,7 +360,7 @@ export const simulateMockPost = (id: string) =>
     const updatedAt = new Date().toISOString();
     return {
       ...deal,
-      status: "POSTED",
+      status: LEGACY_DEAL_STATUS.POSTED,
       updatedAt,
       post: {
         messageId: "10101",
@@ -375,14 +376,14 @@ export const simulateMockVerifyPass = (id: string) =>
     const updatedAt = new Date().toISOString();
     return {
       ...deal,
-      status: "RELEASED",
+      status: LEGACY_DEAL_STATUS.RELEASED,
       updatedAt,
       escrow: deal.escrow
         ? {
-            ...deal.escrow,
-            status: "RELEASED",
-            updatedAt,
-          }
+          ...deal.escrow,
+          status: LEGACY_ESCROW_STATUS.RELEASED,
+          updatedAt,
+        }
         : undefined,
     };
   });
@@ -392,14 +393,14 @@ export const simulateMockVerifyFail = (id: string) =>
     const updatedAt = new Date().toISOString();
     return {
       ...deal,
-      status: "REFUNDED",
+      status: LEGACY_DEAL_STATUS.REFUNDED,
       updatedAt,
       escrow: deal.escrow
         ? {
-            ...deal.escrow,
-            status: "REFUNDED",
-            updatedAt,
-          }
+          ...deal.escrow,
+          status: LEGACY_ESCROW_STATUS.REFUNDED,
+          updatedAt,
+        }
         : undefined,
     };
   });

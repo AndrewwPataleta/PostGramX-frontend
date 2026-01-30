@@ -9,14 +9,14 @@ import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
+import { DEAL_ESCROW_STATUS } from "@/constants/deals";
+import { USER_ROLE } from "@/constants/roles";
 import type { DealListItem } from "@/types/deals";
 import { allStages, getCurrentStage } from "@/features/deals/dealStageMachine";
 import type { EscrowStatus } from "@/types/deals";
 import StageScheduleTime from "@/features/deals/stages/StageScheduleTime";
 import StageSendPost from "@/features/deals/stages/StageSendPost";
-import StageConfirmPost from "@/features/deals/stages/StageConfirmPost";
 import StageAdminApproval from "@/features/deals/stages/StageAdminApproval";
-import StagePaymentWindow from "@/features/deals/stages/StagePaymentWindow";
 import StagePayment from "@/features/deals/stages/StagePayment";
 import StagePaymentPending from "@/features/deals/stages/StagePaymentPending";
 import StageScheduled from "@/features/deals/stages/StageScheduled";
@@ -51,13 +51,17 @@ export default function DealDetails() {
       if (!data) {
         return false;
       }
-      if (data.escrowStatus === "CREATIVE_AWAITING_ADMIN_REVIEW") {
+      if (data.escrowStatus === DEAL_ESCROW_STATUS.CREATIVE_AWAITING_ADMIN_REVIEW) {
         return 10000;
       }
-      if (data.escrowStatus === "PAYMENT_AWAITING") {
+      if (data.escrowStatus === DEAL_ESCROW_STATUS.AWAITING_PAYMENT) {
         return 12000;
       }
-      return ["FUNDS_PENDING", "POSTED_VERIFYING"].includes(data.escrowStatus) ? 5000 : false;
+      return [DEAL_ESCROW_STATUS.FUNDS_PENDING, DEAL_ESCROW_STATUS.POSTED_VERIFYING].includes(
+        data.escrowStatus
+      )
+        ? 5000
+        : false;
     },
   });
 
@@ -101,23 +105,23 @@ export default function DealDetails() {
     if (!resolvedDeal) {
       return null;
     }
-    const isAdvertiser = resolvedDeal.userRoleInDeal === "advertiser";
+    const isAdvertiser = resolvedDeal.userRoleInDeal === USER_ROLE.ADVERTISER;
     const isPublisher =
-      resolvedDeal.userRoleInDeal === "publisher" || resolvedDeal.userRoleInDeal === "publisher_manager";
+      resolvedDeal.userRoleInDeal === USER_ROLE.PUBLISHER ||
+      resolvedDeal.userRoleInDeal === USER_ROLE.PUBLISHER_MANAGER;
     const readonlyForPublisher = !isAdvertiser;
 
     const stageComponents: Record<EscrowStatus, JSX.Element> = {
-      SCHEDULING_PENDING: <StageScheduleTime deal={resolvedDeal} readonly={!isAdvertiser} />,
-      CREATIVE_AWAITING_SUBMIT: <StageSendPost deal={resolvedDeal} readonly={!isAdvertiser} />,
-      CREATIVE_AWAITING_ADMIN_REVIEW: (
+      [DEAL_ESCROW_STATUS.DRAFT]: (
+        <StageScheduleTime deal={resolvedDeal} readonly={!isAdvertiser} />
+      ),
+      [DEAL_ESCROW_STATUS.CREATIVE_AWAITING_SUBMIT]: (
+        <StageSendPost deal={resolvedDeal} readonly={!isAdvertiser} />
+      ),
+      [DEAL_ESCROW_STATUS.CREATIVE_AWAITING_ADMIN_REVIEW]: (
         <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />
       ),
-      CREATIVE_AWAITING_CONFIRM: (
-        <StageConfirmPost deal={resolvedDeal} readonly={!isAdvertiser} />
-      ),
-    //  CREATIVE_AWAITING_CONFIRM: <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />,
-
-      PAYMENT_AWAITING: (
+      [DEAL_ESCROW_STATUS.AWAITING_PAYMENT]: (
         <StagePayment
           deal={resolvedDeal}
           readonly={readonlyForPublisher}
@@ -125,7 +129,7 @@ export default function DealDetails() {
           isRefreshing={isFetching}
         />
       ),
-      FUNDS_PENDING: (
+      [DEAL_ESCROW_STATUS.FUNDS_PENDING]: (
         <StagePaymentPending
           deal={resolvedDeal}
           readonly={readonlyForPublisher}
@@ -133,13 +137,19 @@ export default function DealDetails() {
           isRefreshing={isFetching}
         />
       ),
-      FUNDS_CONFIRMED: <StageScheduled deal={resolvedDeal} readonly={readonlyForPublisher} />,
-      APPROVED_SCHEDULED: <StageScheduled deal={resolvedDeal} readonly={readonlyForPublisher} />,
-      POSTED_VERIFYING: <StageVerifying deal={resolvedDeal} readonly={readonlyForPublisher} />,
-      COMPLETED: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
-      CANCELED: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
-      REFUNDED: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
-      DISPUTED: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      [DEAL_ESCROW_STATUS.FUNDS_CONFIRMED]: (
+        <StageScheduled deal={resolvedDeal} readonly={readonlyForPublisher} />
+      ),
+      [DEAL_ESCROW_STATUS.APPROVED_SCHEDULED]: (
+        <StageScheduled deal={resolvedDeal} readonly={readonlyForPublisher} />
+      ),
+      [DEAL_ESCROW_STATUS.POSTED_VERIFYING]: (
+        <StageVerifying deal={resolvedDeal} readonly={readonlyForPublisher} />
+      ),
+      [DEAL_ESCROW_STATUS.COMPLETED]: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      [DEAL_ESCROW_STATUS.CANCELED]: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      [DEAL_ESCROW_STATUS.REFUNDED]: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      [DEAL_ESCROW_STATUS.DISPUTED]: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
     };
 
     return stageComponents[resolvedDeal.escrowStatus];

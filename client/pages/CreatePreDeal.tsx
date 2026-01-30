@@ -8,6 +8,7 @@ import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
 import { toUtcIsoString } from "@/utils/date";
+import { ROUTES } from "@/constants/routes";
 
 export default function CreatePreDeal() {
   const { listingId } = useParams<{ listingId: string }>();
@@ -17,7 +18,7 @@ export default function CreatePreDeal() {
   const createMutation = useMutation({
     mutationFn: predealsCreate,
     onSuccess: (predeal) => {
-      navigate(`/deals/predeal/${predeal.id}`);
+      navigate(ROUTES.DEAL_PREDEAL(predeal.id));
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Unable to create pre-deal"));
@@ -70,7 +71,7 @@ export default function CreatePreDeal() {
           <ErrorState
             message="Listing not selected"
             description="Please return to the marketplace and select a listing to continue."
-            onRetry={() => navigate("/marketplace")}
+            onRetry={() => navigate(ROUTES.MARKETPLACE)}
           />
         </PageContainer>
       </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { TELEGRAM_MOCK } from "@/config/env";
+import { ROUTES } from "@/constants/routes";
 
 const Splash = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const Splash = () => {
 
   useEffect(() => {
     if (isReady && user) {
-      navigate("/marketplace", { replace: true });
+      navigate(ROUTES.MARKETPLACE, { replace: true });
     }
   }, [isReady, navigate, user]);
 

@@ -1,5 +1,6 @@
 import type { Deal, DealStatus } from "./types";
 import type { TranslationKey } from "@/i18n/translations";
+import { LEGACY_DEAL_STATUS, LEGACY_ESCROW_STATUS } from "@/constants/deals";
 
 export type DealStage =
   | "REQUESTED"
@@ -26,7 +27,7 @@ export interface DealStagePresentation {
 }
 
 const stagePresentation: Record<DealStage, DealStagePresentation> = {
-  REQUESTED: {
+  [LEGACY_DEAL_STATUS.REQUESTED]: {
     label: "deals.stage.requested.label",
     description: "deals.stage.requested.description",
     ctaLabel: "deals.stage.requested.cta",
@@ -34,7 +35,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "pending",
     tone: "neutral",
   },
-  PAYMENT_REQUIRED: {
+  [LEGACY_DEAL_STATUS.PAYMENT_REQUIRED]: {
     label: "deals.stage.paymentRequired.label",
     description: "deals.stage.paymentRequired.description",
     ctaLabel: "deals.stage.paymentRequired.cta",
@@ -42,7 +43,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "pending",
     tone: "warning",
   },
-  PAYMENT_CONFIRMING: {
+  [LEGACY_DEAL_STATUS.PAYMENT_CONFIRMING]: {
     label: "deals.stage.paymentConfirming.label",
     description: "deals.stage.paymentConfirming.description",
     ctaLabel: "deals.stage.paymentConfirming.cta",
@@ -50,7 +51,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "pending",
     tone: "info",
   },
-  FUNDS_LOCKED: {
+  [LEGACY_DEAL_STATUS.FUNDS_LOCKED]: {
     label: "deals.stage.fundsLocked.label",
     description: "deals.stage.fundsLocked.description",
     ctaLabel: "deals.stage.fundsLocked.cta",
@@ -58,7 +59,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "active",
     tone: "info",
   },
-  CREATIVE_DRAFTING: {
+  [LEGACY_DEAL_STATUS.CREATIVE_DRAFTING]: {
     label: "deals.stage.creativeDrafting.label",
     description: "deals.stage.creativeDrafting.description",
     ctaLabel: "deals.stage.creativeDrafting.cta",
@@ -74,7 +75,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "active",
     tone: "primary",
   },
-  CREATIVE_APPROVED: {
+  [LEGACY_DEAL_STATUS.CREATIVE_APPROVED]: {
     label: "deals.stage.creativeApproved.label",
     description: "deals.stage.creativeApproved.description",
     ctaLabel: "deals.stage.creativeApproved.cta",
@@ -82,7 +83,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "active",
     tone: "info",
   },
-  SCHEDULED: {
+  [LEGACY_DEAL_STATUS.SCHEDULED]: {
     label: "deals.stage.scheduled.label",
     description: "deals.stage.scheduled.description",
     ctaLabel: "deals.stage.scheduled.cta",
@@ -90,7 +91,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "active",
     tone: "info",
   },
-  VERIFYING: {
+  [LEGACY_DEAL_STATUS.VERIFYING]: {
     label: "deals.stage.verifying.label",
     description: "deals.stage.verifying.description",
     ctaLabel: "deals.stage.verifying.cta",
@@ -98,7 +99,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "active",
     tone: "primary",
   },
-  RELEASED: {
+  [LEGACY_DEAL_STATUS.RELEASED]: {
     label: "deals.stage.released.label",
     description: "deals.stage.released.description",
     ctaLabel: "deals.stage.released.cta",
@@ -106,7 +107,7 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
     category: "completed",
     tone: "success",
   },
-  REFUNDED: {
+  [LEGACY_DEAL_STATUS.REFUNDED]: {
     label: "deals.stage.refunded.label",
     description: "deals.stage.refunded.description",
     ctaLabel: "deals.stage.refunded.cta",
@@ -117,41 +118,57 @@ const stagePresentation: Record<DealStage, DealStagePresentation> = {
 };
 
 export const getDealStage = (deal: Deal): DealStage => {
-  if (deal.status === "REFUNDED" || deal.escrow?.status === "REFUNDED") {
-    return "REFUNDED";
-  }
-  if (deal.status === "RELEASED" || deal.escrow?.status === "RELEASED") {
-    return "RELEASED";
-  }
-  if (deal.status === "VERIFYING" || deal.status === "POSTED" || deal.post?.viewUrl) {
-    return "VERIFYING";
-  }
-  if (deal.status === "SCHEDULED" || deal.schedule?.scheduledAt) {
-    return "SCHEDULED";
-  }
-  if (deal.status === "CREATIVE_SUBMITTED" && !deal.creative?.approvedAt) {
-    return "CREATIVE_REVIEW";
-  }
-  if (deal.status === "CREATIVE_APPROVED" || deal.creative?.approvedAt) {
-    return "CREATIVE_APPROVED";
-  }
-  if (deal.status === "CREATIVE_DRAFTING") {
-    return "CREATIVE_DRAFTING";
-  }
-  if (deal.status === "FUNDS_LOCKED" || deal.escrow?.status === "FUNDS_LOCKED") {
-    return "FUNDS_LOCKED";
-  }
-  if (deal.status === "PAYMENT_CONFIRMING" || deal.escrow?.status === "PAYMENT_CONFIRMING") {
-    return "PAYMENT_CONFIRMING";
+  if (
+    deal.status === LEGACY_DEAL_STATUS.REFUNDED ||
+    deal.escrow?.status === LEGACY_ESCROW_STATUS.REFUNDED
+  ) {
+    return LEGACY_DEAL_STATUS.REFUNDED;
   }
   if (
-    deal.status === "PAYMENT_REQUIRED" ||
-    deal.status === "OWNER_ACCEPTED" ||
-    deal.escrow?.status === "AWAITING_PAYMENT"
+    deal.status === LEGACY_DEAL_STATUS.RELEASED ||
+    deal.escrow?.status === LEGACY_ESCROW_STATUS.RELEASED
   ) {
-    return "PAYMENT_REQUIRED";
+    return LEGACY_DEAL_STATUS.RELEASED;
   }
-  return "REQUESTED";
+  if (
+    deal.status === LEGACY_DEAL_STATUS.VERIFYING ||
+    deal.status === LEGACY_DEAL_STATUS.POSTED ||
+    deal.post?.viewUrl
+  ) {
+    return LEGACY_DEAL_STATUS.VERIFYING;
+  }
+  if (deal.status === LEGACY_DEAL_STATUS.SCHEDULED || deal.schedule?.scheduledAt) {
+    return LEGACY_DEAL_STATUS.SCHEDULED;
+  }
+  if (deal.status === LEGACY_DEAL_STATUS.CREATIVE_SUBMITTED && !deal.creative?.approvedAt) {
+    return "CREATIVE_REVIEW";
+  }
+  if (deal.status === LEGACY_DEAL_STATUS.CREATIVE_APPROVED || deal.creative?.approvedAt) {
+    return LEGACY_DEAL_STATUS.CREATIVE_APPROVED;
+  }
+  if (deal.status === LEGACY_DEAL_STATUS.CREATIVE_DRAFTING) {
+    return LEGACY_DEAL_STATUS.CREATIVE_DRAFTING;
+  }
+  if (
+    deal.status === LEGACY_DEAL_STATUS.FUNDS_LOCKED ||
+    deal.escrow?.status === LEGACY_ESCROW_STATUS.FUNDS_LOCKED
+  ) {
+    return LEGACY_DEAL_STATUS.FUNDS_LOCKED;
+  }
+  if (
+    deal.status === LEGACY_DEAL_STATUS.PAYMENT_CONFIRMING ||
+    deal.escrow?.status === LEGACY_ESCROW_STATUS.PAYMENT_CONFIRMING
+  ) {
+    return LEGACY_DEAL_STATUS.PAYMENT_CONFIRMING;
+  }
+  if (
+    deal.status === LEGACY_DEAL_STATUS.PAYMENT_REQUIRED ||
+    deal.status === LEGACY_DEAL_STATUS.OWNER_ACCEPTED ||
+    deal.escrow?.status === LEGACY_ESCROW_STATUS.AWAITING_PAYMENT
+  ) {
+    return LEGACY_DEAL_STATUS.PAYMENT_REQUIRED;
+  }
+  return LEGACY_DEAL_STATUS.REQUESTED;
 };
 
 export const getDealCategory = (deal: Deal): DealCategory => {
@@ -174,17 +191,17 @@ export const timelineSteps: TranslationKey[] = [
 ] as const;
 
 const stageToTimelineIndex: Record<DealStage, number> = {
-  REQUESTED: 0,
-  PAYMENT_REQUIRED: 1,
-  PAYMENT_CONFIRMING: 1,
-  FUNDS_LOCKED: 2,
-  CREATIVE_DRAFTING: 2,
+  [LEGACY_DEAL_STATUS.REQUESTED]: 0,
+  [LEGACY_DEAL_STATUS.PAYMENT_REQUIRED]: 1,
+  [LEGACY_DEAL_STATUS.PAYMENT_CONFIRMING]: 1,
+  [LEGACY_DEAL_STATUS.FUNDS_LOCKED]: 2,
+  [LEGACY_DEAL_STATUS.CREATIVE_DRAFTING]: 2,
   CREATIVE_REVIEW: 2,
-  CREATIVE_APPROVED: 3,
-  SCHEDULED: 3,
-  VERIFYING: 4,
-  RELEASED: 5,
-  REFUNDED: 5,
+  [LEGACY_DEAL_STATUS.CREATIVE_APPROVED]: 3,
+  [LEGACY_DEAL_STATUS.SCHEDULED]: 3,
+  [LEGACY_DEAL_STATUS.VERIFYING]: 4,
+  [LEGACY_DEAL_STATUS.RELEASED]: 5,
+  [LEGACY_DEAL_STATUS.REFUNDED]: 5,
 };
 
 export const getTimelineItems = (deal: Deal, t: (key: TranslationKey) => string) => {
@@ -204,37 +221,40 @@ export const getTimelineItems = (deal: Deal, t: (key: TranslationKey) => string)
 };
 
 export const getStageFromStatus = (status: DealStatus): DealStage => {
-  if (status === "REFUNDED") {
-    return "REFUNDED";
+  if (status === LEGACY_DEAL_STATUS.REFUNDED) {
+    return LEGACY_DEAL_STATUS.REFUNDED;
   }
-  if (status === "RELEASED") {
-    return "RELEASED";
+  if (status === LEGACY_DEAL_STATUS.RELEASED) {
+    return LEGACY_DEAL_STATUS.RELEASED;
   }
-  if (status === "VERIFYING" || status === "POSTED") {
-    return "VERIFYING";
+  if (status === LEGACY_DEAL_STATUS.VERIFYING || status === LEGACY_DEAL_STATUS.POSTED) {
+    return LEGACY_DEAL_STATUS.VERIFYING;
   }
-  if (status === "SCHEDULED") {
-    return "SCHEDULED";
+  if (status === LEGACY_DEAL_STATUS.SCHEDULED) {
+    return LEGACY_DEAL_STATUS.SCHEDULED;
   }
-  if (status === "CREATIVE_SUBMITTED") {
+  if (status === LEGACY_DEAL_STATUS.CREATIVE_SUBMITTED) {
     return "CREATIVE_REVIEW";
   }
-  if (status === "CREATIVE_APPROVED") {
-    return "CREATIVE_APPROVED";
+  if (status === LEGACY_DEAL_STATUS.CREATIVE_APPROVED) {
+    return LEGACY_DEAL_STATUS.CREATIVE_APPROVED;
   }
-  if (status === "CREATIVE_DRAFTING") {
-    return "CREATIVE_DRAFTING";
+  if (status === LEGACY_DEAL_STATUS.CREATIVE_DRAFTING) {
+    return LEGACY_DEAL_STATUS.CREATIVE_DRAFTING;
   }
-  if (status === "FUNDS_LOCKED") {
-    return "FUNDS_LOCKED";
+  if (status === LEGACY_DEAL_STATUS.FUNDS_LOCKED) {
+    return LEGACY_DEAL_STATUS.FUNDS_LOCKED;
   }
-  if (status === "PAYMENT_CONFIRMING") {
-    return "PAYMENT_CONFIRMING";
+  if (status === LEGACY_DEAL_STATUS.PAYMENT_CONFIRMING) {
+    return LEGACY_DEAL_STATUS.PAYMENT_CONFIRMING;
   }
-  if (status === "PAYMENT_REQUIRED" || status === "OWNER_ACCEPTED") {
-    return "PAYMENT_REQUIRED";
+  if (
+    status === LEGACY_DEAL_STATUS.PAYMENT_REQUIRED ||
+    status === LEGACY_DEAL_STATUS.OWNER_ACCEPTED
+  ) {
+    return LEGACY_DEAL_STATUS.PAYMENT_REQUIRED;
   }
-  return "REQUESTED";
+  return LEGACY_DEAL_STATUS.REQUESTED;
 };
 
 export const getStagePresentation = (stage: DealStage) => stagePresentation[stage];
