@@ -121,7 +121,7 @@ const ChannelPendingVerification = () => {
         <div className="rounded-2xl border border-border/60 bg-card/80 p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase text-muted-foreground">Pending Verification</p>
+              <p className="text-xs text-muted-foreground">Pending verification</p>
               <h1 className="mt-1 text-lg font-semibold text-foreground">
                 {channel?.title || "Channel verification"}
               </h1>

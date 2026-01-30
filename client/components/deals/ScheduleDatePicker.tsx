@@ -98,7 +98,7 @@ export function ScheduleDatePicker({ value, onChange }: ScheduleDatePickerProps)
         }}
       />
       <div className="w-full sm:w-44">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs font-semibold text-muted-foreground">
           Time
         </p>
         <ScrollArea className="h-64 rounded-xl border border-border/60 bg-background/70">

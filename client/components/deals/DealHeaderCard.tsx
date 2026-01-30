@@ -108,7 +108,7 @@ export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
           <div className="grid gap-2 sm:grid-cols-2">
             {detailItems.map((item) => (
               <div key={item.label} className="flex items-center justify-between gap-2">
-                <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                <span className="text-[11px] font-semibold text-muted-foreground">
                   {item.label}
                 </span>
                 <span className="font-semibold text-foreground">{item.value}</span>
@@ -118,7 +118,7 @@ export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
 
           {deal.listing.contentRulesText ? (
             <div className="rounded-lg border border-border/60 bg-background/50 p-3 text-xs text-muted-foreground">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/80">
+              <p className="text-[11px] font-semibold text-foreground/80">
                 {t("listings.rulesTitle")}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">{deal.listing.contentRulesText}</p>

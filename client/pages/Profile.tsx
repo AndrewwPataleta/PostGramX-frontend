@@ -25,6 +25,7 @@ import ErrorState from "@/components/feedback/ErrorState";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import type { WalletTransaction } from "@/features/profile/types";
 import { getErrorMessage } from "@/lib/api/errors";
+import { formatStatusLabel } from "@/lib/formatting";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { Input } from "@/components/ui/input";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -223,7 +224,7 @@ export default function Profile() {
       Pending: t("profile.transactionStatusPending"),
       Processing: t("profile.transactionStatusProcessing"),
       Failed: t("profile.transactionStatusFailed"),
-    })[status] ?? status;
+    })[status] ?? formatStatusLabel(status) ?? status;
 
   return (
     <div className="w-full max-w-6xl mx-auto">

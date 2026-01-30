@@ -282,7 +282,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
 
                     <div className="mt-3 grid gap-3 text-[11px] text-muted-foreground sm:grid-cols-2">
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/80">
+                        <p className="text-[10px] font-semibold text-muted-foreground/80">
                           {t("listings.allowedLabel")}
                         </p>
                         <div className="mt-1 space-y-1">
@@ -292,7 +292,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                         </div>
                       </div>
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/80">
+                        <p className="text-[10px] font-semibold text-muted-foreground/80">
                           {t("listings.requiresLabel")}
                         </p>
                         <div className="mt-1 space-y-1">
@@ -301,7 +301,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
                           ))}
                           {requirementsText ? (
                             <div className="pt-1">
-                              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
+                              <p className="text-[10px] font-semibold text-muted-foreground/70">
                                 {t("listings.requirementsLabel")}
                               </p>
                               <p className="truncate text-[11px] text-muted-foreground">
