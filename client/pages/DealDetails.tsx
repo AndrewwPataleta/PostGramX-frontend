@@ -112,7 +112,7 @@ export default function DealDetails() {
     const readonlyForPublisher = !isAdvertiser;
 
     const stageComponents: Record<EscrowStatus, JSX.Element> = {
-      [DEAL_ESCROW_STATUS.DRAFT]: (
+      [DEAL_ESCROW_STATUS.SCHEDULING_PENDING]: (
         <StageScheduleTime deal={resolvedDeal} readonly={!isAdvertiser} />
       ),
       [DEAL_ESCROW_STATUS.CREATIVE_AWAITING_SUBMIT]: (
@@ -120,10 +120,6 @@ export default function DealDetails() {
       ),
       [DEAL_ESCROW_STATUS.CREATIVE_AWAITING_ADMIN_REVIEW]: (
         <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />
-      ),
-      ADMIN_REVIEW: <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />,
-      CREATIVE_AWAITING_CONFIRM: (
-        <StageConfirmPost deal={resolvedDeal} readonly={!isAdvertiser} />
       ),
       [DEAL_ESCROW_STATUS.AWAITING_PAYMENT]: (
         <StagePayment

@@ -177,17 +177,40 @@ export function ScheduleDatePicker({ value, onChange }: ScheduleDatePickerProps)
             mode="single"
             selected={draftDate ?? undefined}
             onSelect={handleDateSelect}
+
+            // 1) Запрещаем прошлые даты
             disabled={{ before: minSelectableDay }}
+
+            // 2) Запрещаем навигацию в прошлые месяцы (стрелки назад перестанут работать)
+            fromDate={minSelectableDay}
+
+            // Если хочешь ограничить далеко вперёд — раскомментируй:
+            // toDate={addMonths(minSelectableDay, 12)}
+
             month={calendarMonth}
             onMonthChange={setCalendarMonth}
             initialFocus
             className="w-full rounded-xl border border-primary/20 bg-background/70 p-2"
+
+            // 3) Убираем переносы в заголовке weekdays + делаем 1 букву (локаль-авто)
+            formatters={{
+              formatWeekdayName: (date) =>
+                new Intl.DateTimeFormat(undefined, { weekday: "narrow" }).format(date),
+            }}
+
             classNames={{
               months: "w-full space-y-4",
               table: "w-full border-collapse space-y-2",
-              day_disabled: "text-muted-foreground/40 line-through opacity-60",
+
+              // важно: запрет переносов, иначе опять будет “Mon” -> “M” + “on”
+              head_cell:
+                "w-9 text-xs font-medium text-muted-foreground whitespace-nowrap",
+
+              // если хочешь просто серым, без зачёркивания
+              day_disabled: "text-muted-foreground/40 opacity-50",
             }}
           />
+
         ) : (
           <div className="w-full">
             <ScrollArea className="h-64 rounded-xl border border-primary/20 bg-background/70">
