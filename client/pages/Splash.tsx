@@ -76,7 +76,7 @@ const Splash = () => {
               ? "Open in Telegram"
               : isAuthError
                 ? "Couldn’t connect"
-                : "Connecting to Telegram…"}
+                : ""}
           </h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
           {error?.debug ? (
