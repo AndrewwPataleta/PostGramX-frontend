@@ -1,11 +1,9 @@
 import { useMemo, useState } from "react";
 import type { DealListItem } from "@/types/deals";
 import { cn } from "@/lib/utils";
-import { escrowStatusToLabel, stageToLabel, type DealStageId } from "@/features/deals/dealStageMachine";
 
 interface DealHeaderCardProps {
   deal: DealListItem;
-  currentStage: DealStageId;
 }
 
 const formatTonPrice = (priceNano: string) => {
@@ -23,18 +21,6 @@ const formatTonPrice = (priceNano: string) => {
   }
 };
 
-const roleLabelMap: Record<DealListItem["userRoleInDeal"], string> = {
-  advertiser: "You are advertiser",
-  publisher: "You are publisher",
-  publisher_manager: "You manage this channel",
-};
-
-const roleToneMap: Record<DealListItem["userRoleInDeal"], string> = {
-  advertiser: "bg-primary/10 text-primary",
-  publisher: "bg-emerald-500/10 text-emerald-400",
-  publisher_manager: "bg-emerald-500/10 text-emerald-400",
-};
-
 const formatListingFormat = (format?: string) => {
   if (!format) {
     return "Post";
@@ -45,26 +31,23 @@ const formatListingFormat = (format?: string) => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-export default function DealHeaderCard({ deal, currentStage }: DealHeaderCardProps) {
+export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
   const [expanded, setExpanded] = useState(false);
   const priceLabel = `${formatTonPrice(deal.listing.priceNano)} TON`;
   const listingFormat = formatListingFormat(deal.listing.format);
-  const currentStageLabel = stageToLabel(currentStage);
-  const escrowLabel = escrowStatusToLabel(deal.escrowStatus);
   const tags = deal.listing.tags ?? [];
   const pinDurationHours = deal.listing.pinDurationHours ?? deal.listing.placementHours;
-  const visibilityDurationHours =
-    deal.listing.visibilityDurationHours ?? deal.listing.lifetimeHours;
+  const lifetimeHours = deal.listing.visibilityDurationHours ?? deal.listing.lifetimeHours;
 
   const detailItems = useMemo(
     () => [
       {
-        label: "Pinned",
+        label: "Pin hours",
         value: pinDurationHours ? `${pinDurationHours}h` : "None",
       },
       {
-        label: "Visible",
-        value: visibilityDurationHours ? `${visibilityDurationHours}h` : "—",
+        label: "Lifetime hours",
+        value: lifetimeHours ? `${lifetimeHours}h` : "—",
       },
       {
         label: "Edits",
@@ -85,7 +68,7 @@ export default function DealHeaderCard({ deal, currentStage }: DealHeaderCardPro
             : "Disabled",
       },
     ],
-    [deal.listing.allowEdits, deal.listing.allowLinkTracking, pinDurationHours, visibilityDurationHours]
+    [deal.listing.allowEdits, deal.listing.allowLinkTracking, pinDurationHours, lifetimeHours]
   );
 
   return (
@@ -119,25 +102,13 @@ export default function DealHeaderCard({ deal, currentStage }: DealHeaderCardPro
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className={cn("rounded-full px-3 py-1 text-xs font-semibold", roleToneMap[deal.userRoleInDeal])}>
-          {roleLabelMap[deal.userRoleInDeal]}
-        </span>
-        <span className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-semibold text-foreground">
-          Stage: {currentStageLabel}
-        </span>
-        <span className="rounded-full border border-border/60 bg-background/50 px-3 py-1 text-xs font-semibold text-muted-foreground">
-          {escrowLabel}
-        </span>
-      </div>
-
       <div className="mt-4">
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
           className="flex w-full items-center justify-between rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
         >
-          <span>{expanded ? "Hide details" : "Show details"}</span>
+          <span>{expanded ? "Hide details" : "More"}</span>
           <span className={cn("text-xs", expanded ? "text-foreground" : "text-muted-foreground")}>
             {expanded ? "▴" : "▾"}
           </span>
@@ -179,13 +150,6 @@ export default function DealHeaderCard({ deal, currentStage }: DealHeaderCardPro
             </div>
           ) : null}
 
-          <div className="flex flex-wrap gap-2">
-            {deal.listing.requiresApproval ? (
-              <span className="rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-200">
-                Must be pre-approved
-              </span>
-            ) : null}
-          </div>
         </div>
       ) : null}
     </div>

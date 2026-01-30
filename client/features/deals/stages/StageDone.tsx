@@ -4,6 +4,8 @@ import { escrowStatusToLabel } from "@/features/deals/dealStageMachine";
 
 interface StageDoneProps {
   deal: DealListItem;
+  readonly: boolean;
+  onAction?: Record<string, never>;
 }
 
 const formatDateTime = (value?: string) => {

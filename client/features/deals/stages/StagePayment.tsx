@@ -5,7 +5,10 @@ import { cn } from "@/lib/utils";
 
 interface StagePaymentProps {
   deal: DealListItem;
-  isCurrent: boolean;
+  readonly: boolean;
+  onAction?: {
+    onPay?: () => Promise<void> | void;
+  };
 }
 
 const formatTon = (priceNano: string) => {
@@ -23,13 +26,25 @@ const formatTon = (priceNano: string) => {
   }
 };
 
-export default function StagePayment({ deal, isCurrent }: StagePaymentProps) {
+export default function StagePayment({ deal, readonly, onAction }: StagePaymentProps) {
   const [isPaying, setIsPaying] = useState(false);
+
+  const handlePay = () => {
+    if (readonly) {
+      return;
+    }
+    if (onAction?.onPay) {
+      onAction.onPay();
+      return;
+    }
+    setIsPaying(true);
+    setTimeout(() => setIsPaying(false), 1200);
+  };
 
   return (
     <InfoCard title="Payment">
       <p className="text-xs text-muted-foreground">
-        Connect your wallet and confirm payment to lock funds in escrow.
+        Confirm payment to lock funds in escrow.
       </p>
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <span className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-semibold text-foreground">
@@ -42,29 +57,16 @@ export default function StagePayment({ deal, isCurrent }: StagePaymentProps) {
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={!isCurrent || isPaying}
-          onClick={() => {
-            setIsPaying(true);
-            setTimeout(() => setIsPaying(false), 1200);
-          }}
+          disabled={readonly || isPaying}
+          onClick={handlePay}
           className={cn(
             "rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition",
-            !isCurrent || isPaying ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
+            readonly || isPaying ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
           )}
         >
           {isPaying ? "Sending..." : "Pay"}
         </button>
-        <button
-          type="button"
-          disabled
-          className="rounded-lg border border-border/60 px-4 py-2 text-xs font-semibold text-muted-foreground opacity-60"
-        >
-          Connect wallet
-        </button>
       </div>
-      {!isCurrent ? (
-        <p className="text-xs text-muted-foreground">Payment step already processed.</p>
-      ) : null}
     </InfoCard>
   );
 }

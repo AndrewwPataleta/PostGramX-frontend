@@ -3,7 +3,8 @@ import type { DealListItem } from "@/types/deals";
 
 interface StageScheduledProps {
   deal: DealListItem;
-  isCurrent: boolean;
+  readonly: boolean;
+  onAction?: Record<string, never>;
 }
 
 const formatDateTime = (value?: string) => {
@@ -23,7 +24,7 @@ const formatDateTime = (value?: string) => {
   });
 };
 
-export default function StageScheduled({ deal, isCurrent }: StageScheduledProps) {
+export default function StageScheduled({ deal }: StageScheduledProps) {
   return (
     <InfoCard title="Scheduled">
       <p className="text-xs text-muted-foreground">
@@ -36,9 +37,6 @@ export default function StageScheduled({ deal, isCurrent }: StageScheduledProps)
       ) : (
         <p className="text-xs text-muted-foreground">Waiting for the post to go live.</p>
       )}
-      {!isCurrent ? (
-        <p className="text-xs text-muted-foreground">Posting is already underway.</p>
-      ) : null}
     </InfoCard>
   );
 }

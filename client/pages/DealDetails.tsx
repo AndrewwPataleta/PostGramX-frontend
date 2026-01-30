@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "react-router-dom";
 import DealHeaderCard from "@/components/deals/DealHeaderCard";
@@ -10,7 +10,8 @@ import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
 import type { DealListItem } from "@/types/deals";
-import { canNavigateTo, getAvailableStages, getCurrentStage, type DealStageId } from "@/features/deals/dealStageMachine";
+import { getAvailableStages, getCurrentStage } from "@/features/deals/dealStageMachine";
+import type { EscrowStatus } from "@/types/deals";
 import StageScheduleTime from "@/features/deals/stages/StageScheduleTime";
 import StageSendPost from "@/features/deals/stages/StageSendPost";
 import StageConfirmPost from "@/features/deals/stages/StageConfirmPost";
@@ -91,68 +92,44 @@ export default function DealDetails() {
 
   const currentStage = resolvedDeal ? getCurrentStage(resolvedDeal.escrowStatus) : "SCHEDULE";
   const availableStages = resolvedDeal ? getAvailableStages(resolvedDeal.escrowStatus) : [];
-  const [selectedStage, setSelectedStage] = useState<DealStageId | null>(null);
-
-  useEffect(() => {
-    if (!resolvedDeal) {
-      return;
-    }
-    setSelectedStage((prev) => {
-      if (!prev) {
-        return currentStage;
-      }
-      if (!canNavigateTo(prev, resolvedDeal.escrowStatus)) {
-        return currentStage;
-      }
-      return prev;
-    });
-  }, [currentStage, resolvedDeal]);
-
-  const handleSelectStage = (stage: DealStageId) => {
-    if (!resolvedDeal) {
-      return;
-    }
-    if (canNavigateTo(stage, resolvedDeal.escrowStatus)) {
-      setSelectedStage(stage);
-    }
-  };
 
   const stagePanel = useMemo(() => {
-    if (!resolvedDeal || !selectedStage) {
+    if (!resolvedDeal) {
       return null;
     }
-    const isCurrent = selectedStage === currentStage;
-    switch (selectedStage) {
-      case "SCHEDULE":
-        return <StageScheduleTime deal={resolvedDeal} isCurrent={isCurrent} />;
-      case "SEND_POST":
-        return <StageSendPost deal={resolvedDeal} isCurrent={isCurrent} />;
-      case "CONFIRM_POST":
-        return <StageConfirmPost deal={resolvedDeal} isCurrent={isCurrent} />;
-      case "ADMIN_APPROVAL":
-        return <StageAdminApproval deal={resolvedDeal} isCurrent={isCurrent} />;
-      case "PAYMENT_WINDOW":
-        return <StagePaymentWindow deal={resolvedDeal} isCurrent={isCurrent} />;
-      case "PAYMENT":
-        return <StagePayment deal={resolvedDeal} isCurrent={isCurrent} />;
-      case "PAYMENT_PENDING":
-        return (
-          <StagePaymentPending
-            isCurrent={isCurrent}
-            onRefresh={() => refetch()}
-            isRefreshing={isFetching}
-          />
-        );
-      case "SCHEDULED":
-        return <StageScheduled deal={resolvedDeal} isCurrent={isCurrent} />;
-      case "VERIFYING":
-        return <StageVerifying deal={resolvedDeal} isCurrent={isCurrent} />;
-      case "DONE":
-        return <StageDone deal={resolvedDeal} />;
-      default:
-        return null;
-    }
-  }, [currentStage, isFetching, refetch, resolvedDeal, selectedStage]);
+    const isAdvertiser = resolvedDeal.userRoleInDeal === "advertiser";
+    const isPublisher =
+      resolvedDeal.userRoleInDeal === "publisher" || resolvedDeal.userRoleInDeal === "publisher_manager";
+    const readonlyForPublisher = !isAdvertiser;
+
+    const stageComponents: Record<EscrowStatus, JSX.Element> = {
+      SCHEDULING_PENDING: <StageScheduleTime deal={resolvedDeal} readonly={!isAdvertiser} />,
+      CREATIVE_AWAITING_SUBMIT: <StageSendPost deal={resolvedDeal} readonly={!isAdvertiser} />,
+      CREATIVE_AWAITING_CONFIRM: (
+        <StageConfirmPost deal={resolvedDeal} readonly={!isAdvertiser} />
+      ),
+      ADMIN_REVIEW: <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />,
+      PAYMENT_WINDOW_PENDING: <StagePaymentWindow deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      PAYMENT_AWAITING: <StagePayment deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      FUNDS_PENDING: (
+        <StagePaymentPending
+          deal={resolvedDeal}
+          readonly={readonlyForPublisher}
+          onAction={readonlyForPublisher ? undefined : { onRefresh: () => refetch() }}
+          isRefreshing={isFetching}
+        />
+      ),
+      FUNDS_CONFIRMED: <StageScheduled deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      APPROVED_SCHEDULED: <StageScheduled deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      POSTED_VERIFYING: <StageVerifying deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      COMPLETED: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      CANCELED: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      REFUNDED: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      DISPUTED: <StageDone deal={resolvedDeal} readonly={readonlyForPublisher} />,
+    };
+
+    return stageComponents[resolvedDeal.escrowStatus];
+  }, [isFetching, refetch, resolvedDeal]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -167,13 +144,12 @@ export default function DealDetails() {
           />
         ) : (
           <>
-            <DealHeaderCard deal={resolvedDeal} currentStage={currentStage} />
+            <DealHeaderCard deal={resolvedDeal} />
 
             <StageTimeline
               stages={availableStages}
-              selectedStage={selectedStage ?? currentStage}
+              selectedStage={currentStage}
               escrowStatus={resolvedDeal.escrowStatus}
-              onSelect={handleSelectStage}
             />
 
             {stagePanel}

@@ -55,7 +55,7 @@ const roleLabelMap: Record<DealListItem["userRoleInDeal"], string> = {
 };
 
 const roleToneMap: Record<DealListItem["userRoleInDeal"], string> = {
-  advertiser: "bg-primary/10 text-primary",
+  advertiser: "bg-emerald-500/10 text-emerald-400",
   publisher: "bg-emerald-500/10 text-emerald-400",
   publisher_manager: "bg-emerald-500/10 text-emerald-400",
 };
@@ -76,7 +76,6 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
     ? `Pinned ${deal.listing.placementHours}h`
     : null;
   const detailLine = [visibilityLabel, pinnedLabel].filter(Boolean).join(" • ");
-  const statusText = statusLabel(deal.status);
   const escrowText = statusLabel(deal.escrowStatus);
 
   return (
@@ -97,22 +96,8 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
         }
       }}
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
-            >
-              {roleLabelMap[deal.userRoleInDeal]}
-            </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              {escrowText}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-secondary/60 text-lg font-semibold text-muted-foreground">
             {deal.channel.avatarUrl ? (
               <img
@@ -128,15 +113,30 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <span className="truncate">{deal.channel.name}</span>
             </div>
+            <p className="text-xs text-muted-foreground">@{deal.channel.username}</p>
           </div>
         </div>
+        <span
+          className={`max-w-[160px] truncate whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
+          style={{ textOverflow: "ellipsis" }}
+        >
+          {roleLabelMap[deal.userRoleInDeal]}
+        </span>
+      </div>
 
+      <div className="mt-2 flex items-center gap-2 overflow-hidden">
+        <span
+          className="max-w-[200px] truncate whitespace-nowrap rounded-full border border-border/60 bg-background/50 px-3 py-1 text-xs font-semibold text-muted-foreground"
+          style={{ textOverflow: "ellipsis" }}
+        >
+          {escrowText}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {formatTon(deal.listing.priceNano)} TON
+        </span>
       </div>
 
       <div className="mt-3 space-y-1">
-        <p className="text-sm font-semibold text-foreground">
-          {formatTon(deal.listing.priceNano)} TON
-        </p>
         {detailLine ? (
           <p className="text-xs text-muted-foreground">{detailLine}</p>
         ) : null}
