@@ -44,8 +44,10 @@ export default function StagePaymentWindow({ deal, readonly, onAction }: StagePa
         return null;
       }
       return post<unknown, { dealId: string; hours: number }>("/deals/payment-window", {
-        dealId: deal.id,
-        hours,
+        data: {
+          dealId: deal.id,
+          hours,
+        },
       });
     },
     onSuccess: () => {

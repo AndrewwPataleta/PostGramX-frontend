@@ -9,5 +9,5 @@ export const marketplaceListChannels = async (
 ): Promise<MarketplaceListChannelsResponse> =>
   post<MarketplaceListChannelsResponse, MarketplaceListChannelsParams>(
     "/marketplace/channels/list",
-    params
+    { data: params }
   );

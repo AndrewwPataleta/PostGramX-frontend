@@ -31,7 +31,9 @@ export default function StageConfirmPost({
         console.info("Mock creative confirm", { dealId: deal.id });
         return null;
       }
-      return post<unknown, { dealId: string }>("/deals/creative/confirm", { dealId: deal.id });
+      return post<unknown, { dealId: string }>("/deals/creative/confirm", {
+        data: { dealId: deal.id },
+      });
     },
     onSuccess: () => {
       toast.success(t("deals.stage.confirmPost.confirmedToast"));
@@ -48,7 +50,9 @@ export default function StageConfirmPost({
         console.info("Mock creative reject", { dealId: deal.id });
         return null;
       }
-      return post<unknown, { dealId: string }>("/deals/creative/reject", { dealId: deal.id });
+      return post<unknown, { dealId: string }>("/deals/creative/reject", {
+        data: { dealId: deal.id },
+      });
     },
     onSuccess: () => {
       toast.success(t("deals.stage.confirmPost.requestedToast"));

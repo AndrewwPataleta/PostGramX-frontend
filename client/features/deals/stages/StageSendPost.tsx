@@ -31,7 +31,9 @@ export default function StageSendPost({ deal, readonly, onAction }: StageSendPos
         console.info("Mock creative submit", { dealId: deal.id });
         return null;
       }
-      return post<unknown, { dealId: string }>("/deals/creative/submit", { dealId: deal.id });
+      return post<unknown, { dealId: string }>("/deals/creative/submit", {
+        data: { dealId: deal.id },
+      });
     },
     onSuccess: () => {
       toast.success(t("deals.stage.sendPost.submittedToast"));
