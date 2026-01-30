@@ -14,20 +14,18 @@ export async function listTransactionsForUser(
 ): Promise<TransactionsListResponse> {
   return post<TransactionsListResponse, TransactionsListFilters>(
     "/payments/transactions/list",
-    {
-      data: stripUndefined({
-        page: filters.page ?? 1,
-        limit: Math.min(filters.limit ?? 20, 50),
-        type: filters.type,
-        status: filters.status,
-        direction: filters.direction,
-        dealId: filters.dealId,
-        q: filters.q,
-        from: filters.from,
-        to: filters.to,
-        sort: filters.sort ?? "recent",
-        order: filters.order ?? "desc",
-      }),
-    }
+    stripUndefined({
+      page: filters.page ?? 1,
+      limit: Math.min(filters.limit ?? 20, 50),
+      type: filters.type,
+      status: filters.status,
+      direction: filters.direction,
+      dealId: filters.dealId,
+      q: filters.q,
+      from: filters.from,
+      to: filters.to,
+      sort: filters.sort ?? "recent",
+      order: filters.order ?? "desc",
+    })
   );
 }

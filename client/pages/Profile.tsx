@@ -1,14 +1,4 @@
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  CheckCircle2,
-  Clock,
-  History,
-  Lock,
-  Send,
-  ShieldCheck,
-  Wallet,
-} from "lucide-react";
+import { CheckCircle2, Clock, RefreshCcw, ShieldCheck, Wallet } from "lucide-react";
 import { useTelegram } from "@/hooks/use-telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buildTonConnectTransaction, buildTonTransferLink } from "@/features/deals/payment";
@@ -20,7 +10,7 @@ import {
   useTonWallet,
 } from "@tonconnect/ui-react";
 import { toast } from "sonner";
-import { useBalance, useProfile } from "@/features/profile/hooks";
+import { useProfile } from "@/features/profile/hooks";
 import ErrorState from "@/components/feedback/ErrorState";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
 import { getErrorMessage } from "@/lib/api/errors";
@@ -34,46 +24,53 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useTransactions } from "@/hooks/useTransactions";
-import type {
-  TransactionListItem,
-  TransactionStatus,
-  TransactionType,
-  TransactionsListFilters,
-} from "@/api/types/payments";
-import { formatDateTime } from "@/i18n/formatters";
+import { useQuery } from "@tanstack/react-query";
+import { listChannelPayouts, withdrawFromChannel } from "@/api/features/paymentsPayoutsApi";
+import type { ChannelPayoutItem } from "@/api/types/payouts";
 import { formatTonString, nanoToTonString } from "@/lib/ton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { TRANSACTION_DIRECTION, TRANSACTION_STATUS, TRANSACTION_TYPE } from "@/constants/payments";
-import { TRANSACTION_STATUS_LABELS, TRANSACTION_TYPE_LABELS } from "@/constants/ui";
-
-const statusStyles: Record<TransactionStatus, string> = {
-  [TRANSACTION_STATUS.PENDING]: "bg-amber-500/15 text-amber-300",
-  [TRANSACTION_STATUS.AWAITING_CONFIRMATION]: "bg-sky-500/15 text-sky-300",
-  [TRANSACTION_STATUS.CONFIRMED]: "bg-emerald-500/15 text-emerald-300",
-  [TRANSACTION_STATUS.COMPLETED]: "bg-emerald-500/15 text-emerald-300",
-  [TRANSACTION_STATUS.FAILED]: "bg-rose-500/15 text-rose-300",
-  [TRANSACTION_STATUS.CANCELED]: "bg-rose-500/15 text-rose-300",
-};
 
 const topUpChips = [10, 25, 50];
-const withdrawChips = [5, 10, 20];
+const NANO_FACTOR = 1_000_000_000n;
+
+const formatTonFromNano = (amountNano: string) => {
+  try {
+    return formatTonString(nanoToTonString(BigInt(amountNano)));
+  } catch {
+    return amountNano;
+  }
+};
+
+const parseTonInputToNano = (value: string): bigint | null => {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === ".") {
+    return null;
+  }
+  if (!/^\d*\.?\d*$/.test(trimmed)) {
+    return null;
+  }
+
+  const [integerPartRaw, fractionRaw = ""] = trimmed.split(".");
+  const integerPart = integerPartRaw === "" ? "0" : integerPartRaw;
+  const fractionPadded = (fractionRaw + "000000000").slice(0, 9);
+
+  return BigInt(integerPart) * NANO_FACTOR + BigInt(fractionPadded);
+};
+
+const resolveAvailableNano = (item?: ChannelPayoutItem | null) => {
+  if (!item) {
+    return 0n;
+  }
+  try {
+    return BigInt(item.availableNano);
+  } catch {
+    return 0n;
+  }
+};
 
 export default function Profile() {
   const { user } = useTelegram();
   const { t, language, setLanguage } = useLanguage();
-  const [activeSection, setActiveSection] = useState<
-    "history" | "topup" | "withdraw" | "escrow"
-  >("history");
   const { data: profile, isLoading, error, refetch } = useProfile();
-  const { data: balance } = useBalance();
-  const [availableBalance, setAvailableBalance] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState(50);
   const [topUpAmountInput, setTopUpAmountInput] = useState("50");
   const [topUpStatus, setTopUpStatus] = useState<"idle" | "pending" | "confirmed">(
@@ -81,20 +78,13 @@ export default function Profile() {
   );
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
   const [isTopUpSheetOpen, setIsTopUpSheetOpen] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState(18);
-  const [withdrawAmountInput, setWithdrawAmountInput] = useState("18");
-  const [withdrawStatus, setWithdrawStatus] = useState<
-    "idle" | "pending" | "confirmed"
-  >("idle");
-  const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
   const [isWithdrawSheetOpen, setIsWithdrawSheetOpen] = useState(false);
-  const [transactionStatusFilter, setTransactionStatusFilter] = useState<
-    TransactionStatus | "all"
-  >("all");
-  const [transactionTypeFilter, setTransactionTypeFilter] = useState<
-    TransactionType | "all"
-  >("all");
-  const [transactionSearch, setTransactionSearch] = useState("");
+  const [withdrawAmountInput, setWithdrawAmountInput] = useState("");
+  const [selectedPayout, setSelectedPayout] = useState<ChannelPayoutItem | null>(
+    null
+  );
+  const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
+  const [payoutSearch, setPayoutSearch] = useState("");
   const wallet = useTonWallet();
   const [tonConnectUI] = useTonConnectUI();
   const { open: openWalletModal } = useTonConnectModal();
@@ -109,66 +99,30 @@ export default function Profile() {
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
-  const profileBalance = profile?.balance;
   const topUpAddress = profile?.topUpAddress ?? "—";
   const topUpMemo = profile?.topUpMemo ?? "—";
 
-  const transactionFilters = useMemo<TransactionsListFilters>(
-    () => ({
-      page: 1,
-      limit: 20,
-      sort: "recent",
-      order: "desc",
-      status: transactionStatusFilter === "all" ? undefined : transactionStatusFilter,
-      type: transactionTypeFilter === "all" ? undefined : transactionTypeFilter,
-      q: transactionSearch.trim() ? transactionSearch.trim() : undefined,
-    }),
-    [transactionStatusFilter, transactionTypeFilter, transactionSearch]
-  );
+  const payoutsQuery = useQuery({
+    queryKey: ["payouts", payoutSearch],
+    queryFn: () =>
+      listChannelPayouts(payoutSearch.trim() ? { q: payoutSearch.trim() } : {}),
+    refetchOnWindowFocus: false,
+  });
 
-  const transactionsQuery = useTransactions(transactionFilters);
-  const transactions = useMemo(
-    () => transactionsQuery.data?.pages.flatMap((page) => page.items) ?? [],
-    [transactionsQuery.data]
-  );
-  const isTransactionsLoading =
-    transactionsQuery.isLoading ||
-    (transactionsQuery.isFetching && transactions.length === 0);
-
-  const transactionsError =
-    transactionsQuery.error instanceof Error ? transactionsQuery.error : null;
+  const payouts = payoutsQuery.data?.items ?? [];
+  const payoutsError = payoutsQuery.error instanceof Error ? payoutsQuery.error : null;
 
   useEffect(() => {
-    if (profile) {
-      setAvailableBalance(profile.balance.available);
+    if (payoutsError) {
+      toast.error(payoutsError.message);
     }
-  }, [profile]);
-
-  useEffect(() => {
-    if (balance) {
-      setAvailableBalance(balance.available);
-    }
-  }, [balance]);
-
-  useEffect(() => {
-    if (transactionsError) {
-      toast.error(transactionsError.message);
-    }
-  }, [transactionsError]);
+  }, [payoutsError]);
 
   const updateTopUpAmount = (value: string) => {
     setTopUpAmountInput(value);
     const parsed = Number(value);
     if (Number.isFinite(parsed)) {
       setTopUpAmount(parsed);
-    }
-  };
-
-  const updateWithdrawAmount = (value: string) => {
-    setWithdrawAmountInput(value);
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) {
-      setWithdrawAmount(parsed);
     }
   };
 
@@ -191,46 +145,14 @@ export default function Profile() {
         buildTonConnectTransaction({ address: topUpAddress, amountTon: topUpAmount })
       );
 
-      setAvailableBalance((prev) => Number((prev + topUpAmount).toFixed(2)));
       setTopUpStatus("confirmed");
       setIsTopUpSheetOpen(false);
       toast.success(t("profile.toastTopUpConfirmed"));
     } catch (err) {
       setTopUpStatus("idle");
-      toast.error(
-        err instanceof Error ? err.message : t("profile.toastTopUpFailed")
-      );
+      toast.error(err instanceof Error ? err.message : t("profile.toastTopUpFailed"));
     } finally {
       setIsTopUpLoading(false);
-    }
-  };
-
-  const handleWithdraw = async () => {
-    if (!Number.isFinite(withdrawAmount) || withdrawAmount <= 0) {
-      toast.error(t("profile.toastSelectValidWithdraw"));
-      return;
-    }
-    if (withdrawAmount > availableBalance) {
-      toast.error(t("profile.toastInsufficientBalance"));
-      return;
-    }
-
-    setIsWithdrawLoading(true);
-    setWithdrawStatus("pending");
-    try {
-      setAvailableBalance((prev) =>
-        Number(Math.max(prev - withdrawAmount, 0).toFixed(2))
-      );
-      setWithdrawStatus("confirmed");
-      setIsWithdrawSheetOpen(false);
-      toast.success(t("profile.toastWithdrawSubmitted"));
-    } catch (err) {
-      setWithdrawStatus("idle");
-      toast.error(
-        err instanceof Error ? err.message : t("profile.toastWithdrawFailed")
-      );
-    } finally {
-      setIsWithdrawLoading(false);
     }
   };
 
@@ -239,70 +161,57 @@ export default function Profile() {
     amountTon: topUpAmount,
     memo: topUpMemo,
   });
-  const formatTonFromNano = (amountNano: string) => {
+
+  const handleOpenWithdrawSheet = (item: ChannelPayoutItem) => {
+    setSelectedPayout(item);
+    setWithdrawAmountInput("");
+    setIsWithdrawSheetOpen(true);
+  };
+
+  const handleWithdraw = async () => {
+    if (!selectedPayout) {
+      return;
+    }
+
+    const amountNano = parseTonInputToNano(withdrawAmountInput);
+    if (!amountNano || amountNano <= 0n) {
+      toast.error("Enter a valid TON amount.");
+      return;
+    }
+
+    const availableNano = resolveAvailableNano(selectedPayout);
+    if (amountNano > availableNano) {
+      toast.error("Amount exceeds available balance.");
+      return;
+    }
+
+    setIsWithdrawLoading(true);
     try {
-      return formatTonString(nanoToTonString(BigInt(amountNano)));
-    } catch {
-      return amountNano;
+      const response = await withdrawFromChannel({
+        channelId: selectedPayout.channel.id,
+        amountNano: amountNano.toString(),
+      });
+      const message =
+        typeof (response as { message?: string }).message === "string"
+          ? (response as { message: string }).message
+          : "Withdrawal request submitted.";
+      toast.success(message);
+      setIsWithdrawSheetOpen(false);
+      setWithdrawAmountInput("");
+      setSelectedPayout(null);
+      await payoutsQuery.refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Withdraw failed.");
+    } finally {
+      setIsWithdrawLoading(false);
     }
   };
 
-  const getTransactionTypeLabel = (type: TransactionType) => {
-    return TRANSACTION_TYPE_LABELS[type] ?? type;
-  };
-
-  const getTransactionStatusLabel = (status: TransactionStatus) => {
-    return TRANSACTION_STATUS_LABELS[status] ?? status;
-  };
-
-  const formatShortId = (value: string, left = 6, right = 4) => {
-    if (value.length <= left + right) {
-      return value;
-    }
-    return `${value.slice(0, left)}...${value.slice(-right)}`;
-  };
-
-  const getTransactionSubtitle = (transaction: TransactionListItem) => {
-    if (transaction.description) {
-      return transaction.description;
-    }
-    if (transaction.dealId) {
-      return `Deal: ${formatShortId(transaction.dealId)}`;
-    }
-    if (transaction.externalTxHash) {
-      return formatShortId(transaction.externalTxHash);
-    }
-    return "";
-  };
-
-  const getTransactionIcon = (transaction: TransactionListItem) => {
-    const escrowTypes = [
-      TRANSACTION_TYPE.ESCROW_HOLD,
-      TRANSACTION_TYPE.ESCROW_RELEASE,
-      TRANSACTION_TYPE.ESCROW_REFUND,
-    ];
-    if (escrowTypes.includes(transaction.type)) {
-      return Lock;
-    }
-    if (transaction.direction === TRANSACTION_DIRECTION.IN) {
-      return ArrowDownLeft;
-    }
-    if (transaction.direction === TRANSACTION_DIRECTION.OUT) {
-      return ArrowUpRight;
-    }
-    return Send;
-  };
-
-  const formatTransactionAmount = (transaction: TransactionListItem) => {
-    const value = formatTonFromNano(transaction.amountNano);
-    const sign =
-      transaction.direction === TRANSACTION_DIRECTION.OUT
-        ? "-"
-        : transaction.direction === TRANSACTION_DIRECTION.IN
-          ? "+"
-          : "";
-    return `${sign}${value} ${transaction.currency}`;
-  };
+  const withdrawAvailableNano = resolveAvailableNano(selectedPayout);
+  const withdrawAvailableTon = useMemo(
+    () => nanoToTonString(withdrawAvailableNano),
+    [withdrawAvailableNano]
+  );
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -340,84 +249,71 @@ export default function Profile() {
               <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
                 <div className="relative rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
                   <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-foreground">
-                      {t("profile.walletSummary")}
-                    </p>
-                <TonConnectButton className="shrink-0" />
+                    <p className="text-sm font-semibold text-foreground">Wallet</p>
+                    <TonConnectButton className="shrink-0" />
                   </div>
                   <div className="px-5 py-5 space-y-4 pb-6">
-                    <div className="glass p-4 space-y-3">
+                    <div className="glass p-4 space-y-2">
                       <p className="text-xs text-muted-foreground">
-                        {t("profile.balanceLabel")}
+                        {t("profile.topUpBalance")}
                       </p>
-                      <div className="space-y-2">
-                        <p className="text-2xl font-semibold text-foreground">
-                          {t("profile.availableBalance")} {availableBalance.toFixed(2)} TON
-                        </p>
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                          <span>
-                            {t("profile.lockedInEscrow")} {profileBalance?.locked ?? 0}{" "}
-                            TON
-                          </span>
-                          <span>
-                            {t("profile.pendingRelease")}{" "}
-                            {profileBalance?.pendingRelease ?? 0} TON
-                          </span>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            {t("profile.tonAmount")}
+                          </p>
+                          <p className="text-2xl font-semibold text-foreground">
+                            {topUpAmount.toFixed(2)} TON
+                          </p>
                         </div>
+                        <Wallet size={20} className="text-primary/80" />
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {t("profile.lockedFundsNote")}
-                      </p>
+                      <button
+                        type="button"
+                        className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
+                        onClick={() => setIsTopUpSheetOpen(true)}
+                      >
+                        Change amount
+                      </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        className="button-primary rounded-lg py-2 text-sm"
-                        onClick={() => {
-                          setActiveSection("topup");
-                          setIsTopUpSheetOpen(true);
-                        }}
-                      >
-                        {t("profile.topUp")}
-                      </button>
-                      <button
-                        type="button"
-                        className="button-primary rounded-lg py-2 text-sm bg-primary/80 hover:bg-primary"
-                        onClick={() => {
-                          setActiveSection("withdraw");
-                          setIsWithdrawSheetOpen(true);
-                        }}
-                      >
-                        {t("profile.withdraw")}
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="button-primary rounded-md py-3 text-sm"
+                      onClick={handleTopUp}
+                      disabled={isTopUpLoading}
+                    >
+                      {isTopUpLoading ? t("profile.processing") : t("profile.proceedToPayment")}
+                    </button>
 
                     <div className="glass p-4 space-y-2">
                       <p className="text-xs text-muted-foreground">
-                        {t("profile.instantWithdraw")}
+                        {t("profile.paymentInstructions")}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-foreground">
-                          {profileBalance?.instantWithdraw?.toFixed(2) ?? "0.00"} TON
+                      <div className="space-y-1 text-sm text-foreground">
+                        <p>{topUpTransferLink}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("profile.address")} {topUpAddress}
                         </p>
-                        <button
-                          type="button"
-                          className="rounded-lg border border-border/40 px-3 py-1 text-xs text-muted-foreground"
-                          onClick={() => {
-                            setActiveSection("withdraw");
-                            setIsWithdrawSheetOpen(true);
-                          }}
-                        >
-                          {t("profile.withdrawNow")}
-                        </button>
+                        <p className="text-xs text-muted-foreground">
+                          {t("profile.memo")} {topUpMemo}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        {t("profile.savedWallet")}
-                      </p>
                     </div>
 
-              </div>
+                    {topUpStatus === "pending" ? (
+                      <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-primary">
+                        <Clock size={14} />
+                        {t("profile.waitingConfirmation")}
+                      </div>
+                    ) : null}
+                    {topUpStatus === "confirmed" ? (
+                      <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
+                        <CheckCircle2 size={14} />
+                        {t("profile.topUpConfirmed")}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
 
                 <div className="glass p-4 space-y-3">
@@ -440,15 +336,15 @@ export default function Profile() {
                         label: t("profile.languageOptionRussian"),
                       },
                     ].map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setLanguage(option.value as "en" | "ru")}
-                          className={`rounded-lg border px-3 py-1 text-xs transition ${
-                            language === option.value
-                              ? "border-primary/60 bg-primary/20 text-primary"
-                              : "border-border/40 text-muted-foreground hover:text-foreground"
-                          }`}
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setLanguage(option.value as "en" | "ru")}
+                        className={`rounded-md border px-3 py-1 text-xs transition ${
+                          language === option.value
+                            ? "border-primary/60 bg-primary/20 text-primary"
+                            : "border-border/40 text-muted-foreground hover:text-foreground"
+                        }`}
                       >
                         {option.label}
                       </button>
@@ -458,375 +354,95 @@ export default function Profile() {
               </div>
 
               <div className="rounded-[28px] border border-border/40 bg-background/70 shadow-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-border/40">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {[
-                      { id: "history", label: t("profile.sectionHistory"), icon: History },
-                      { id: "escrow", label: t("profile.sectionEscrow"), icon: Lock },
-                    ].map(({ id, label, icon: Icon }) => (
-                        <button
-                          key={id}
-                          type="button"
-                          onClick={() => {
-                            if (id === "topup") {
-                              setIsTopUpSheetOpen(true);
-                            }
-                            setActiveSection(
-                              id as "history" | "topup" | "withdraw" | "escrow"
-                            );
-                          }}
-                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-xs font-medium transition ${
-                            activeSection === id
-                              ? "border-primary/60 bg-primary/15 text-primary"
-                              : "border-border/40 text-muted-foreground hover:text-foreground"
-                          }`}
-                      >
-                        <Icon size={14} />
-                        {label}
-                      </button>
-                    ))}
+                <div className="px-5 py-4 border-b border-border/40 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Payouts</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Available to withdraw from your channels
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => payoutsQuery.refetch()}
+                      disabled={payoutsQuery.isFetching}
+                      className="inline-flex items-center gap-2 rounded-md border border-border/40 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-60"
+                    >
+                      <RefreshCcw size={14} />
+                      Reload
+                    </button>
                   </div>
+                  <Input
+                    value={payoutSearch}
+                    onChange={(event) => setPayoutSearch(event.target.value)}
+                    placeholder="Search channels"
+                    className="h-10 rounded-md bg-background/70"
+                  />
                 </div>
 
                 <div className="px-5 py-5 space-y-4 pb-8">
-                  {activeSection === "history" && (
-                    <div className="glass p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-foreground">
-                          {t("profile.transactionHistory")}
-                        </p>
-                        <span className="text-xs text-muted-foreground">
-                          {t("profile.last7Days")}
-                        </span>
-                      </div>
-                      <div className="grid gap-2 sm:grid-cols-[180px_180px_1fr]">
-                        <Select
-                          value={transactionStatusFilter}
-                          onValueChange={(value) =>
-                            setTransactionStatusFilter(value as TransactionStatus | "all")
-                          }
-                        >
-                          <SelectTrigger className="h-10 rounded-lg bg-background/70">
-                            <SelectValue placeholder="Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All statuses</SelectItem>
-                            <SelectItem value={TRANSACTION_STATUS.PENDING}>
-                              {TRANSACTION_STATUS_LABELS[TRANSACTION_STATUS.PENDING]}
-                            </SelectItem>
-                            <SelectItem value={TRANSACTION_STATUS.COMPLETED}>
-                              {TRANSACTION_STATUS_LABELS[TRANSACTION_STATUS.COMPLETED]}
-                            </SelectItem>
-                            <SelectItem value={TRANSACTION_STATUS.FAILED}>
-                              {TRANSACTION_STATUS_LABELS[TRANSACTION_STATUS.FAILED]}
-                            </SelectItem>
-                            <SelectItem value={TRANSACTION_STATUS.CANCELED}>
-                              {TRANSACTION_STATUS_LABELS[TRANSACTION_STATUS.CANCELED]}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Select
-                          value={transactionTypeFilter}
-                          onValueChange={(value) =>
-                            setTransactionTypeFilter(value as TransactionType | "all")
-                          }
-                        >
-                          <SelectTrigger className="h-10 rounded-lg bg-background/70">
-                            <SelectValue placeholder="Type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All types</SelectItem>
-                            <SelectItem value={TRANSACTION_TYPE.DEPOSIT}>
-                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.DEPOSIT]}
-                            </SelectItem>
-                            <SelectItem value={TRANSACTION_TYPE.WITHDRAW}>
-                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.WITHDRAW]}
-                            </SelectItem>
-                            <SelectItem value={TRANSACTION_TYPE.ESCROW_HOLD}>
-                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.ESCROW_HOLD]}
-                            </SelectItem>
-                            <SelectItem value={TRANSACTION_TYPE.ESCROW_REFUND}>
-                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.ESCROW_REFUND]}
-                            </SelectItem>
-                            <SelectItem value={TRANSACTION_TYPE.FEE}>
-                              {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.FEE]}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          value={transactionSearch}
-                          onChange={(event) => setTransactionSearch(event.target.value)}
-                          placeholder="Search transactions"
-                          className="h-10 rounded-lg bg-background/70"
-                        />
-                      </div>
-                      {transactionsError ? (
-                        <p className="text-xs text-rose-200">
-                          {transactionsError.message}
-                        </p>
-                      ) : null}
-                      {isTransactionsLoading ? (
-                        <LoadingSkeleton items={3} />
-                      ) : transactions.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">
-                          No transactions yet
-                        </p>
-                      ) : (
-                        <div className="space-y-3">
-                          {transactions.map((transaction) => {
-                            const Icon = getTransactionIcon(transaction);
-                            const subtitle = getTransactionSubtitle(transaction);
-                            return (
-                              <div
-                                key={transaction.id}
-                                className="flex items-start justify-between gap-3 border-b border-border/30 pb-3 last:border-b-0 last:pb-0"
-                              >
-                                <div className="flex items-start gap-3">
-                                  <span className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-secondary/60 text-muted-foreground">
-                                    <Icon size={16} />
-                                  </span>
-                                  <div>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground">
-                                        {getTransactionTypeLabel(transaction.type)}
-                                      </span>
-                                      <span
-                                        className={`rounded-full px-2 py-0.5 text-[11px] ${
-                                          statusStyles[transaction.status] ??
-                                          "bg-muted text-muted-foreground"
-                                        }`}
-                                      >
-                                        {getTransactionStatusLabel(transaction.status)}
-                                      </span>
-                                    </div>
-                                    {subtitle ? (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {subtitle}
-                                      </p>
-                                    ) : null}
-                                    <p className="text-[11px] text-muted-foreground mt-1">
-                                      {formatDateTime(transaction.createdAt, language)}
-                                    </p>
-                                  </div>
-                                </div>
+                  {payoutsQuery.isLoading ? (
+                    <LoadingSkeleton items={3} />
+                  ) : payouts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No channel payouts available.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {payouts.map((item) => {
+                        const availableNano = resolveAvailableNano(item);
+                        const availableLabel = formatTonFromNano(item.availableNano);
+                        const isDisabled = availableNano <= 0n;
+                        return (
+                          <div
+                            key={item.channel.id}
+                            className="glass p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-11 w-11">
+                                <AvatarImage
+                                  src={item.channel.avatarUrl ?? undefined}
+                                  alt={item.channel.name}
+                                />
+                                <AvatarFallback className="bg-primary/15 text-primary text-sm font-semibold">
+                                  {item.channel.name.slice(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
                                 <p className="text-sm font-semibold text-foreground">
-                                  {formatTransactionAmount(transaction)}
+                                  {item.channel.name}
                                 </p>
+                                {item.channel.username ? (
+                                  <p className="text-xs text-muted-foreground">
+                                    @{item.channel.username}
+                                  </p>
+                                ) : null}
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {transactionsQuery.hasNextPage ? (
-                        <button
-                          type="button"
-                          onClick={() => transactionsQuery.fetchNextPage()}
-                          disabled={transactionsQuery.isFetchingNextPage}
-                          className="w-full rounded-lg border border-border/40 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-60"
-                        >
-                          {transactionsQuery.isFetchingNextPage
-                            ? "Loading..."
-                            : "Load more"}
-                        </button>
-                      ) : null}
+                            </div>
+                            <div className="flex items-center justify-between gap-4 sm:justify-end">
+                              <div className="text-right">
+                                <p className="text-sm font-semibold text-foreground">
+                                  {isDisabled ? "0" : availableLabel} TON
+                                </p>
+                                <p className="text-[11px] text-muted-foreground">Available</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenWithdrawSheet(item)}
+                                disabled={isDisabled}
+                                className="button-primary rounded-md px-4 py-2 text-xs disabled:pointer-events-none disabled:opacity-60"
+                              >
+                                Withdraw
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
-
-                  {activeSection === "topup" && (
-                    <>
-                      <div className="glass p-4 space-y-3">
-                        <p className="text-xs text-muted-foreground">
-                          {t("profile.topUpBalance")}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              {t("profile.tonAmount")}
-                            </p>
-                            <p className="text-2xl font-semibold text-foreground">
-                              {topUpAmount.toFixed(2)} TON
-                            </p>
-                          </div>
-                          <Wallet size={20} className="text-primary/80" />
-                        </div>
-                        <button
-                          type="button"
-                          className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
-                          onClick={() => setIsTopUpSheetOpen(true)}
-                        >
-                          Change amount
-                        </button>
-                      </div>
-
-                      <div className="glass p-4 space-y-2">
-                        <p className="text-xs text-muted-foreground">
-                          {t("profile.paymentMethod")}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {t("profile.tonWallet")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {t("profile.payUsing")}
-                            </p>
-                          </div>
-                          <span className="rounded-full bg-secondary/60 px-3 py-1 text-[11px] text-muted-foreground">
-                            {t("profile.selected")}
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        className="button-primary rounded-lg py-4 disabled:pointer-events-none disabled:opacity-70"
-                        onClick={handleTopUp}
-                        disabled={isTopUpLoading}
-                      >
-                        {isTopUpLoading
-                          ? t("profile.processing")
-                          : t("profile.proceedToPayment")}
-                      </button>
-
-                      <div className="glass p-4 space-y-2">
-                        <p className="text-xs text-muted-foreground">
-                          {t("profile.paymentInstructions")}
-                        </p>
-                        <div className="space-y-1 text-sm text-foreground">
-                          <p>{topUpTransferLink}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("profile.address")} {topUpAddress}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("profile.memo")} {topUpMemo}
-                          </p>
-                        </div>
-                      </div>
-
-                      {topUpStatus === "pending" ? (
-                        <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-primary">
-                          <Clock size={14} />
-                          {t("profile.waitingConfirmation")}
-                        </div>
-                      ) : null}
-                      {topUpStatus === "confirmed" ? (
-                        <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
-                          <CheckCircle2 size={14} />
-                          {t("profile.topUpConfirmed")}
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-
-                  {activeSection === "withdraw" && (
-                    <>
-                      <div className="glass p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-muted-foreground">
-                              {t("profile.withdrawFunds")}
-                            </p>
-                            <p className="text-2xl font-semibold text-foreground">
-                              {withdrawAmount.toFixed(2)} TON
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            className="rounded-lg border border-border/40 px-3 py-1 text-xs text-muted-foreground"
-                            onClick={() =>
-                              updateWithdrawAmount(availableBalance.toFixed(2))
-                            }
-                          >
-                            {t("profile.max")}
-                          </button>
-                        </div>
-                        <button
-                          type="button"
-                          className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
-                          onClick={() => setIsWithdrawSheetOpen(true)}
-                        >
-                          {t("profile.changeAmount")}
-                        </button>
-                      </div>
-
-                      <div className="glass p-4 space-y-2">
-                        <p className="text-xs text-muted-foreground">
-                          {t("profile.destinationWallet")}
-                        </p>
-                        <p className="text-sm text-foreground">EQB7...m0fLr</p>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{t("profile.networkFeeEstimate")}</span>
-                        <span>~0.05 TON</span>
-                      </div>
-
-                      <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-                        {t("profile.withdrawWarning")}
-                      </div>
-
-                      <button
-                        type="button"
-                        className="button-primary rounded-lg py-4 disabled:pointer-events-none disabled:opacity-70"
-                        onClick={() => setIsWithdrawSheetOpen(true)}
-                        disabled={isWithdrawLoading}
-                      >
-                        {isWithdrawLoading
-                          ? t("profile.processing")
-                          : t("profile.withdrawAction")}
-                      </button>
-
-                      {withdrawStatus === "confirmed" ? (
-                        <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
-                          <CheckCircle2 size={14} />
-                          {t("profile.withdrawSubmitted")}
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-
-                  {activeSection === "escrow" && (
-                    <>
-                      <div className="glass p-4 space-y-3">
-                        <div className="flex items-center gap-2 text-foreground">
-                          <Lock size={16} className="text-primary/80" />
-                          <p className="text-sm font-semibold">
-                            {t("profile.howEscrowWorks")}
-                          </p>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {t("profile.escrowDescription")}
-                        </p>
-                      </div>
-
-                      <div className="glass p-4 space-y-2">
-                        <p className="text-xs text-muted-foreground">
-                          {t("profile.trustIndicators")}
-                        </p>
-                        <div className="grid gap-2">
-                          {[
-                            t("profile.trustIndicatorTonNetwork"),
-                            t("profile.trustIndicatorOnChainVerification"),
-                            t("profile.trustIndicatorAutomatedEscrow"),
-                            t("profile.trustIndicatorSmartContractTransparency"),
-                          ].map((item) => (
-                            <div
-                              key={item}
-                              className="flex items-center gap-2 text-sm"
-                            >
-                              <span className="h-2 w-2 rounded-full bg-primary" />
-                              <span className="text-foreground">{item}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Send size={14} className="text-primary/70" />
-                        {t("profile.automatedReleases")}
-                      </div>
-                    </>
-                  )}
+                  {payoutsError ? (
+                    <p className="text-xs text-rose-200">{payoutsError.message}</p>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -867,7 +483,7 @@ export default function Profile() {
                   key={amount}
                   type="button"
                   onClick={() => updateTopUpAmount(amount.toString())}
-                  className={`rounded-lg border px-3 py-1 text-xs transition ${
+                  className={`rounded-md border px-3 py-1 text-xs transition ${
                     topUpAmount === amount
                       ? "border-primary/60 bg-primary/20 text-primary"
                       : "border-primary/40 bg-primary/10 text-primary/80"
@@ -879,7 +495,7 @@ export default function Profile() {
             </div>
             <button
               type="button"
-              className="button-primary rounded-lg py-4 disabled:pointer-events-none disabled:opacity-70"
+              className="button-primary rounded-md py-4 disabled:pointer-events-none disabled:opacity-70"
               onClick={handleTopUp}
               disabled={isTopUpLoading}
             >
@@ -888,68 +504,68 @@ export default function Profile() {
           </div>
         </SheetContent>
       </Sheet>
-      <Sheet open={isWithdrawSheetOpen} onOpenChange={setIsWithdrawSheetOpen}>
+      <Sheet
+        open={isWithdrawSheetOpen}
+        onOpenChange={(open) => {
+          setIsWithdrawSheetOpen(open);
+          if (!open) {
+            setSelectedPayout(null);
+            setWithdrawAmountInput("");
+          }
+        }}
+      >
         <SheetContent
           side="bottom"
           className="rounded-t-3xl border-t border-border/60 bg-background/95 px-5 pb-8 pt-6"
         >
           <SheetHeader className="text-left">
-            <SheetTitle>{t("profile.withdrawSheetTitle")}</SheetTitle>
+            <SheetTitle>Withdraw from channel</SheetTitle>
             <SheetDescription>
-              {t("profile.withdrawSheetDescription")}
+              Enter the amount you want to withdraw from this channel.
             </SheetDescription>
           </SheetHeader>
           <div className="mt-5 space-y-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">
+                {selectedPayout?.channel.name ?? ""}
+              </p>
+              {selectedPayout?.channel.username ? (
+                <p className="text-xs text-muted-foreground">
+                  @{selectedPayout.channel.username}
+                </p>
+              ) : null}
+              <p className="text-xs text-muted-foreground">
+                Available: {formatTonString(withdrawAvailableTon)} TON
+              </p>
+            </div>
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">
-                {t("profile.tonAmount")}
-              </label>
+              <label className="text-xs text-muted-foreground">Amount (TON)</label>
               <div className="flex items-center gap-3">
                 <Input
-                  type="number"
+                  type="text"
                   inputMode="decimal"
-                  min="0"
-                  step="0.01"
                   value={withdrawAmountInput}
-                  onChange={(event) => updateWithdrawAmount(event.target.value)}
+                  onChange={(event) => setWithdrawAmountInput(event.target.value)}
                   className="h-12 rounded-2xl text-lg"
                   placeholder="0.00"
                 />
                 <span className="text-sm font-medium text-muted-foreground">TON</span>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {withdrawChips.map((amount) => (
-                <button
-                  key={amount}
-                  type="button"
-                  onClick={() => updateWithdrawAmount(amount.toString())}
-                  className={`rounded-lg border px-3 py-1 text-xs transition ${
-                    withdrawAmount === amount
-                      ? "border-primary/60 bg-primary/20 text-primary"
-                      : "border-primary/40 bg-primary/10 text-primary/80"
-                  }`}
-                >
-                  {amount} TON
-                </button>
-              ))}
               <button
                 type="button"
-                onClick={() => updateWithdrawAmount(availableBalance.toFixed(2))}
-                className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
+                onClick={() => setWithdrawAmountInput(withdrawAvailableTon)}
+                className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1 text-xs text-primary/80 transition hover:border-primary/60 hover:bg-primary/20"
               >
-                {t("profile.max")}
+                Max
               </button>
             </div>
             <button
               type="button"
-              className="button-primary rounded-lg py-4 disabled:pointer-events-none disabled:opacity-70"
+              className="button-primary rounded-md py-4 disabled:pointer-events-none disabled:opacity-70"
               onClick={handleWithdraw}
               disabled={isWithdrawLoading}
             >
-              {isWithdrawLoading
-                ? t("profile.processing")
-                : t("profile.withdrawAction")}
+              {isWithdrawLoading ? "Processing..." : "Confirm withdraw"}
             </button>
           </div>
         </SheetContent>

@@ -30,7 +30,7 @@ export const getDeals = async (): Promise<Deal[]> => {
   }
 
   try {
-    return post<Deal[], Record<string, never>>("/deals", { data: {} });
+    return post<Deal[], Record<string, never>>("/deals", {});
   } catch (error) {
     console.warn("Falling back to mock deals.", error);
     await delay();
@@ -49,7 +49,7 @@ export const getDeal = async (id: string): Promise<Deal> => {
   }
 
   try {
-    return post<Deal, { id: string }>(`/deals/${id}`, { data: { id } });
+    return post<Deal, { id: string }>(`/deals/${id}`, { id });
   } catch (error) {
     console.warn("Falling back to mock deal.", error);
     await delay();
@@ -68,7 +68,7 @@ export const createDeal = async (payload: CreateDealPayload): Promise<Deal> => {
   }
 
   try {
-    return post<Deal, CreateDealPayload>("/deals", { data: payload });
+    return post<Deal, CreateDealPayload>("/deals", payload);
   } catch (error) {
     console.warn("Falling back to mock deal creation.", error);
     await delay();
@@ -87,7 +87,7 @@ export const approveCreative = async (id: string): Promise<Deal> => {
   }
 
   try {
-    return post<Deal, { id: string }>(`/deals/${id}/creative/approve`, { data: { id } });
+    return post<Deal, { id: string }>(`/deals/${id}/creative/approve`, { id });
   } catch (error) {
     console.warn("Falling back to mock creative approval.", error);
     await delay();
@@ -110,12 +110,13 @@ export const requestEdits = async (id: string, note?: string): Promise<Deal> => 
   }
 
   try {
-    return post<Deal, { id: string; note?: string }>(`/deals/${id}/creative/edits`, {
-      data: {
+    return post<Deal, { id: string; note?: string }>(
+      `/deals/${id}/creative/edits`,
+      {
         id,
         note,
-      },
-    });
+      }
+    );
   } catch (error) {
     console.warn("Falling back to mock edit request.", error);
     await delay();

@@ -38,11 +38,11 @@ export const authTelegram = async (
   user?: TelegramUserLike | null
 ): Promise<AuthResponse> => {
   if (!user) {
-    return post<AuthResponse, Record<string, never>>("/auth", { data: {} });
+    return post<AuthResponse, Record<string, never>>("/auth", {});
   }
 
   const payload = normalizeUser(user);
-  return post<AuthResponse, TelegramAuthData>("/auth", { data: payload });
+  return post<AuthResponse, TelegramAuthData>("/auth", payload);
 };
 
 export const authApi = {

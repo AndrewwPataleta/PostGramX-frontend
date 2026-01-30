@@ -32,7 +32,7 @@ export default function StageConfirmPost({
         return null;
       }
       return post<unknown, { dealId: string }>("/deals/creative/confirm", {
-        data: { dealId: deal.id },
+        dealId: deal.id,
       });
     },
     onSuccess: () => {
@@ -51,7 +51,7 @@ export default function StageConfirmPost({
         return null;
       }
       return post<unknown, { dealId: string }>("/deals/creative/reject", {
-        data: { dealId: deal.id },
+        dealId: deal.id,
       });
     },
     onSuccess: () => {

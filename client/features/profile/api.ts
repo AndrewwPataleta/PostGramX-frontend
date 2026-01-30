@@ -62,7 +62,7 @@ export const getProfileOverview = async (): Promise<ProfileOverview> => {
   }
 
   try {
-    return post<ProfileOverview, Record<string, never>>("/profile", { data: {} });
+    return post<ProfileOverview, Record<string, never>>("/profile", {});
   } catch (error) {
     console.warn("Falling back to mock profile.", error);
     await delay();
@@ -77,7 +77,7 @@ export const getBalance = async (): Promise<WalletBalance> => {
   }
 
   try {
-    return post<WalletBalance, Record<string, never>>("/profile/balance", { data: {} });
+    return post<WalletBalance, Record<string, never>>("/profile/balance", {});
   } catch (error) {
     console.warn("Falling back to mock balance.", error);
     await delay();

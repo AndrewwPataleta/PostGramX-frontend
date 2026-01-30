@@ -32,7 +32,7 @@ export default function StageSendPost({ deal, readonly, onAction }: StageSendPos
         return null;
       }
       return post<unknown, { dealId: string }>("/deals/creative/submit", {
-        data: { dealId: deal.id },
+        dealId: deal.id,
       });
     },
     onSuccess: () => {
