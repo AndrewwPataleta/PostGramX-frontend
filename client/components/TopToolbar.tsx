@@ -122,33 +122,32 @@ const TopToolbar = () => {
         paddingRight: "max(var(--tg-safe-right), var(--tg-content-safe-area-inset-right))",
       }}
     >
-      <div className="mx-auto flex h-[var(--app-toolbar-height)] max-w-2xl items-center gap-3 px-4">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          {showBack ? (
-            <button
-              type="button"
-              onClick={handleBack}
-              className="inline-flex items-center justify-center rounded-full p-1 text-foreground transition-colors hover:bg-secondary/50"
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} />
-            </button>
-          ) : null}
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground">{title}</p>
-          </div>
-        </div>
-        {showActionClose ? (
-          <button
-            type="button"
-            onClick={handleClose}
-            className="inline-flex items-center justify-center rounded-full p-1 text-foreground transition-colors hover:bg-secondary/50"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        ) : null}
-      </div>
+      {/*//TODO вернуть пока для теста*/}
+      {/*<div className="mx-auto flex h-[var(--app-toolbar-height)] max-w-2xl items-center gap-3 px-4">*/}
+      {/*  <div className="flex min-w-0 flex-1 items-center gap-2">*/}
+      {/*    {showBack ? (*/}
+      {/*      <button*/}
+      {/*        type="button"*/}
+      {/*        onClick={handleBack}*/}
+      {/*        className="inline-flex items-center justify-center rounded-full p-1 text-foreground transition-colors hover:bg-secondary/50"*/}
+      {/*        aria-label="Go back"*/}
+      {/*      >*/}
+      {/*        <ArrowLeft size={20} />*/}
+      {/*      </button>*/}
+      {/*    ) : null}*/}
+      {/*   */}
+      {/*  </div>*/}
+      {/*  {showActionClose ? (*/}
+      {/*    <button*/}
+      {/*      type="button"*/}
+      {/*      onClick={handleClose}*/}
+      {/*      className="inline-flex items-center justify-center rounded-full p-1 text-foreground transition-colors hover:bg-secondary/50"*/}
+      {/*      aria-label="Close"*/}
+      {/*    >*/}
+      {/*      <X size={18} />*/}
+      {/*    </button>*/}
+      {/*  ) : null}*/}
+      {/*</div>*/}
     </header>
   );
 };
