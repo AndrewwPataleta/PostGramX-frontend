@@ -1,6 +1,7 @@
 import { Check, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { ROUTES } from "@/constants/routes";
 
 export default function FundsLocked() {
   return (
@@ -75,13 +76,13 @@ export default function FundsLocked() {
         {/* Bottom button */}
         <div className="py-6 space-y-3">
           <Link
-            to="/deals"
+            to={ROUTES.DEALS}
             className="button-primary text-center py-4 text-base font-semibold"
           >
             Continue
           </Link>
           <Link
-            to="/marketplace"
+            to={ROUTES.MARKETPLACE}
             className="button-secondary text-center py-4 text-base font-semibold"
           >
             Back to Marketplace

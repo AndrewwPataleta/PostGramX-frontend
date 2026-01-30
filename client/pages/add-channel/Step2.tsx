@@ -14,6 +14,8 @@ import type { VerifyChannelResponse } from "@/types/channels";
 import { formatNumber } from "@/i18n/formatters";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import type { Language } from "@/i18n/translations";
+import { CHANNEL_STATUS } from "@/constants/channels";
+import { ROUTES } from "@/constants/routes";
 
 const formatMetric = (value: number | null | undefined, language: Language) => {
   if (value == null) {
@@ -24,7 +26,7 @@ const formatMetric = (value: number | null | undefined, language: Language) => {
 
 const isVerifiedResponse = (response: VerifyChannelResponse) => {
   const status = String(response.status ?? "").toUpperCase();
-  return ["VERIFIED", "SUCCESS", "OK"].includes(status);
+  return [CHANNEL_STATUS.VERIFIED, "SUCCESS", "OK"].includes(status);
 };
 
 const AddChannelStep2 = () => {
@@ -42,7 +44,7 @@ const AddChannelStep2 = () => {
 
   useEffect(() => {
     if (!preview) {
-      navigate("/add-channel/step-1", { replace: true });
+      navigate(ROUTES.ADD_CHANNEL_STEP("step-1"), { replace: true });
     }
   }, [navigate, preview]);
 
@@ -92,7 +94,7 @@ const AddChannelStep2 = () => {
       if (isVerifiedResponse(response)) {
         setVerifyStatus("success");
         setLastError(null);
-        navigate("/add-channel/step-3");
+        navigate(ROUTES.ADD_CHANNEL_STEP("step-3"));
         return;
       }
       const message =
@@ -216,7 +218,7 @@ const AddChannelStep2 = () => {
         </Button>
         <Button
           variant="secondary"
-          onClick={() => navigate("/add-channel/step-1")}
+          onClick={() => navigate(ROUTES.ADD_CHANNEL_STEP("step-1"))}
           disabled={isLoading}
           className="w-full text-sm font-semibold"
         >

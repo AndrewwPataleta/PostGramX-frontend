@@ -1,11 +1,6 @@
-export type ChannelStatus =
-  | "DRAFT"
-  | "PENDING_VERIFY"
-  | "VERIFIED"
-  | "FAILED"
-  | "REVOKED";
+import type { ChannelRole, ChannelStatus } from "@/constants/channels";
 
-export type ChannelRole = "OWNER" | "MANAGER" | "UNKNOWN";
+export type { ChannelRole, ChannelStatus } from "@/constants/channels";
 
 export type ChannelsListSort = "recent" | "title" | "subscribers";
 

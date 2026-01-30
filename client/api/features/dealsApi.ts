@@ -6,6 +6,8 @@ import type {
   DealsListResponse,
 } from "@/types/deals";
 import { post } from "@/api/core/apiClient";
+import { DEAL_ESCROW_STATUS, DEAL_STATUS } from "@/constants/deals";
+import { USER_ROLE } from "@/constants/roles";
 import type { DealCardData } from "@/components/deals/DealCard";
 import type { TimelineItem } from "@/components/deals/Timeline";
 
@@ -51,10 +53,10 @@ const buildMockDeal = (overrides: Partial<DealListItem>): DealListItem => {
 
   return {
     id: `deal_${Math.random().toString(36).slice(2, 8)}`,
-    status: "PENDING",
-    escrowStatus: "SCHEDULING_PENDING",
+    status: DEAL_STATUS.PENDING,
+    escrowStatus: DEAL_ESCROW_STATUS.DRAFT,
     initiatorSide: "ADVERTISER",
-    userRoleInDeal: "advertiser",
+    userRoleInDeal: USER_ROLE.ADVERTISER,
     channel: {
       id: "channel_1",
       name: "PostgramX Updates",
@@ -85,8 +87,8 @@ const paginate = (items: DealListItem[], page: number, limit: number) => {
 const mockDealsList = (params: DealsListParams): DealsListResponse => {
   const pendingItems = [
     buildMockDeal({
-      status: "PENDING",
-      escrowStatus: "SCHEDULING_PENDING",
+      status: DEAL_STATUS.PENDING,
+      escrowStatus: DEAL_ESCROW_STATUS.DRAFT,
       channel: {
         id: "channel_1",
         name: "TON Signals",
@@ -111,8 +113,8 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
       },
     }),
     buildMockDeal({
-      status: "PENDING",
-      escrowStatus: "PAYMENT_WINDOW_PENDING",
+      status: DEAL_STATUS.PENDING,
+      escrowStatus: DEAL_ESCROW_STATUS.AWAITING_PAYMENT,
       channel: {
         id: "channel_2",
         name: "Web3 Pulse",
@@ -136,8 +138,8 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
       },
     }),
     buildMockDeal({
-      status: "PENDING",
-      escrowStatus: "AWAITING_PAYMENT",
+      status: DEAL_STATUS.PENDING,
+      escrowStatus: DEAL_ESCROW_STATUS.AWAITING_PAYMENT,
       channel: {
         id: "channel_3",
         name: "TON Launchpad",
@@ -163,8 +165,8 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
       paymentExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
     }),
     buildMockDeal({
-      status: "PENDING",
-      escrowStatus: "CREATIVE_AWAITING_ADMIN_REVIEW",
+      status: DEAL_STATUS.PENDING,
+      escrowStatus: DEAL_ESCROW_STATUS.CREATIVE_AWAITING_SUBMIT,
       channel: {
         id: "channel_3",
         name: "NFT Radar",
@@ -193,8 +195,8 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
 
   const activeItems = [
     buildMockDeal({
-      status: "ACTIVE",
-      escrowStatus: "FUNDS_CONFIRMED",
+      status: DEAL_STATUS.ACTIVE,
+      escrowStatus: DEAL_ESCROW_STATUS.FUNDS_CONFIRMED,
       channel: {
         id: "channel_4",
         name: "Startup Digest",
@@ -219,8 +221,8 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
       scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
     }),
     buildMockDeal({
-      status: "ACTIVE",
-      escrowStatus: "POSTED_VERIFYING",
+      status: DEAL_STATUS.ACTIVE,
+      escrowStatus: DEAL_ESCROW_STATUS.POSTED_VERIFYING,
       channel: {
         id: "channel_5",
         name: "Crypto Atlas",
@@ -248,8 +250,8 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
 
   const completedItems = [
     buildMockDeal({
-      status: "COMPLETED",
-      escrowStatus: "COMPLETED",
+      status: DEAL_STATUS.COMPLETED,
+      escrowStatus: DEAL_ESCROW_STATUS.COMPLETED,
       channel: {
         id: "channel_6",
         name: "Product Launches",
@@ -273,8 +275,8 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
       },
     }),
     buildMockDeal({
-      status: "COMPLETED",
-      escrowStatus: "COMPLETED",
+      status: DEAL_STATUS.COMPLETED,
+      escrowStatus: DEAL_ESCROW_STATUS.COMPLETED,
       channel: {
         id: "channel_7",
         name: "DeFi Radar",
@@ -470,8 +472,8 @@ export const createDeal = async (
     await wait(800);
     return {
       id: `deal_${Date.now()}`,
-      status: "PENDING",
-      escrowStatus: "SCHEDULING_PENDING",
+      status: DEAL_STATUS.PENDING,
+      escrowStatus: DEAL_ESCROW_STATUS.DRAFT,
       listingId: payload.listingId,
       channelId: "channel_mock",
       initiatorSide: "ADVERTISER",

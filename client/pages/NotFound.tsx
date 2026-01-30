@@ -1,7 +1,7 @@
-import { useLocation } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { ROUTES } from "@/constants/routes";
 
 const NotFound = () => {
   const location = useLocation();
@@ -27,7 +27,7 @@ const NotFound = () => {
           Continue chatting with us to generate this page, or return to the main app.
         </p>
         <Link
-          to="/marketplace"
+          to={ROUTES.MARKETPLACE}
           className="button-primary text-center py-3 px-8 font-semibold w-full max-w-xs"
         >
           Return to Marketplace

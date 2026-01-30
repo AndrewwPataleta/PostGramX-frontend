@@ -7,24 +7,25 @@ import { getChannelStatusLabel } from "@/i18n/labels";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import type { Language } from "@/i18n/translations";
 import type { ChannelListItem, ChannelStatus } from "@/types/channels";
+import { CHANNEL_STATUS } from "@/constants/channels";
 
 const statusStyles: Record<
   ChannelStatus,
   { className: string; icon?: ReactNode }
 > = {
-  DRAFT: {
+  [CHANNEL_STATUS.DRAFT]: {
     className: "bg-muted/40 text-muted-foreground border-border/60",
   },
-  PENDING_VERIFY: {
+  [CHANNEL_STATUS.PENDING_VERIFY]: {
     className: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40",
   },
-  VERIFIED: {
+  [CHANNEL_STATUS.VERIFIED]: {
     className: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
   },
-  FAILED: {
+  [CHANNEL_STATUS.FAILED]: {
     className: "bg-red-500/20 text-red-300 border-red-500/40",
   },
-  REVOKED: {
+  [CHANNEL_STATUS.REVOKED]: {
     className: "bg-orange-500/20 text-orange-300 border-orange-500/40",
   },
 };
@@ -76,10 +77,10 @@ const ChannelCard = ({
 }: ChannelCardProps) => {
   const { t, language } = useLanguage();
   const status = statusStyles[channel.status];
-  const showVerifyAction = channel.status === "PENDING_VERIFY" && onVerify;
+  const showVerifyAction = channel.status === CHANNEL_STATUS.PENDING_VERIFY && onVerify;
   const showUnlinkAction = Boolean(onUnlink);
   const showExpandAction = Boolean(onToggleExpand);
-  const showStatusBadge = channel.status !== "VERIFIED";
+  const showStatusBadge = channel.status !== CHANNEL_STATUS.VERIFIED;
   const [avatarError, setAvatarError] = useState(false);
   const avatarFallback = channel.title?.[0]?.toUpperCase() ?? channel.username?.[0]?.toUpperCase();
   const avatarSrc = !avatarError && channel.avatarUrl ? channel.avatarUrl : null;

@@ -13,6 +13,7 @@ import { getListingTagLabel } from "@/features/listings/tagOptions";
 import type { TranslationKey } from "@/i18n/translations";
 import type { MarketplaceChannelItem } from "@/api/types/marketplace";
 import type { ListingListItem, ListingsByChannelResponse } from "@/types/listings";
+import { ROUTES } from "@/constants/routes";
 
 interface ChannelCardProps {
   channel: MarketplaceChannelItem;
@@ -119,13 +120,15 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       role="button"
       tabIndex={0}
       onClick={() =>
-        navigate(`/channels/${channel.id}`, { state: { channel, rootBackTo: "/marketplace" } })
+        navigate(ROUTES.CHANNEL_DETAILS(channel.id), {
+          state: { channel, rootBackTo: ROUTES.MARKETPLACE },
+        })
       }
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          navigate(`/channels/${channel.id}`, {
-            state: { channel, rootBackTo: "/marketplace" },
+          navigate(ROUTES.CHANNEL_DETAILS(channel.id), {
+            state: { channel, rootBackTo: ROUTES.MARKETPLACE },
           });
         }
       }}

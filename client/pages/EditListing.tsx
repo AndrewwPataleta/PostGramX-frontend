@@ -24,6 +24,7 @@ import { nanoToTonString } from "@/lib/ton";
 import { toUtcIsoString } from "@/utils/date";
 import type { ListingListItem } from "@/types/listings";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
+import { ROUTES } from "@/constants/routes";
 
 const pinDurationOptions = [
   { label: "Not pinned", value: "none" },
@@ -190,7 +191,7 @@ export default function EditListing() {
 
     queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
     queryClient.invalidateQueries({ queryKey: ["channelsList"] });
-    navigate(`/channel-manage/${channel.id}/listings`, {
+    navigate(ROUTES.CHANNEL_MANAGE_LISTINGS(channel.id), {
       state: rootBackTo ? { rootBackTo } : undefined,
     });
   };
@@ -213,7 +214,7 @@ export default function EditListing() {
     disableListing(listing.id);
     queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
     queryClient.invalidateQueries({ queryKey: ["channelsList"] });
-    navigate(`/channel-manage/${channel.id}/listings`, {
+    navigate(ROUTES.CHANNEL_MANAGE_LISTINGS(channel.id), {
       state: rootBackTo ? { rootBackTo } : undefined,
     });
   };
@@ -222,7 +223,7 @@ export default function EditListing() {
     enableListing(listing.id);
     queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
     queryClient.invalidateQueries({ queryKey: ["channelsList"] });
-    navigate(`/channel-manage/${channel.id}/listings`, {
+    navigate(ROUTES.CHANNEL_MANAGE_LISTINGS(channel.id), {
       state: rootBackTo ? { rootBackTo } : undefined,
     });
   };

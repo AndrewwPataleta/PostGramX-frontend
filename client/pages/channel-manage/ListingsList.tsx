@@ -9,6 +9,7 @@ import { listingsByChannel } from "@/api/features/listingsApi";
 import { getErrorMessage } from "@/lib/api/errors";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { ROUTES } from "@/constants/routes";
 
 const ListingsList = () => {
   const { channel } = useOutletContext<ChannelManageContext>();
@@ -59,7 +60,7 @@ const ListingsList = () => {
                 variant="full"
                 actionSlot={
                   <Link
-                    to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
+                    to={ROUTES.CHANNEL_MANAGE_LISTINGS_EDIT(channelId, listing.id)}
                     state={rootBackTo ? { rootBackTo } : undefined}
                     className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 rounded-lg border border-border transition-colors text-sm"
                   >
@@ -104,7 +105,7 @@ const ListingsList = () => {
             {t("listings.emptySubtitle")}
           </p>
           <Link
-            to={`/channel-manage/${channelId}/listings/create`}
+            to={ROUTES.CHANNEL_MANAGE_LISTINGS_CREATE(channelId)}
             state={rootBackTo ? { rootBackTo } : undefined}
             className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
           >
@@ -114,7 +115,7 @@ const ListingsList = () => {
       )}
 
       <Link
-        to={`/channel-manage/${channelId}/listings/create`}
+        to={ROUTES.CHANNEL_MANAGE_LISTINGS_CREATE(channelId)}
         state={rootBackTo ? { rootBackTo } : undefined}
         className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
         aria-label={t("listings.createAction")}

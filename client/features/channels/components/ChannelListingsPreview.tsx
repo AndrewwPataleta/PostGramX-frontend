@@ -11,6 +11,7 @@ import { getPinnedDurationLabel, getVisibilityDurationLabel } from "@/i18n/label
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { getListingTagLabel } from "@/features/listings/tagOptions";
 import type { ListingListItem, ListingsByChannelResponse } from "@/types/listings";
+import { ROUTES } from "@/constants/routes";
 
 const PREVIEW_LIMIT = 5;
 const PREVIEW_COUNT = 3;
@@ -77,7 +78,7 @@ const ListingPreviewRow = memo(
 
       {mode === "owner" ? (
         <Link
-          to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
+          to={ROUTES.CHANNEL_MANAGE_LISTINGS_EDIT(channelId, listing.id)}
           state={rootBackTo ? { rootBackTo } : undefined}
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground transition hover:text-foreground"
           aria-label={t("listings.editAction")}

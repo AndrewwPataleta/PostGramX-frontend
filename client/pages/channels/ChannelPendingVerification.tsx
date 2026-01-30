@@ -8,6 +8,9 @@ import {
   useVerifyChannel,
 } from "@/features/channels/hooks/useVerifyChannel";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { CHANNEL_STATUS } from "@/constants/channels";
+import { ROUTES } from "@/constants/routes";
+import { CHANNEL_STATUS_LABELS } from "@/constants/ui";
 import type { ChannelListItem } from "@/types/channels";
 
 const formatMetric = (value?: number | null) => {
@@ -47,9 +50,9 @@ const ChannelPendingVerification = () => {
     setInlineError(null);
     try {
       const response = await mutateAsync(id);
-      if (response.status === "VERIFIED") {
-        const nextChannel = channel ? { ...channel, status: "VERIFIED" } : undefined;
-        navigate(`/channel-manage/${id}/listings`, {
+      if (response.status === CHANNEL_STATUS.VERIFIED) {
+        const nextChannel = channel ? { ...channel, status: CHANNEL_STATUS.VERIFIED } : undefined;
+        navigate(ROUTES.CHANNEL_MANAGE_LISTINGS(id), {
           replace: true,
           state: nextChannel
             ? { channel: nextChannel, rootBackTo }
@@ -130,7 +133,7 @@ const ChannelPendingVerification = () => {
               ) : null}
             </div>
             <span className="rounded-full border border-yellow-500/40 bg-yellow-500/15 px-3 py-1 text-[11px] font-semibold text-yellow-200">
-              Pending
+              {CHANNEL_STATUS_LABELS.PENDING_VERIFY}
             </span>
           </div>
 
@@ -169,7 +172,7 @@ const ChannelPendingVerification = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate("/channels")}
+            onClick={() => navigate(ROUTES.CHANNELS)}
             className="inline-flex items-center justify-center rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm font-semibold text-foreground"
           >
             Back to channels

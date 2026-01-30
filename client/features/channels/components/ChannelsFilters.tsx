@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { CHANNEL_ROLE, CHANNEL_STATUS } from "@/constants/channels";
+import { CHANNEL_STATUS_LABELS } from "@/constants/ui";
 import type {
   ChannelRole,
   ChannelStatus,
@@ -27,17 +29,17 @@ interface ChannelsFiltersProps {
 
 const roleOptions: Array<{ label: string; value: ChannelRole | "all" }> = [
   { label: "All roles", value: "all" },
-  { label: "Owner", value: "OWNER" },
-  { label: "Manager", value: "MANAGER" },
+  { label: "Owner", value: CHANNEL_ROLE.OWNER },
+  { label: "Manager", value: CHANNEL_ROLE.MANAGER },
 ];
 
 const statusOptions: Array<{ label: string; value: ChannelStatus | "all" }> = [
   { label: "All statuses", value: "all" },
-  { label: "Draft", value: "DRAFT" },
-  { label: "Pending", value: "PENDING_VERIFY" },
-  { label: "Verified", value: "VERIFIED" },
-  { label: "Failed", value: "FAILED" },
-  { label: "Revoked", value: "REVOKED" },
+  { label: CHANNEL_STATUS_LABELS.DRAFT, value: CHANNEL_STATUS.DRAFT },
+  { label: CHANNEL_STATUS_LABELS.PENDING_VERIFY, value: CHANNEL_STATUS.PENDING_VERIFY },
+  { label: CHANNEL_STATUS_LABELS.VERIFIED, value: CHANNEL_STATUS.VERIFIED },
+  { label: CHANNEL_STATUS_LABELS.FAILED, value: CHANNEL_STATUS.FAILED },
+  { label: CHANNEL_STATUS_LABELS.REVOKED, value: CHANNEL_STATUS.REVOKED },
 ];
 
 const sortOptions: Array<{ label: string; value: ChannelsListSort }> = [

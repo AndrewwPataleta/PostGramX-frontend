@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import InfoCard from "@/components/deals/InfoCard";
 import type { DealListItem } from "@/types/deals";
+import { DEAL_ESCROW_STATUS } from "@/constants/deals";
 import { escrowStatusToLabel } from "@/features/deals/dealStageMachine";
 import { formatDateTime } from "@/i18n/formatters";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { ROUTES } from "@/constants/routes";
 
 interface StageDoneProps {
   deal: DealListItem;
@@ -14,10 +16,10 @@ interface StageDoneProps {
 export default function StageDone({ deal }: StageDoneProps) {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
-  const isCanceled = deal.escrowStatus === "CANCELED";
+  const isCanceled = deal.escrowStatus === DEAL_ESCROW_STATUS.CANCELED;
 
   const handleCreateNewDeal = () => {
-    navigate(`/deals/create/${deal.listing.id}`);
+    navigate(ROUTES.DEAL_CREATE(deal.listing.id));
   };
   return (
     <InfoCard title={t("deals.stage.done.title")}>

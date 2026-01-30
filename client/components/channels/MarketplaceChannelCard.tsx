@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getTelegramWebApp } from "@/lib/telegram";
 import ChannelCard, { type ChannelCardModel } from "@/components/channels/ChannelCard";
 import ChannelListingsPreview from "@/features/channels/components/ChannelListingsPreview";
 import type { MarketplaceChannelItem } from "@/api/types/marketplace";
+import { ROUTES } from "@/constants/routes";
 
 interface MarketplaceChannelCardProps {
   channel: MarketplaceChannelItem;
@@ -33,7 +33,7 @@ export default function MarketplaceChannelCard({ channel }: MarketplaceChannelCa
   );
 
   const handleNavigate = () => {
-    navigate(`/channels/${channel.id}`, {
+    navigate(ROUTES.CHANNEL_DETAILS(channel.id), {
       state: {
         channel: cardModel,
         listingsPreview: cardModel.listingsPreview ?? null,
@@ -42,7 +42,7 @@ export default function MarketplaceChannelCard({ channel }: MarketplaceChannelCa
         tags: cardModel.tags ?? [],
         subscribers: cardModel.subscribers ?? null,
         avatarUrl: cardModel.avatarUrl ?? null,
-        rootBackTo: "/marketplace",
+        rootBackTo: ROUTES.MARKETPLACE,
       },
     });
   };

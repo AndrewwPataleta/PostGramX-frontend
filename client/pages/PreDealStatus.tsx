@@ -14,18 +14,27 @@ import { getErrorMessage } from "@/lib/api/errors";
 import { formatStatusLabel } from "@/lib/formatting";
 import { openTelegramLink } from "@/lib/telegramLinks";
 import { cn } from "@/lib/utils";
+import { PREDEAL_STATUS, type PredealStatus } from "@/constants/deals";
+import { ROUTES } from "@/constants/routes";
 
-const STATUS_STYLES: Record<string, string> = {
-  AWAITING_CREATIVE: "border-border/60 bg-secondary/40 text-muted-foreground",
-  AWAITING_CONFIRMATION: "border-border/60 bg-secondary/40 text-muted-foreground",
-  AWAITING_ADMIN_APPROVAL: "border-border/60 bg-secondary/40 text-muted-foreground",
-  READY_FOR_PAYMENT: "border-emerald-500/30 bg-emerald-500/15 text-emerald-200",
-  REJECTED: "border-rose-500/30 bg-rose-500/15 text-rose-200",
-  EXPIRED: "border-rose-500/30 bg-rose-500/15 text-rose-200",
-  CANCELED: "border-rose-500/30 bg-rose-500/15 text-rose-200",
+const STATUS_STYLES: Record<PredealStatus, string> = {
+  [PREDEAL_STATUS.AWAITING_CREATIVE]: "border-border/60 bg-secondary/40 text-muted-foreground",
+  [PREDEAL_STATUS.AWAITING_CONFIRMATION]:
+    "border-border/60 bg-secondary/40 text-muted-foreground",
+  [PREDEAL_STATUS.AWAITING_ADMIN_APPROVAL]:
+    "border-border/60 bg-secondary/40 text-muted-foreground",
+  [PREDEAL_STATUS.READY_FOR_PAYMENT]: "border-emerald-500/30 bg-emerald-500/15 text-emerald-200",
+  [PREDEAL_STATUS.REJECTED]: "border-rose-500/30 bg-rose-500/15 text-rose-200",
+  [PREDEAL_STATUS.EXPIRED]: "border-rose-500/30 bg-rose-500/15 text-rose-200",
+  [PREDEAL_STATUS.CANCELED]: "border-rose-500/30 bg-rose-500/15 text-rose-200",
 };
 
-const TERMINAL_STATUSES = new Set(["READY_FOR_PAYMENT", "REJECTED", "EXPIRED", "CANCELED"]);
+const TERMINAL_STATUSES = new Set<PredealStatus>([
+  PREDEAL_STATUS.READY_FOR_PAYMENT,
+  PREDEAL_STATUS.REJECTED,
+  PREDEAL_STATUS.EXPIRED,
+  PREDEAL_STATUS.CANCELED,
+]);
 
 const formatDuration = (totalSeconds: number) => {
   const clampedSeconds = Math.max(0, Math.floor(totalSeconds));
@@ -85,7 +94,7 @@ export default function PreDealStatus() {
     mutationFn: predealsCancel,
     onSuccess: () => {
       toast.success("Pre-deal canceled");
-      navigate("/marketplace", { replace: true });
+      navigate(ROUTES.MARKETPLACE, { replace: true });
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Unable to cancel pre-deal"));
@@ -113,7 +122,7 @@ export default function PreDealStatus() {
           <ErrorState
             message="Pre-deal not found"
             description="Return to the marketplace to choose a listing."
-            onRetry={() => navigate("/marketplace")}
+            onRetry={() => navigate(ROUTES.MARKETPLACE)}
           />
         </PageContainer>
       </div>
@@ -153,7 +162,7 @@ export default function PreDealStatus() {
   const predeal = predealQuery.data;
   const statusLabel = formatPredealStatusLabel(predeal.status);
   const statusClass = STATUS_STYLES[predeal.status] ?? "border-border/60 bg-secondary/40 text-muted-foreground";
-  const isReadyForPayment = predeal.status === "READY_FOR_PAYMENT";
+  const isReadyForPayment = predeal.status === PREDEAL_STATUS.READY_FOR_PAYMENT;
   const expiresAt = predeal.paymentExpiresAt ? new Date(predeal.paymentExpiresAt) : null;
   const secondsRemaining = expiresAt ? (expiresAt.getTime() - now) / 1000 : null;
   const timeLeftLabel =
@@ -235,7 +244,7 @@ export default function PreDealStatus() {
               ) : null}
               <button
                 type="button"
-                onClick={() => navigate(`/escrow/${predeal.id}`)}
+                onClick={() => navigate(ROUTES.ESCROW(predeal.id))}
                 className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
               >
                 Open Mini App Payment

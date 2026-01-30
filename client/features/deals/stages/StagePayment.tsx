@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useTonConnectModal } from "@tonconnect/ui-react";
 import InfoCard from "@/components/deals/InfoCard";
 import type { DealListItem } from "@/types/deals";
+import { DEAL_ESCROW_STATUS } from "@/constants/deals";
 import { cn } from "@/lib/utils";
 import { formatTon } from "@/i18n/formatters";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -88,7 +89,7 @@ export default function StagePayment({
     setIsWaiting(false);
   }, [deal.id, deal.escrowStatus]);
 
-  if (deal.escrowStatus !== "PAYMENT_AWAITING") {
+  if (deal.escrowStatus !== DEAL_ESCROW_STATUS.AWAITING_PAYMENT) {
     return null;
   }
 

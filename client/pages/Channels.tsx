@@ -12,6 +12,8 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { unlinkChannel } from "@/api/features/channelsApi";
 import { getErrorMessage } from "@/lib/api/errors";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { CHANNEL_STATUS } from "@/constants/channels";
+import { ROUTES } from "@/constants/routes";
 import type {
   ChannelStatus,
   ChannelsListOrder,
@@ -25,10 +27,10 @@ const DEFAULT_SORT: ChannelsListSort = "recent";
 const DEFAULT_ORDER: ChannelsListOrder = "desc";
 
 const pendingStatuses: ChannelStatus[] = [
-  "DRAFT",
-  "PENDING_VERIFY",
-  "FAILED",
-  "REVOKED",
+  CHANNEL_STATUS.DRAFT,
+  CHANNEL_STATUS.PENDING_VERIFY,
+  CHANNEL_STATUS.FAILED,
+  CHANNEL_STATUS.REVOKED,
 ];
 
 const ChannelCardSkeleton = () => (
@@ -125,7 +127,7 @@ export default function Channels() {
   }, [error, t]);
 
   const verifiedChannels = useMemo(
-    () => visibleItems.filter((channel) => channel.status === "VERIFIED"),
+    () => visibleItems.filter((channel) => channel.status === CHANNEL_STATUS.VERIFIED),
     [visibleItems],
   );
   const pendingChannels = useMemo(
@@ -140,15 +142,15 @@ export default function Channels() {
       : t("channels.emptyVerified");
 
   const handleChannelClick = (channel: (typeof items)[number]) => {
-    if (channel.status === "PENDING_VERIFY") {
-      navigate(`/channels/pending/${channel.id}`, {
-        state: { channel, rootBackTo: "/channels" },
+    if (channel.status === CHANNEL_STATUS.PENDING_VERIFY) {
+      navigate(ROUTES.CHANNEL_PENDING(channel.id), {
+        state: { channel, rootBackTo: ROUTES.CHANNELS },
       });
       return;
     }
 
-    navigate(`/channel-manage/${channel.id}/listings`, {
-      state: { channel, rootBackTo: "/channels" },
+    navigate(ROUTES.CHANNEL_MANAGE_LISTINGS(channel.id), {
+      state: { channel, rootBackTo: ROUTES.CHANNELS },
     });
   };
 
@@ -218,7 +220,7 @@ export default function Channels() {
               {t("channels.emptySubtitle")}
             </p>
             <Link
-              to="/add-channel/step-1"
+              to={ROUTES.ADD_CHANNEL_STEP("step-1")}
               className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
             >
               {t("channels.addAction")}
@@ -247,7 +249,7 @@ export default function Channels() {
               <div className="space-y-3">
                 {tabbedChannels.map((channel) => {
                   const isExpanded = expandedChannelIds.has(channel.id);
-                  const canExpand = channel.status === "VERIFIED";
+                  const canExpand = channel.status === CHANNEL_STATUS.VERIFIED;
                   const listingSummary = getListingSummary(channel.listings);
                   const fallbackSummary = listingSummaries[channel.id];
                   const placementsCount =
@@ -288,8 +290,8 @@ export default function Channels() {
                           />
                         ) : null
                       }
-                      createListingTo={`/channel-manage/${channel.id}/listings/create`}
-                      createListingState={{ channel, rootBackTo: "/channels" }}
+                      createListingTo={ROUTES.CHANNEL_MANAGE_LISTINGS_CREATE(channel.id)}
+                      createListingState={{ channel, rootBackTo: ROUTES.CHANNELS }}
                     />
                   );
                 })}
@@ -326,7 +328,7 @@ export default function Channels() {
 
       <button
         type="button"
-        onClick={() => navigate("/add-channel/step-1")}
+        onClick={() => navigate(ROUTES.ADD_CHANNEL_STEP("step-1"))}
         className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
         aria-label={t("channels.addAction")}
       >

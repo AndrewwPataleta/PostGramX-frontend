@@ -15,6 +15,7 @@ import { getListingTagLabel } from "@/features/listings/tagOptions";
 import { formatNumber } from "@/i18n/formatters";
 import { formatDuration } from "@/i18n/labels";
 import { toUtcIsoString } from "@/utils/date";
+import { ROUTES } from "@/constants/routes";
 
 const resolveHours = (choice: string, customValue: string, fallback: number) => {
   if (choice === "custom") {
@@ -127,7 +128,7 @@ export default function CreateListing() {
       });
       queryClient.invalidateQueries({ queryKey: ["channelListingsPreview", channel.id] });
       queryClient.invalidateQueries({ queryKey: ["channelsList"] });
-      navigate(`/channel-manage/${channel.id}/listings`, {
+      navigate(ROUTES.CHANNEL_MANAGE_LISTINGS(channel.id), {
         state: rootBackTo ? { rootBackTo } : undefined,
       });
     } catch (error) {

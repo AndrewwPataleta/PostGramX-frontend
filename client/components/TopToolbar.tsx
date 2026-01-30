@@ -3,59 +3,64 @@ import { ArrowLeft, X } from "lucide-react";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
 import { getTelegramWebApp } from "@/lib/telegram";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { ROUTES } from "@/constants/routes";
 
-const mainNavPaths = ["/marketplace", "/deals", "/channels", "/profile"];
+const mainNavPaths = [ROUTES.MARKETPLACE, ROUTES.DEALS, ROUTES.CHANNELS, ROUTES.PROFILE];
 
 const titleMatchers = [
-  { path: "/marketplace/channels/:channelId/request", key: "marketplace.requestPlacement" },
-  { path: "/marketplace/channels/:channelId", key: "marketplace.channelTitle" },
-  { path: "/channels/:channelId", key: "marketplace.channelTitle" },
-  { path: "/marketplace", key: "marketplace.title" },
-  { path: "/deals/create/:listingId", key: "deals.scheduleTitle" },
-  { path: "/deals/predeal/:id", key: "deals.preDealTitle" },
-  { path: "/deals/:dealId", key: "deals.detailTitle" },
-  { path: "/deals", key: "deals.title" },
-  { path: "/channel-manage/:id/listings/create", key: "listings.createTitle" },
-  { path: "/channel-manage/:id/listings/preview", key: "listings.previewTitle" },
-  { path: "/channel-manage/:id/listings/:listingId/edit", key: "listings.editTitle" },
-  { path: "/channel-manage/:id/listings/success", key: "listings.publishedTitle" },
-  { path: "/channel-manage/:id/listings", key: "listings.title" },
-  { path: "/channel-manage/:id/settings", key: "channels.settingsTitle" },
-  { path: "/add-channel", key: "channels.add.title" },
-  { path: "/add-channel/step-1", key: "channels.add.title" },
-  { path: "/add-channel/step-2", key: "channels.add.title" },
-  { path: "/add-channel/step-3", key: "channels.add.title" },
-  { path: "/channels", key: "channels.title" },
-  { path: "/escrow/:dealId", key: "deals.securePaymentTitle" },
-  { path: "/funds-locked", key: "deals.fundsLockedTitle" },
-  { path: "/profile", key: "profile.title" },
+  { path: `${ROUTES.MARKETPLACE}/channels/:channelId/request`, key: "marketplace.requestPlacement" },
+  { path: `${ROUTES.MARKETPLACE}/channels/:channelId`, key: "marketplace.channelTitle" },
+  { path: `${ROUTES.CHANNELS}/:channelId`, key: "marketplace.channelTitle" },
+  { path: ROUTES.MARKETPLACE, key: "marketplace.title" },
+  { path: `${ROUTES.DEALS}/create/:listingId`, key: "deals.scheduleTitle" },
+  { path: `${ROUTES.DEALS}/predeal/:id`, key: "deals.preDealTitle" },
+  { path: `${ROUTES.DEALS}/:dealId`, key: "deals.detailTitle" },
+  { path: ROUTES.DEALS, key: "deals.title" },
+  { path: `${ROUTES.CHANNEL_MANAGE(":id")}/listings/create`, key: "listings.createTitle" },
+  { path: `${ROUTES.CHANNEL_MANAGE(":id")}/listings/preview`, key: "listings.previewTitle" },
+  { path: `${ROUTES.CHANNEL_MANAGE(":id")}/listings/:listingId/edit`, key: "listings.editTitle" },
+  { path: `${ROUTES.CHANNEL_MANAGE(":id")}/listings/success`, key: "listings.publishedTitle" },
+  { path: `${ROUTES.CHANNEL_MANAGE(":id")}/listings`, key: "listings.title" },
+  { path: `${ROUTES.CHANNEL_MANAGE(":id")}/settings`, key: "channels.settingsTitle" },
+  { path: ROUTES.ADD_CHANNEL, key: "channels.add.title" },
+  { path: ROUTES.ADD_CHANNEL_STEP("step-1"), key: "channels.add.title" },
+  { path: ROUTES.ADD_CHANNEL_STEP("step-2"), key: "channels.add.title" },
+  { path: ROUTES.ADD_CHANNEL_STEP("step-3"), key: "channels.add.title" },
+  { path: ROUTES.CHANNELS, key: "channels.title" },
+  { path: `${ROUTES.ESCROW(":dealId")}`, key: "deals.securePaymentTitle" },
+  { path: ROUTES.FUNDS_LOCKED, key: "deals.fundsLockedTitle" },
+  { path: ROUTES.PROFILE, key: "profile.title" },
 ];
 
 const actionCloseMatchers = [
-  "/add-channel",
-  "/add-channel/step-1",
-  "/add-channel/step-2",
-  "/add-channel/step-3",
+  ROUTES.ADD_CHANNEL,
+  ROUTES.ADD_CHANNEL_STEP("step-1"),
+  ROUTES.ADD_CHANNEL_STEP("step-2"),
+  ROUTES.ADD_CHANNEL_STEP("step-3"),
 ];
 
 const getFallbackPath = (pathname: string) => {
-  if (pathname.startsWith("/marketplace")) {
-    return "/marketplace";
-  }
-  if (pathname.startsWith("/deals") || pathname.startsWith("/escrow") || pathname.startsWith("/funds-locked")) {
-    return "/deals";
+  if (pathname.startsWith(ROUTES.MARKETPLACE)) {
+    return ROUTES.MARKETPLACE;
   }
   if (
-    pathname.startsWith("/channels") ||
-    pathname.startsWith("/channel-manage") ||
-    pathname.startsWith("/add-channel")
+    pathname.startsWith(ROUTES.DEALS) ||
+    pathname.startsWith(ROUTES.ESCROW_BASE) ||
+    pathname.startsWith(ROUTES.FUNDS_LOCKED)
   ) {
-    return "/channels";
+    return ROUTES.DEALS;
   }
-  if (pathname.startsWith("/profile")) {
-    return "/profile";
+  if (
+    pathname.startsWith(ROUTES.CHANNELS) ||
+    pathname.startsWith(ROUTES.CHANNEL_MANAGE_BASE) ||
+    pathname.startsWith(ROUTES.ADD_CHANNEL)
+  ) {
+    return ROUTES.CHANNELS;
   }
-  return "/marketplace";
+  if (pathname.startsWith(ROUTES.PROFILE)) {
+    return ROUTES.PROFILE;
+  }
+  return ROUTES.MARKETPLACE;
 };
 
 const TopToolbar = () => {

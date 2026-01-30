@@ -1,4 +1,5 @@
 import type { Channel } from "./types";
+import { CHANNEL_VERIFICATION_STATUS } from "@/constants/channels";
 import { post } from "@/api/core/apiClient";
 
 const USE_MOCK_CHANNELS = import.meta.env.VITE_USE_MOCK_CHANNELS !== "false";
@@ -15,7 +16,7 @@ const mockChannels: Channel[] = [
     username: "@mycryptocha",
     avatar: "📰",
     verified: true,
-    verificationStatus: "verified",
+    verificationStatus: CHANNEL_VERIFICATION_STATUS.VERIFIED,
     subscribers: 45000,
     activeListings: 1,
   },
@@ -25,7 +26,7 @@ const mockChannels: Channel[] = [
     username: "@technewsdaily",
     avatar: "💻",
     verified: true,
-    verificationStatus: "verified",
+    verificationStatus: CHANNEL_VERIFICATION_STATUS.VERIFIED,
     subscribers: 32000,
     activeListings: 0,
   },
@@ -35,7 +36,7 @@ const mockChannels: Channel[] = [
     username: "@web3hub",
     avatar: "🔗",
     verified: false,
-    verificationStatus: "pending",
+    verificationStatus: CHANNEL_VERIFICATION_STATUS.PENDING,
     subscribers: 18000,
     activeListings: 0,
   },
