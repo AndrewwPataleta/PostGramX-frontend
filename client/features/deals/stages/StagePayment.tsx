@@ -47,7 +47,7 @@ export default function StagePayment({
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
 
   const escrowAmountNano = deal.escrowAmountNano ?? deal.listing.priceNano;
-  const paymentAddress = deal.paymentAddress ?? "";
+  const paymentAddress = deal.escrowPaymentAddress ?? "";
   const displayAmount = escrowAmountNano
     ? `${formatTon(escrowAmountNano, language)} ${t("common.ton")}`
     : t("common.emptyValue");
@@ -86,7 +86,7 @@ export default function StagePayment({
     setIsWaiting(false);
   }, [deal.id, deal.escrowStatus]);
 
-  if (deal.escrowStatus !== "AWAITING_PAYMENT") {
+  if (deal.escrowStatus !== "PAYMENT_AWAITING") {
     return null;
   }
 

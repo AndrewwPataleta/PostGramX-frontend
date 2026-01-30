@@ -4,9 +4,7 @@ export type EscrowStatus =
   | "SCHEDULING_PENDING"
   | "CREATIVE_AWAITING_SUBMIT"
   | "CREATIVE_AWAITING_CONFIRM"
-  | "ADMIN_REVIEW"
-  | "PAYMENT_WINDOW_PENDING"
-  | "AWAITING_PAYMENT"
+  | "PAYMENT_AWAITING"
   | "FUNDS_PENDING"
   | "FUNDS_CONFIRMED"
   | "APPROVED_SCHEDULED"
@@ -56,7 +54,7 @@ export interface DealListItem {
   escrowWalletId?: string | null;
   escrowAmountNano?: string | null;
   escrowCurrency?: string | null;
-  paymentAddress?: string | null;
+  escrowPaymentAddress?: string | null;
   paymentExpiresAt?: string | null;
 }
 

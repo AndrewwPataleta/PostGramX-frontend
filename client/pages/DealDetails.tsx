@@ -109,9 +109,9 @@ export default function DealDetails() {
       CREATIVE_AWAITING_CONFIRM: (
         <StageConfirmPost deal={resolvedDeal} readonly={!isAdvertiser} />
       ),
-      ADMIN_REVIEW: <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />,
-      PAYMENT_WINDOW_PENDING: <StagePaymentWindow deal={resolvedDeal} readonly={readonlyForPublisher} />,
-      AWAITING_PAYMENT: (
+    //  CREATIVE_AWAITING_CONFIRM: <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />,
+
+      PAYMENT_AWAITING: (
         <StagePayment
           deal={resolvedDeal}
           readonly={readonlyForPublisher}
