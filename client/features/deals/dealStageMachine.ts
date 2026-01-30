@@ -26,6 +26,8 @@ const stageOrder: DealStageId[] = [
   "DONE",
 ];
 
+export const allStages: DealStageId[] = [...stageOrder];
+
 const escrowToStage: Record<EscrowStatus, DealStageId> = {
   SCHEDULING_PENDING: "SCHEDULE",
   CREATIVE_AWAITING_SUBMIT: "SEND_POST",
