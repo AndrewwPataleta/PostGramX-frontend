@@ -17,6 +17,13 @@ export default function StageScheduled({ deal }: StageScheduledProps) {
 
   return (
     <InfoCard title={t("deals.stage.scheduled.title")}>
+      {deal.escrowStatus === "FUNDS_CONFIRMED" ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+            {t("deals.stage.payment.paymentDetected")}
+          </span>
+        </div>
+      ) : null}
       <p className="text-xs text-muted-foreground">
         {t("deals.stage.scheduled.time")}:{" "}
         <span className="font-semibold text-foreground">{scheduledLabel}</span>
