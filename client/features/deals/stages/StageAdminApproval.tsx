@@ -31,7 +31,9 @@ export default function StageAdminApproval({
         console.info("Mock admin approve", { dealId: deal.id });
         return null;
       }
-      return post<unknown, { dealId: string }>("/deals/creative/approve", { dealId: deal.id });
+      return post<unknown, { dealId: string }>("/deals/creative/approve", {
+        data: { dealId: deal.id },
+      });
     },
     onSuccess: () => {
       toast.success(t("deals.stage.adminApproval.approvedToast"));
@@ -48,7 +50,9 @@ export default function StageAdminApproval({
         console.info("Mock request changes", { dealId: deal.id });
         return null;
       }
-      return post<unknown, { dealId: string }>("/deals/creative/edits", { dealId: deal.id });
+      return post<unknown, { dealId: string }>("/deals/creative/edits", {
+        data: { dealId: deal.id },
+      });
     },
     onSuccess: () => {
       toast.success(t("deals.stage.adminApproval.requestedToast"));
@@ -65,7 +69,9 @@ export default function StageAdminApproval({
         console.info("Mock admin reject", { dealId: deal.id });
         return null;
       }
-      return post<unknown, { dealId: string }>("/deals/creative/reject", { dealId: deal.id });
+      return post<unknown, { dealId: string }>("/deals/creative/reject", {
+        data: { dealId: deal.id },
+      });
     },
     onSuccess: () => {
       toast.success(t("deals.stage.adminApproval.rejectedToast"));

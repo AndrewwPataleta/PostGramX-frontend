@@ -31,13 +31,13 @@ export const predealsCreate = async (payload: {
   listingId: string;
   scheduledAt: string;
 }): Promise<PreDealDto> => {
-  return post<PreDealDto, typeof payload>("/predeals/create", payload);
+  return post<PreDealDto, typeof payload>("/predeals/create", { data: payload });
 };
 
 export const predealsGet = async (payload: { id: string }): Promise<PreDealDto> => {
-  return post<PreDealDto, typeof payload>("/predeals/get", payload);
+  return post<PreDealDto, typeof payload>("/predeals/get", { data: payload });
 };
 
 export const predealsCancel = async (payload: { id: string }): Promise<void> => {
-  await post<void, typeof payload>("/predeals/cancel", payload);
+  await post<void, typeof payload>("/predeals/cancel", { data: payload });
 };

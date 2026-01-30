@@ -476,7 +476,7 @@ export const createDeal = async (
     };
   }
 
-  return post<CreateDealResponse, CreateDealPayload>("/deals/create", payload);
+  return post<CreateDealResponse, CreateDealPayload>("/deals/create", { data: payload });
 };
 
 export const fetchDealsList = async (
@@ -497,7 +497,9 @@ export const fetchDealsList = async (
     return mockDealsList(payload);
   }
 
-  const data = await post<DealsListResponse, DealsListParams>("/deals/list", payload);
+  const data = await post<DealsListResponse, DealsListParams>("/deals/list", {
+    data: payload,
+  });
   return {
     pending: normalizeDealsGroup(data.pending),
     active: normalizeDealsGroup(data.active),
@@ -522,7 +524,7 @@ export const fetchDealDetails = async (dealId: string): Promise<DealListItem> =>
     return allDeals.find((deal) => deal.id === dealId) ?? buildMockDeal({ id: dealId });
   }
 
-  return post<DealListItem, { dealId: string }>("/deals/get", { dealId });
+  return post<DealListItem, { dealId: string }>("/deals/get", { data: { dealId } });
 };
 
 export const dealsApi = {

@@ -12,7 +12,7 @@ import {
 import { useTelegram } from "@/hooks/use-telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buildTonConnectTransaction, buildTonTransferLink } from "@/features/deals/payment";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   TonConnectButton,
   useTonConnectModal,
@@ -23,7 +23,6 @@ import { toast } from "sonner";
 import { useBalance, useProfile } from "@/features/profile/hooks";
 import ErrorState from "@/components/feedback/ErrorState";
 import LoadingSkeleton from "@/components/feedback/LoadingSkeleton";
-import type { WalletTransaction } from "@/features/profile/types";
 import { getErrorMessage } from "@/lib/api/errors";
 import { formatStatusLabel } from "@/lib/formatting";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -36,12 +35,30 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useTransactions } from "@/hooks/useTransactions";
+import type {
+  TransactionListItem,
+  TransactionStatus,
+  TransactionType,
+  TransactionsListFilters,
+} from "@/api/types/payments";
+import { formatDateTime } from "@/i18n/formatters";
+import { formatTonString, nanoToTonString } from "@/lib/ton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const statusStyles: Record<string, string> = {
-  Confirmed: "bg-emerald-500/15 text-emerald-300",
-  Pending: "bg-amber-500/15 text-amber-300",
-  Processing: "bg-sky-500/15 text-sky-300",
-  Failed: "bg-rose-500/15 text-rose-300",
+const statusStyles: Record<TransactionStatus, string> = {
+  PENDING: "bg-amber-500/15 text-amber-300",
+  AWAITING_CONFIRMATION: "bg-sky-500/15 text-sky-300",
+  CONFIRMED: "bg-emerald-500/15 text-emerald-300",
+  COMPLETED: "bg-emerald-500/15 text-emerald-300",
+  FAILED: "bg-rose-500/15 text-rose-300",
+  CANCELED: "bg-rose-500/15 text-rose-300",
 };
 
 const topUpChips = [10, 25, 50];
@@ -55,7 +72,6 @@ export default function Profile() {
   >("history");
   const { data: profile, isLoading, error, refetch } = useProfile();
   const { data: balance } = useBalance();
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState(50);
   const [topUpAmountInput, setTopUpAmountInput] = useState("50");
@@ -71,6 +87,13 @@ export default function Profile() {
   >("idle");
   const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
   const [isWithdrawSheetOpen, setIsWithdrawSheetOpen] = useState(false);
+  const [transactionStatusFilter, setTransactionStatusFilter] = useState<
+    TransactionStatus | "all"
+  >("all");
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState<
+    TransactionType | "all"
+  >("all");
+  const [transactionSearch, setTransactionSearch] = useState("");
   const wallet = useTonWallet();
   const [tonConnectUI] = useTonConnectUI();
   const { open: openWalletModal } = useTonConnectModal();
@@ -89,9 +112,33 @@ export default function Profile() {
   const topUpAddress = profile?.topUpAddress ?? "—";
   const topUpMemo = profile?.topUpMemo ?? "—";
 
+  const transactionFilters = useMemo<TransactionsListFilters>(
+    () => ({
+      page: 1,
+      limit: 20,
+      sort: "recent",
+      order: "desc",
+      status: transactionStatusFilter === "all" ? undefined : transactionStatusFilter,
+      type: transactionTypeFilter === "all" ? undefined : transactionTypeFilter,
+      q: transactionSearch.trim() ? transactionSearch.trim() : undefined,
+    }),
+    [transactionStatusFilter, transactionTypeFilter, transactionSearch]
+  );
+
+  const transactionsQuery = useTransactions(transactionFilters);
+  const transactions = useMemo(
+    () => transactionsQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [transactionsQuery.data]
+  );
+  const isTransactionsLoading =
+    transactionsQuery.isLoading ||
+    (transactionsQuery.isFetching && transactions.length === 0);
+
+  const transactionsError =
+    transactionsQuery.error instanceof Error ? transactionsQuery.error : null;
+
   useEffect(() => {
     if (profile) {
-      setTransactions(profile.transactions);
       setAvailableBalance(profile.balance.available);
     }
   }, [profile]);
@@ -101,6 +148,12 @@ export default function Profile() {
       setAvailableBalance(balance.available);
     }
   }, [balance]);
+
+  useEffect(() => {
+    if (transactionsError) {
+      toast.error(transactionsError.message);
+    }
+  }, [transactionsError]);
 
   const updateTopUpAmount = (value: string) => {
     setTopUpAmountInput(value);
@@ -138,20 +191,6 @@ export default function Profile() {
       );
 
       setAvailableBalance((prev) => Number((prev + topUpAmount).toFixed(2)));
-      const now = new Date();
-      const timeLabel = now.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      setTransactions((prev) => [
-        {
-          type: "Deposit",
-          amount: `+${topUpAmount} TON`,
-          status: "Confirmed",
-          time: `${t("profile.today")} · ${timeLabel}`,
-        },
-        ...prev,
-      ]);
       setTopUpStatus("confirmed");
       setIsTopUpSheetOpen(false);
       toast.success(t("profile.toastTopUpConfirmed"));
@@ -181,20 +220,6 @@ export default function Profile() {
       setAvailableBalance((prev) =>
         Number(Math.max(prev - withdrawAmount, 0).toFixed(2))
       );
-      const now = new Date();
-      const timeLabel = now.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      setTransactions((prev) => [
-        {
-          type: "Withdrawal",
-          amount: `-${withdrawAmount} TON`,
-          status: "Processing",
-          time: `${t("profile.today")} · ${timeLabel}`,
-        },
-        ...prev,
-      ]);
       setWithdrawStatus("confirmed");
       setIsWithdrawSheetOpen(false);
       toast.success(t("profile.toastWithdrawSubmitted"));
@@ -213,6 +238,95 @@ export default function Profile() {
     amountTon: topUpAmount,
     memo: topUpMemo,
   });
+  const formatTonFromNano = (amountNano: string) => {
+    try {
+      return formatTonString(nanoToTonString(BigInt(amountNano)));
+    } catch {
+      return amountNano;
+    }
+  };
+
+  const getTransactionTypeLabel = (type: TransactionType) => {
+    switch (type) {
+      case "DEPOSIT":
+        return "Deposit";
+      case "WITHDRAW":
+        return "Withdraw";
+      case "ESCROW_HOLD":
+        return "Escrow hold";
+      case "ESCROW_RELEASE":
+        return "Escrow release";
+      case "ESCROW_REFUND":
+        return "Escrow refund";
+      case "FEE":
+        return "Fee";
+      default:
+        return type;
+    }
+  };
+
+  const getTransactionStatusLabel = (status: TransactionStatus) => {
+    switch (status) {
+      case "PENDING":
+        return "Pending";
+      case "AWAITING_CONFIRMATION":
+        return "Awaiting confirmation";
+      case "CONFIRMED":
+        return "Confirmed";
+      case "COMPLETED":
+        return "Completed";
+      case "FAILED":
+        return "Failed";
+      case "CANCELED":
+        return "Canceled";
+      default:
+        return status;
+    }
+  };
+
+  const formatShortId = (value: string, left = 6, right = 4) => {
+    if (value.length <= left + right) {
+      return value;
+    }
+    return `${value.slice(0, left)}...${value.slice(-right)}`;
+  };
+
+  const getTransactionSubtitle = (transaction: TransactionListItem) => {
+    if (transaction.description) {
+      return transaction.description;
+    }
+    if (transaction.dealId) {
+      return `Deal: ${formatShortId(transaction.dealId)}`;
+    }
+    if (transaction.externalTxHash) {
+      return formatShortId(transaction.externalTxHash);
+    }
+    return "";
+  };
+
+  const getTransactionIcon = (transaction: TransactionListItem) => {
+    if (transaction.type.startsWith("ESCROW")) {
+      return Lock;
+    }
+    if (transaction.direction === "IN") {
+      return ArrowDownLeft;
+    }
+    if (transaction.direction === "OUT") {
+      return ArrowUpRight;
+    }
+    return Send;
+  };
+
+  const formatTransactionAmount = (transaction: TransactionListItem) => {
+    const value = formatTonFromNano(transaction.amountNano);
+    const sign =
+      transaction.direction === "OUT"
+        ? "-"
+        : transaction.direction === "IN"
+          ? "+"
+          : "";
+    return `${sign}${value} ${transaction.currency}`;
+  };
   const transactionTypeLabel = (type: string) =>
     ({
       Deposit: t("profile.transactionTypeDeposit"),
@@ -412,7 +526,7 @@ export default function Profile() {
 
                 <div className="px-5 py-5 space-y-4 pb-8">
                   {activeSection === "history" && (
-                    <div className="glass p-4">
+                    <div className="glass p-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold text-foreground">
                           {t("profile.transactionHistory")}
@@ -421,36 +535,118 @@ export default function Profile() {
                           {t("profile.last7Days")}
                         </span>
                       </div>
-                      <div className="mt-4 space-y-3">
-                        {transactions.map((tx) => (
-                          <div
-                            key={`${tx.type}-${tx.time}`}
-                            className="flex items-start justify-between gap-3 border-b border-border/30 pb-3 last:border-b-0 last:pb-0"
-                          >
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground">
-                                  {transactionTypeLabel(tx.type)}
-                                </span>
-                                <span
-                                  className={`rounded-full px-2 py-0.5 text-[11px] ${
-                                    statusStyles[tx.status] ||
-                                    "bg-muted text-muted-foreground"
-                                  }`}
-                                >
-                                  {transactionStatusLabel(tx.status)}
-                                </span>
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {tx.time}
-                              </p>
-                            </div>
-                            <p className="text-sm font-semibold text-foreground">
-                              {tx.amount}
-                            </p>
-                          </div>
-                        ))}
+                      <div className="grid gap-2 sm:grid-cols-[180px_180px_1fr]">
+                        <Select
+                          value={transactionStatusFilter}
+                          onValueChange={(value) =>
+                            setTransactionStatusFilter(value as TransactionStatus | "all")
+                          }
+                        >
+                          <SelectTrigger className="h-10 rounded-lg bg-background/70">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All statuses</SelectItem>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="COMPLETED">Completed</SelectItem>
+                            <SelectItem value="FAILED">Failed</SelectItem>
+                            <SelectItem value="CANCELED">Canceled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={transactionTypeFilter}
+                          onValueChange={(value) =>
+                            setTransactionTypeFilter(value as TransactionType | "all")
+                          }
+                        >
+                          <SelectTrigger className="h-10 rounded-lg bg-background/70">
+                            <SelectValue placeholder="Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All types</SelectItem>
+                            <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                            <SelectItem value="WITHDRAW">Withdraw</SelectItem>
+                            <SelectItem value="ESCROW_HOLD">Escrow hold</SelectItem>
+                            <SelectItem value="ESCROW_REFUND">Refund</SelectItem>
+                            <SelectItem value="FEE">Fee</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          value={transactionSearch}
+                          onChange={(event) => setTransactionSearch(event.target.value)}
+                          placeholder="Search transactions"
+                          className="h-10 rounded-lg bg-background/70"
+                        />
                       </div>
+                      {transactionsError ? (
+                        <p className="text-xs text-rose-200">
+                          {transactionsError.message}
+                        </p>
+                      ) : null}
+                      {isTransactionsLoading ? (
+                        <LoadingSkeleton items={3} />
+                      ) : transactions.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          No transactions yet
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {transactions.map((transaction) => {
+                            const Icon = getTransactionIcon(transaction);
+                            const subtitle = getTransactionSubtitle(transaction);
+                            return (
+                              <div
+                                key={transaction.id}
+                                className="flex items-start justify-between gap-3 border-b border-border/30 pb-3 last:border-b-0 last:pb-0"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <span className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-secondary/60 text-muted-foreground">
+                                    <Icon size={16} />
+                                  </span>
+                                  <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                                        {getTransactionTypeLabel(transaction.type)}
+                                      </span>
+                                      <span
+                                        className={`rounded-full px-2 py-0.5 text-[11px] ${
+                                          statusStyles[transaction.status] ??
+                                          "bg-muted text-muted-foreground"
+                                        }`}
+                                      >
+                                        {getTransactionStatusLabel(transaction.status)}
+                                      </span>
+                                    </div>
+                                    {subtitle ? (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {subtitle}
+                                      </p>
+                                    ) : null}
+                                    <p className="text-[11px] text-muted-foreground mt-1">
+                                      {formatDateTime(transaction.createdAt, language)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <p className="text-sm font-semibold text-foreground">
+                                  {formatTransactionAmount(transaction)}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {transactionsQuery.hasNextPage ? (
+                        <button
+                          type="button"
+                          onClick={() => transactionsQuery.fetchNextPage()}
+                          disabled={transactionsQuery.isFetchingNextPage}
+                          className="w-full rounded-lg border border-border/40 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-60"
+                        >
+                          {transactionsQuery.isFetchingNextPage
+                            ? "Loading..."
+                            : "Load more"}
+                        </button>
+                      ) : null}
                     </div>
                   )}
 

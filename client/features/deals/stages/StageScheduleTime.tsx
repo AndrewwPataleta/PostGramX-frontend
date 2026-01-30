@@ -64,8 +64,10 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
       }
       console.log("Schedule payload UTC:", scheduledAtUtc);
       return post<unknown, { dealId: string; scheduledAt: string }>("/deals/schedule", {
-        dealId: deal.id,
-        scheduledAt: scheduledAtUtc,
+        data: {
+          dealId: deal.id,
+          scheduledAt: scheduledAtUtc,
+        },
       });
     },
     onSuccess: () => {
