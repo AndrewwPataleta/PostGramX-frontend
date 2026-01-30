@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getTelegramWebApp } from "@/lib/telegram";
 import { useCreateDealMutation } from "@/hooks/use-deals";
 import ErrorState from "@/components/feedback/ErrorState";
+import { ScheduleDatePicker } from "@/components/deals/ScheduleDatePicker";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { toUtcIsoString } from "@/utils/date";
 
@@ -17,11 +18,13 @@ export default function CreateDeal() {
   const listingId = state?.listingId;
 
   const [brief, setBrief] = useState("");
-  const [scheduledAt, setScheduledAt] = useState("");
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const createDealMutation = useCreateDealMutation();
   const isSubmitting = createDealMutation.isPending;
 
-  const canSubmit = Boolean(listingId) && !isSubmitting;
+  const isValidSchedule =
+    !scheduledAt || scheduledAt.getTime() > Date.now() + 60 * 60 * 1000;
+  const canSubmit = Boolean(listingId) && !isSubmitting && isValidSchedule;
 
   const scheduledIso = useMemo(() => {
     if (!scheduledAt) {
@@ -49,6 +52,9 @@ export default function CreateDeal() {
 
   const handleSubmit = async () => {
     if (!listingId) {
+      return;
+    }
+    if (!isValidSchedule) {
       return;
     }
 
@@ -104,12 +110,14 @@ export default function CreateDeal() {
             <label className="text-xs font-semibold text-foreground">
               Schedule datetime (optional)
             </label>
-            <input
-              type="datetime-local"
-              value={scheduledAt}
-              onChange={(event) => setScheduledAt(event.target.value)}
-              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-foreground"
-            />
+            <div className="pb-safe-bottom rounded-2xl border border-border/60 bg-card/80 p-3">
+              <ScheduleDatePicker value={scheduledAt} onChange={setScheduledAt} />
+            </div>
+            {!isValidSchedule && (
+              <p className="text-xs text-destructive">
+                Scheduled time must be at least 1 hour from now.
+              </p>
+            )}
           </div>
         </div>
 
