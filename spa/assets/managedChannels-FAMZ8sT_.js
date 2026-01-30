@@ -1,1 +1,0 @@
-const e={1:{id:"1",name:"My Crypto Channel",username:"@mycryptocha",avatar:"📰",status:"VERIFIED",verified:!0,subscribers:45e3,activeDeals:1,description:"Verified creator channel ready for sponsor placements."}};export{e as m};
