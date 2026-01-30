@@ -71,6 +71,7 @@ const buildMockDeal = (overrides: Partial<DealListItem>): DealListItem => {
     paymentAddress: "EQB7qQH2rXq4d9NfkY3H3aXk7kqfYjQ7ZVt2m9xkT8m0fLr",
     paymentExpiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
     paymentDeadlineAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    adminReviewDeadlineAt: null,
     ...overrides,
     listing,
   };
@@ -163,7 +164,7 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
     }),
     buildMockDeal({
       status: "PENDING",
-      escrowStatus: "CREATIVE_AWAITING_CONFIRM",
+      escrowStatus: "CREATIVE_AWAITING_ADMIN_REVIEW",
       channel: {
         id: "channel_3",
         name: "NFT Radar",
@@ -186,6 +187,7 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         requiresApproval: true,
       },
       creativeText: "Launching the NFT Radar spotlight — drop your collection now.",
+      adminReviewDeadlineAt: new Date(Date.now() + 1000 * 60 * 45).toISOString(),
     }),
   ];
 
