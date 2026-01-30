@@ -96,13 +96,13 @@ const parseResponseBody = async (response: Response): Promise<unknown> => {
   }
 };
 
-export const post = async <TResponse, TData>(
+export const post = async <TResponse, TData extends Record<string, unknown>>(
   path: string,
-  payload: { data?: TData } = {},
+  data: TData = {} as TData,
   options?: { headers?: Record<string, string> }
 ): Promise<TResponse> => {
   const url = buildUrl(path);
-  const envelope = buildTelegramEnvelope(payload.data ?? ({} as TData));
+  const envelope = buildTelegramEnvelope(data);
   const headers = new Headers({
     "Content-Type": "application/json",
     ...options?.headers,

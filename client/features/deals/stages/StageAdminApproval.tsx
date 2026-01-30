@@ -65,7 +65,7 @@ export default function StageAdminApproval({
         return null;
       }
       return post<unknown, { dealId: string }>("/deals/creative/approve", {
-        data: { dealId: deal.id },
+        dealId: deal.id,
       });
     },
     onSuccess: () => {
@@ -84,7 +84,7 @@ export default function StageAdminApproval({
         return null;
       }
       return post<unknown, { dealId: string }>("/deals/creative/edits", {
-        data: { dealId: deal.id },
+        dealId: deal.id,
       });
     },
     onSuccess: () => {
@@ -103,7 +103,7 @@ export default function StageAdminApproval({
         return null;
       }
       return post<unknown, { dealId: string }>("/deals/creative/reject", {
-        data: { dealId: deal.id },
+        dealId: deal.id,
       });
     },
     onSuccess: () => {

@@ -63,12 +63,13 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
         return null;
       }
       console.log("Schedule payload UTC:", scheduledAtUtc);
-      return post<unknown, { dealId: string; scheduledAt: string }>("/deals/schedule", {
-        data: {
+      return post<unknown, { dealId: string; scheduledAt: string }>(
+        "/deals/schedule",
+        {
           dealId: deal.id,
           scheduledAt: scheduledAtUtc,
-        },
-      });
+        }
+      );
     },
     onSuccess: () => {
       toast.success(t("deals.stage.scheduleTime.updatedToast"));

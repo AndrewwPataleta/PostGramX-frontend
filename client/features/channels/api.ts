@@ -53,7 +53,7 @@ export const getMyChannels = async (): Promise<Channel[]> => {
   }
 
   try {
-    return post<Channel[], Record<string, never>>("/channels", { data: {} });
+    return post<Channel[], Record<string, never>>("/channels", {});
   } catch (error) {
     console.warn("Falling back to mock channels.", error);
     await delay();
@@ -70,7 +70,7 @@ export const linkChannel = async (payload: { username: string }) => {
   try {
     return post<{ success: boolean }, { username: string }>(
       "/channels/link",
-      { data: payload }
+      payload
     );
   } catch (error) {
     console.warn("Falling back to mock link channel.", error);
@@ -87,7 +87,7 @@ export const verifyChannel = async (id: string) => {
 
   try {
     return post<{ success: boolean }, { id: string }>(`/channels/${id}/verify`, {
-      data: { id },
+      id,
     });
   } catch (error) {
     console.warn("Falling back to mock channel verification.", error);

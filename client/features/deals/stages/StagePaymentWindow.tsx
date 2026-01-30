@@ -43,12 +43,13 @@ export default function StagePaymentWindow({ deal, readonly, onAction }: StagePa
         console.info("Mock payment window set", { dealId: deal.id, hours });
         return null;
       }
-      return post<unknown, { dealId: string; hours: number }>("/deals/payment-window", {
-        data: {
+      return post<unknown, { dealId: string; hours: number }>(
+        "/deals/payment-window",
+        {
           dealId: deal.id,
           hours,
-        },
-      });
+        }
+      );
     },
     onSuccess: () => {
       toast.success(t("deals.stage.paymentWindow.updatedToast"));
