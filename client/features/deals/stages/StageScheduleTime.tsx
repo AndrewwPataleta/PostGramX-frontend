@@ -8,6 +8,7 @@ import InfoCard from "@/components/deals/InfoCard";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/i18n/formatters";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { toUtcIsoString } from "@/utils/date";
 
 interface StageScheduleTimeProps {
   deal: DealListItem;
@@ -25,13 +26,8 @@ const formatDateTimeLocal = (value?: string) => {
   if (Number.isNaN(date.getTime())) {
     return "";
   }
-  const pad = (num: number) => num.toString().padStart(2, "0");
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 16);
 };
 
 export default function StageScheduleTime({ deal, readonly, onAction }: StageScheduleTimeProps) {
@@ -48,13 +44,19 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
       if (!scheduledAt) {
         throw new Error(t("deals.stage.scheduleTime.selectDateError"));
       }
+      const scheduledAtUtc = toUtcIsoString(scheduledAt);
+      if (!scheduledAtUtc.endsWith("Z")) {
+        console.error("Scheduled date must be UTC ISO:", scheduledAtUtc);
+        throw new Error("Invalid datetime format");
+      }
       if (import.meta.env.VITE_API_MOCK === "true") {
-        console.info("Mock schedule set", { dealId: deal.id, scheduledAt });
+        console.info("Mock schedule set", { dealId: deal.id, scheduledAt: scheduledAtUtc });
         return null;
       }
+      console.log("Schedule payload UTC:", scheduledAtUtc);
       return post<unknown, { dealId: string; scheduledAt: string }>("/deals/schedule", {
         dealId: deal.id,
-        scheduledAt,
+        scheduledAt: scheduledAtUtc,
       });
     },
     onSuccess: () => {
@@ -90,7 +92,12 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
       return;
     }
     if (onAction?.onConfirmSchedule) {
-      onAction.onConfirmSchedule(scheduledAt);
+      const scheduledAtUtc = toUtcIsoString(scheduledAt);
+      if (!scheduledAtUtc.endsWith("Z")) {
+        console.error("Scheduled date must be UTC ISO:", scheduledAtUtc);
+        throw new Error("Invalid datetime format");
+      }
+      onAction.onConfirmSchedule(scheduledAtUtc);
       return;
     }
     mutation.mutate();

@@ -6,14 +6,7 @@ import { predealsCreate } from "@/api/features/predealsApi";
 import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
-
-const toUtcISOString = (value: string) => {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return null;
-  }
-  return parsed.toISOString();
-};
+import { toUtcIsoString } from "@/utils/date";
 
 export default function CreatePreDeal() {
   const { listingId } = useParams<{ listingId: string }>();
@@ -34,7 +27,11 @@ export default function CreatePreDeal() {
     if (!scheduledAt) {
       return null;
     }
-    return toUtcISOString(scheduledAt);
+    try {
+      return toUtcIsoString(scheduledAt);
+    } catch {
+      return null;
+    }
   }, [scheduledAt]);
 
   const isScheduledInFuture = useMemo(() => {
@@ -56,6 +53,10 @@ export default function CreatePreDeal() {
     if (!isScheduledInFuture) {
       toast.error("Scheduled time must be in the future.");
       return;
+    }
+    if (!scheduledIso.endsWith("Z")) {
+      console.error("Scheduled date must be UTC ISO:", scheduledIso);
+      throw new Error("Invalid datetime format");
     }
 
     createMutation.mutate({ listingId, scheduledAt: scheduledIso });
