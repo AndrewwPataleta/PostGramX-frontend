@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { predealsCreate } from "@/api/features/predealsApi";
+import { ScheduleDatePicker } from "@/components/deals/ScheduleDatePicker";
 import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
@@ -11,7 +12,7 @@ import { toUtcIsoString } from "@/utils/date";
 export default function CreatePreDeal() {
   const { listingId } = useParams<{ listingId: string }>();
   const navigate = useNavigate();
-  const [scheduledAt, setScheduledAt] = useState("");
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
 
   const createMutation = useMutation({
     mutationFn: predealsCreate,
@@ -39,7 +40,7 @@ export default function CreatePreDeal() {
       return false;
     }
     const scheduledTime = new Date(scheduledIso).getTime();
-    return scheduledTime > Date.now();
+    return scheduledTime > Date.now() + 60 * 60 * 1000;
   }, [scheduledIso]);
 
   const handleSubmit = async () => {
@@ -51,7 +52,7 @@ export default function CreatePreDeal() {
       return;
     }
     if (!isScheduledInFuture) {
-      toast.error("Scheduled time must be in the future.");
+      toast.error("Scheduled time must be at least 1 hour from now.");
       return;
     }
     if (!scheduledIso.endsWith("Z")) {
@@ -89,12 +90,14 @@ export default function CreatePreDeal() {
         <div className="rounded-2xl border border-border/60 bg-card/80 p-4 space-y-4">
           <div className="space-y-2">
             <label className="text-xs font-semibold text-foreground">Scheduled date & time</label>
-            <input
-              type="datetime-local"
-              value={scheduledAt}
-              onChange={(event) => setScheduledAt(event.target.value)}
-              className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm text-foreground"
-            />
+            <div className="pb-safe-bottom rounded-2xl border border-border/60 bg-card/80 p-3">
+              <ScheduleDatePicker value={scheduledAt} onChange={setScheduledAt} />
+            </div>
+            {!isScheduledInFuture && scheduledAt && (
+              <p className="text-xs text-destructive">
+                Scheduled time must be at least 1 hour from now.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               We will remind the channel owner at the scheduled time.
             </p>
@@ -104,7 +107,7 @@ export default function CreatePreDeal() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!scheduledAt || createMutation.isPending}
+          disabled={!scheduledAt || !isScheduledInFuture || createMutation.isPending}
           className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition disabled:opacity-60"
         >
           {createMutation.isPending ? "Scheduling..." : "Continue"}
