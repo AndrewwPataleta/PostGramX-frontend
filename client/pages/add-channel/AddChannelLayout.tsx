@@ -4,13 +4,15 @@ import SafeAreaLayout from "@/components/telegram/SafeAreaLayout";
 import { cn } from "@/lib/utils";
 import { AddChannelFlowProvider } from "@/pages/add-channel/useAddChannelFlow";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const AddChannelLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   const stepMatch = location.pathname.match(/step-(\d+)/);
   const stepNumber = stepMatch ? Number(stepMatch[1]) : null;
-  const stepLabel = stepNumber ? `Step ${stepNumber}/3` : null;
+  const stepLabel = stepNumber ? t("channels.add.stepLabel", { current: stepNumber, total: 3 }) : null;
 
   return (
     <AddChannelFlowProvider>
@@ -23,7 +25,7 @@ const AddChannelLayout = () => {
           <div className="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">
-                Connect Channel
+                {t("channels.add.title")}
               </p>
               {stepLabel ? (
                 <p className="text-[10px] font-medium text-muted-foreground">
@@ -35,7 +37,7 @@ const AddChannelLayout = () => {
               type="button"
               onClick={() => navigate("/channels", { replace: true })}
               className="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
-              aria-label="Close add channel flow"
+              aria-label={t("common.close")}
             >
               <X size={18} />
             </button>

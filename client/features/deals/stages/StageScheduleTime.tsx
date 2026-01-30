@@ -6,6 +6,8 @@ import { post } from "@/api/core/apiClient";
 import { getErrorMessage } from "@/lib/api/errors";
 import InfoCard from "@/components/deals/InfoCard";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/i18n/formatters";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface StageScheduleTimeProps {
   deal: DealListItem;
@@ -34,6 +36,7 @@ const formatDateTimeLocal = (value?: string) => {
 
 export default function StageScheduleTime({ deal, readonly, onAction }: StageScheduleTimeProps) {
   const queryClient = useQueryClient();
+  const { t, language } = useLanguage();
   const [scheduledAt, setScheduledAt] = useState<string>(formatDateTimeLocal(deal.scheduledAt));
 
   useEffect(() => {
@@ -43,7 +46,7 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
   const mutation = useMutation({
     mutationFn: async () => {
       if (!scheduledAt) {
-        throw new Error("Select a date and time before saving.");
+        throw new Error(t("deals.stage.scheduleTime.selectDateError"));
       }
       if (import.meta.env.VITE_API_MOCK === "true") {
         console.info("Mock schedule set", { dealId: deal.id, scheduledAt });
@@ -55,22 +58,26 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
       });
     },
     onSuccess: () => {
-      toast.success("Schedule updated");
+      toast.success(t("deals.stage.scheduleTime.updatedToast"));
       queryClient.invalidateQueries({ queryKey: ["deal", deal.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Unable to save schedule"));
+      toast.error(getErrorMessage(error, t("deals.stage.scheduleTime.saveError")));
     },
   });
 
   if (readonly) {
     return (
-      <InfoCard title="Schedule time">
-        <p className="text-xs text-muted-foreground">Waiting for advertiser to complete this step.</p>
+      <InfoCard title={t("deals.stage.scheduleTime.title")}>
         <p className="text-xs text-muted-foreground">
-          Scheduled:{" "}
+          {t("deals.stage.scheduleTime.readonly")}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {t("deals.scheduledAt")}:{" "}
           <span className="font-semibold text-foreground">
-            {deal.scheduledAt ? new Date(deal.scheduledAt).toLocaleString() : "Not scheduled yet"}
+            {deal.scheduledAt
+              ? formatDateTime(deal.scheduledAt, language)
+              : t("deals.stage.scheduleTime.notScheduled")}
           </span>
         </p>
       </InfoCard>
@@ -79,7 +86,7 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
 
   const handleConfirm = () => {
     if (!scheduledAt) {
-      toast.error("Select a date and time before saving.");
+      toast.error(t("deals.stage.scheduleTime.selectDateError"));
       return;
     }
     if (onAction?.onConfirmSchedule) {
@@ -90,9 +97,9 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
   };
 
   return (
-    <InfoCard title="Schedule time">
+    <InfoCard title={t("deals.stage.scheduleTime.title")}>
       <p className="text-xs text-muted-foreground">
-        Choose when this post should go live. The time is saved to the deal schedule.
+        {t("deals.stage.scheduleTime.description")}
       </p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <input
@@ -110,7 +117,7 @@ export default function StageScheduleTime({ deal, readonly, onAction }: StageSch
             mutation.isPending ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
           )}
         >
-          Confirm schedule
+          {t("deals.stage.scheduleTime.confirm")}
         </button>
       </div>
     </InfoCard>

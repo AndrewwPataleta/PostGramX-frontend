@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAddChannelFlow } from "@/pages/add-channel/useAddChannelFlow";
 import type { ChannelListItem } from "@/types/channels";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const AddChannelStep3 = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { state } = useAddChannelFlow();
   const preview = state.preview;
 
@@ -23,14 +25,14 @@ const AddChannelStep3 = () => {
 
   const displayUsername = useMemo(() => {
     if (!preview?.username) {
-      return "—";
+      return t("common.emptyValue");
     }
     return preview.username.startsWith("@") ? preview.username : `@${preview.username}`;
-  }, [preview?.username]);
+  }, [preview?.username, t]);
 
   const isSuccess = state.verifyStatus === "success";
   const message =
-    state.lastError || "We could not verify your admin rights. Please try again.";
+    state.lastError || t("channels.add.step3.defaultError");
   const linkedChannelId = state.linkedChannelId;
 
   const channelState: ChannelListItem | null =
@@ -38,7 +40,7 @@ const AddChannelStep3 = () => {
       ? {
           id: linkedChannelId,
           username: (preview.username || preview.normalizedUsername || "").replace(/^@/, ""),
-          title: preview.title || "Untitled channel",
+          title: preview.title || t("channels.untitled"),
           status: "VERIFIED",
           telegramChatId: preview.telegramChatId ?? null,
           memberCount: preview.memberCount ?? null,
@@ -71,7 +73,7 @@ const AddChannelStep3 = () => {
           </div>
           <div>
             <h2 className="text-base font-semibold text-foreground">
-              {isSuccess ? "Channel verified" : "Verification failed"}
+              {isSuccess ? t("channels.add.step3.successTitle") : t("channels.add.step3.failedTitle")}
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
               {preview.title} · {displayUsername}
@@ -90,7 +92,7 @@ const AddChannelStep3 = () => {
               onClick={() => navigate("/channels")}
               className="w-full text-sm font-semibold"
             >
-              Go to My Channels
+              {t("channels.add.step3.goToChannels")}
             </Button>
             <Button
               variant="secondary"
@@ -106,7 +108,7 @@ const AddChannelStep3 = () => {
               className="w-full text-sm font-semibold"
               disabled={!linkedChannelId}
             >
-              Manage channel
+              {t("channels.add.step3.manageChannel")}
             </Button>
           </>
         ) : (
@@ -115,14 +117,14 @@ const AddChannelStep3 = () => {
               onClick={() => navigate("/add-channel/step-2")}
               className="w-full text-sm font-semibold"
             >
-              Retry verification
+              {t("channels.add.step3.retryVerification")}
             </Button>
             <Button
               variant="secondary"
               onClick={() => navigate("/channels")}
               className="w-full text-sm font-semibold"
             >
-              Back to channels
+              {t("channels.add.step3.backToChannels")}
             </Button>
           </>
         )}

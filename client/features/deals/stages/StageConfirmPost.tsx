@@ -5,6 +5,7 @@ import type { DealListItem } from "@/types/deals";
 import { post } from "@/api/core/apiClient";
 import { getErrorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface StageConfirmPostProps {
   deal: DealListItem;
@@ -21,6 +22,7 @@ export default function StageConfirmPost({
   onAction,
 }: StageConfirmPostProps) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const creativeText = deal.creativeText;
 
   const confirmMutation = useMutation({
@@ -32,11 +34,11 @@ export default function StageConfirmPost({
       return post<unknown, { dealId: string }>("/deals/creative/confirm", { dealId: deal.id });
     },
     onSuccess: () => {
-      toast.success("Creative confirmed");
+      toast.success(t("deals.stage.confirmPost.confirmedToast"));
       queryClient.invalidateQueries({ queryKey: ["deal", deal.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Unable to confirm creative"));
+      toast.error(getErrorMessage(error, t("deals.stage.confirmPost.confirmError")));
     },
   });
 
@@ -49,25 +51,27 @@ export default function StageConfirmPost({
       return post<unknown, { dealId: string }>("/deals/creative/reject", { dealId: deal.id });
     },
     onSuccess: () => {
-      toast.success("Requested changes");
+      toast.success(t("deals.stage.confirmPost.requestedToast"));
       queryClient.invalidateQueries({ queryKey: ["deal", deal.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Unable to request changes"));
+      toast.error(getErrorMessage(error, t("deals.stage.confirmPost.requestError")));
     },
   });
 
   if (readonly) {
     return (
-      <InfoCard title="Confirm post">
-        <p className="text-xs text-muted-foreground">Waiting for advertiser to complete this step.</p>
+      <InfoCard title={t("deals.stage.confirmPost.title")}>
+        <p className="text-xs text-muted-foreground">
+          {t("deals.stage.confirmPost.readonly")}
+        </p>
         {creativeText ? (
           <div className="rounded-lg border border-border/60 bg-background/50 p-3 text-xs text-foreground">
             {creativeText}
           </div>
         ) : (
           <div className="rounded-lg border border-dashed border-border/60 bg-background/40 p-3 text-xs text-muted-foreground">
-            Waiting for creative submission.
+            {t("deals.stage.confirmPost.waitingCreative")}
           </div>
         )}
       </InfoCard>
@@ -91,14 +95,14 @@ export default function StageConfirmPost({
   };
 
   return (
-    <InfoCard title="Confirm post">
+    <InfoCard title={t("deals.stage.confirmPost.title")}>
       {creativeText ? (
         <div className="rounded-lg border border-border/60 bg-background/50 p-3 text-xs text-foreground">
           {creativeText}
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-border/60 bg-background/40 p-3 text-xs text-muted-foreground">
-          Waiting for creative submission.
+          {t("deals.stage.confirmPost.waitingCreative")}
         </div>
       )}
       <div className="flex flex-wrap gap-2">
@@ -113,7 +117,7 @@ export default function StageConfirmPost({
               : "hover:bg-primary/90"
           )}
         >
-          Confirm
+          {t("common.confirm")}
         </button>
         <button
           type="button"
@@ -126,7 +130,7 @@ export default function StageConfirmPost({
               : "hover:border-primary/40"
           )}
         >
-          Request changes
+          {t("common.requestChanges")}
         </button>
       </div>
     </InfoCard>

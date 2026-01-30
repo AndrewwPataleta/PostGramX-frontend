@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { flattenTagOptions, listingTagCategories } from "@/features/listings/tagOptions";
+import { useLanguage } from "@/i18n/LanguageProvider";
+import { formatNumber } from "@/i18n/formatters";
 
 export interface FilterState {
   priceRange: [number, number];
@@ -29,16 +31,10 @@ export const FilterModal = ({
   onApply,
   onReset,
 }: FilterModalProps) => {
+  const { t, language } = useLanguage();
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
-  const formatNumber = (value: number, maxDigits = 1) =>
-    new Intl.NumberFormat("en", {
-      maximumFractionDigits: maxDigits,
-    }).format(value);
   const formatCompact = (value: number) =>
-    new Intl.NumberFormat("en", {
-      notation: "compact",
-      maximumFractionDigits: 1,
-    }).format(value);
+    formatNumber(value, language, { notation: "compact", maximumFractionDigits: 1 });
   const [expandedSections, setExpandedSections] = useState({
     pricing: true,
     audience: true,
@@ -50,17 +46,17 @@ export const FilterModal = ({
   });
   const [tagQuery, setTagQuery] = useState("");
   const [customTag, setCustomTag] = useState("");
-  const tagOptions = flattenTagOptions(listingTagCategories);
+  const tagOptions = useMemo(() => flattenTagOptions(listingTagCategories, t), [t]);
 
   const pricePresets: Array<{ label: string; range: [number, number] }> = [
-    { label: "Any", range: [0, 10] },
-    { label: "0-1 TON", range: [0, 1] },
-    { label: "1-5 TON", range: [1, 5] },
-    { label: "5-10 TON", range: [5, 10] },
+    { label: t("common.any"), range: [0, 10] },
+    { label: `0-1 ${t("common.ton")}`, range: [0, 1] },
+    { label: `1-5 ${t("common.ton")}`, range: [1, 5] },
+    { label: `5-10 ${t("common.ton")}`, range: [5, 10] },
   ];
 
   const subscribersPresets: Array<{ label: string; range: [number, number] }> = [
-    { label: "Any", range: [0, 1000000] },
+    { label: t("common.any"), range: [0, 1000000] },
     { label: "0-10K", range: [0, 10000] },
     { label: "10-100K", range: [10000, 100000] },
     { label: "100K-1M", range: [100000, 1000000] },
@@ -145,16 +141,20 @@ export const FilterModal = ({
       <div
         className="fixed inset-0 bg-black/40 z-40"
         onClick={onClose}
+        aria-label={t("common.close")}
       />
 
       {/* Bottom Sheet Modal */}
       <div className="fixed inset-x-0 bottom-0 top-0 bg-card rounded-t-2xl z-50 animate-in slide-in-from-bottom-10 duration-300 flex flex-col h-[100dvh] sm:h-auto sm:top-auto sm:max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-card border-b border-border/50 px-4 py-4 flex items-center justify-between rounded-t-2xl shrink-0">
-          <h2 className="text-lg font-semibold text-foreground">Filters</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            {t("marketplace.filters.title")}
+          </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-secondary rounded-lg transition-colors"
+            aria-label={t("common.close")}
           >
             <X size={20} className="text-foreground" />
           </button>
@@ -168,7 +168,9 @@ export const FilterModal = ({
               onClick={() => toggleSection("pricing")}
               className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
             >
-              <span className="font-semibold text-foreground">Pricing (TON)</span>
+              <span className="font-semibold text-foreground">
+                {t("marketplace.filters.pricingTitle")}
+              </span>
               <ChevronDown
                 size={18}
                 className={`text-muted-foreground transition-transform ${
@@ -207,7 +209,7 @@ export const FilterModal = ({
                       handlePriceChange(0, parseFloat(e.target.value) || 0)
                     }
                     className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Min"
+                    placeholder={t("common.min")}
                   />
                   <input
                     type="number"
@@ -216,12 +218,12 @@ export const FilterModal = ({
                       handlePriceChange(1, parseFloat(e.target.value) || 10)
                     }
                     className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Max"
+                    placeholder={t("common.max")}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {formatNumber(localFilters.priceRange[0])} -{" "}
-                  {formatNumber(localFilters.priceRange[1])} TON
+                  {formatNumber(localFilters.priceRange[0], language)} -{" "}
+                  {formatNumber(localFilters.priceRange[1], language)} {t("common.ton")}
                 </p>
               </div>
             )}
@@ -233,7 +235,9 @@ export const FilterModal = ({
               onClick={() => toggleSection("audience")}
               className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
             >
-              <span className="font-semibold text-foreground">Audience</span>
+              <span className="font-semibold text-foreground">
+                {t("marketplace.filters.audienceTitle")}
+              </span>
               <ChevronDown
                 size={18}
                 className={`text-muted-foreground transition-transform ${
@@ -246,7 +250,7 @@ export const FilterModal = ({
                 {/* Subscribers */}
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-2">
-                    Subscribers
+                    {t("marketplace.filters.subscribersLabel")}
                   </p>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {subscribersPresets.map((preset) => (
@@ -277,7 +281,7 @@ export const FilterModal = ({
                         handleSubscribersChange(0, parseInt(e.target.value) || 0)
                       }
                       className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      placeholder="Min"
+                      placeholder={t("common.min")}
                     />
                     <input
                       type="number"
@@ -286,7 +290,7 @@ export const FilterModal = ({
                         handleSubscribersChange(1, parseInt(e.target.value) || 1000000)
                       }
                       className="w-full min-w-0 flex-1 bg-input border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      placeholder="Max"
+                      placeholder={t("common.max")}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -304,7 +308,9 @@ export const FilterModal = ({
               onClick={() => toggleSection("tags")}
               className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
             >
-              <span className="font-semibold text-foreground">Tags</span>
+              <span className="font-semibold text-foreground">
+                {t("marketplace.filters.tagsTitle")}
+              </span>
               <ChevronDown
                 size={18}
                 className={`text-muted-foreground transition-transform ${
@@ -318,7 +324,7 @@ export const FilterModal = ({
                   type="text"
                   value={tagQuery}
                   onChange={(event) => setTagQuery(event.target.value)}
-                  placeholder="Search tags"
+                  placeholder={t("marketplace.filters.tagsSearch")}
                   className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground"
                 />
                 <div className="flex gap-2">
@@ -326,7 +332,7 @@ export const FilterModal = ({
                     type="text"
                     value={customTag}
                     onChange={(event) => setCustomTag(event.target.value)}
-                    placeholder="Add custom tag"
+                    placeholder={t("marketplace.filters.tagsCustom")}
                     className="flex-1 rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground"
                   />
                   <button
@@ -344,7 +350,7 @@ export const FilterModal = ({
                     }}
                     className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"
                   >
-                    Add
+                    {t("common.add")}
                   </button>
                 </div>
                 {localFilters.tags.length > 0 ? (
@@ -361,7 +367,7 @@ export const FilterModal = ({
                         }
                         className="rounded-full bg-secondary px-3 py-1 text-xs text-foreground hover:bg-secondary/80"
                       >
-                        {tag} ×
+                        {tag} {t("common.removeTagSuffix")}
                       </button>
                     ))}
                   </div>
@@ -369,20 +375,20 @@ export const FilterModal = ({
                 <div className="flex flex-wrap gap-2">
                   {tagOptions
                     .filter((tag) =>
-                      tag.toLowerCase().includes(tagQuery.trim().toLowerCase()),
+                      tag.label.toLowerCase().includes(tagQuery.trim().toLowerCase()),
                     )
                     .map((tag) => {
-                      const isSelected = localFilters.tags.includes(tag);
+                      const isSelected = localFilters.tags.includes(tag.value);
                       return (
                         <button
-                          key={tag}
+                          key={tag.value}
                           type="button"
                           onClick={() =>
                             setLocalFilters((prev) => ({
                               ...prev,
                               tags: isSelected
-                                ? prev.tags.filter((item) => item !== tag)
-                                : [...prev.tags, tag],
+                                ? prev.tags.filter((item) => item !== tag.value)
+                                : [...prev.tags, tag.value],
                             }))
                           }
                           className={`rounded-full border px-3 py-1 text-xs transition-colors ${
@@ -391,7 +397,7 @@ export const FilterModal = ({
                               : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
                           }`}
                         >
-                          {tag}
+                          {tag.label}
                         </button>
                       );
                     })}
@@ -408,7 +414,9 @@ export const FilterModal = ({
               onClick={() => toggleSection("verification")}
               className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg transition-colors"
             >
-              <span className="font-semibold text-foreground">Verification</span>
+              <span className="font-semibold text-foreground">
+                {t("marketplace.filters.verificationTitle")}
+              </span>
               <ChevronDown
                 size={18}
                 className={`text-muted-foreground transition-transform ${
@@ -431,7 +439,7 @@ export const FilterModal = ({
                     className="w-5 h-5 bg-secondary border border-border rounded accent-primary cursor-pointer"
                   />
                   <span className="text-foreground font-medium">
-                    Verified channels only
+                    {t("marketplace.filters.verifiedOnly")}
                   </span>
                 </label>
               </div>
@@ -445,13 +453,13 @@ export const FilterModal = ({
             onClick={handleApply}
             className="button-primary w-full py-3 text-base font-semibold"
           >
-            Apply Filters
+            {t("marketplace.filters.apply")}
           </button>
           <button
             onClick={handleReset}
             className="button-secondary w-full py-3 text-base font-semibold"
           >
-            Reset
+            {t("common.reset")}
           </button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { openTelegramLink } from "@/lib/telegramLinks";
 import { post } from "@/api/core/apiClient";
 import { getErrorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface StageSendPostProps {
   deal: DealListItem;
@@ -20,6 +21,7 @@ const BOT_USERNAME = "postgramx_bot";
 
 export default function StageSendPost({ deal, readonly, onAction }: StageSendPostProps) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const botLink = `https://t.me/${BOT_USERNAME}?start=deal_${deal.id}`;
   const hasCreative = Boolean(deal.creativeText);
 
@@ -32,24 +34,26 @@ export default function StageSendPost({ deal, readonly, onAction }: StageSendPos
       return post<unknown, { dealId: string }>("/deals/creative/submit", { dealId: deal.id });
     },
     onSuccess: () => {
-      toast.success("Post submitted");
+      toast.success(t("deals.stage.sendPost.submittedToast"));
       queryClient.invalidateQueries({ queryKey: ["deal", deal.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Unable to submit post"));
+      toast.error(getErrorMessage(error, t("deals.stage.sendPost.submitError")));
     },
   });
 
   if (readonly) {
     return (
-      <InfoCard title="Send post">
-        <p className="text-xs text-muted-foreground">Waiting for advertiser to complete this step.</p>
+      <InfoCard title={t("deals.stage.sendPost.title")}>
+        <p className="text-xs text-muted-foreground">
+          {t("deals.stage.sendPost.readonly")}
+        </p>
         {hasCreative ? (
           <div className="rounded-lg border border-border/60 bg-background/50 p-3 text-xs text-foreground">
-            Creative submitted.
+            {t("deals.stage.sendPost.creativeSubmitted")}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">No creative submitted yet.</p>
+          <p className="text-xs text-muted-foreground">{t("deals.stage.sendPost.noCreative")}</p>
         )}
       </InfoCard>
     );
@@ -72,10 +76,9 @@ export default function StageSendPost({ deal, readonly, onAction }: StageSendPos
   };
 
   return (
-    <InfoCard title="Send post">
+    <InfoCard title={t("deals.stage.sendPost.title")}>
       <p className="text-xs text-muted-foreground">
-        Send your creative to the PostgramX bot so the publisher can review it. Include any
-        required links or assets.
+        {t("deals.stage.sendPost.description")}
       </p>
       <div className="flex flex-wrap gap-2">
         <button
@@ -83,7 +86,7 @@ export default function StageSendPost({ deal, readonly, onAction }: StageSendPos
           onClick={handleOpenBot}
           className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
         >
-          Open bot
+          {t("deals.stage.sendPost.openBot")}
         </button>
         <button
           type="button"
@@ -94,11 +97,13 @@ export default function StageSendPost({ deal, readonly, onAction }: StageSendPos
             mutation.isPending && "cursor-not-allowed opacity-60"
           )}
         >
-          I sent the post
+          {t("deals.stage.sendPost.confirmSent")}
         </button>
       </div>
       {hasCreative ? (
-        <p className="text-xs text-muted-foreground">Creative submitted. Waiting for review.</p>
+        <p className="text-xs text-muted-foreground">
+          {t("deals.stage.sendPost.waitingReview")}
+        </p>
       ) : null}
     </InfoCard>
   );

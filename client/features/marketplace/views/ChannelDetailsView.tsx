@@ -7,19 +7,15 @@ import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateDealMutation } from "@/hooks/use-deals";
-import { formatTonString, nanoToTonString } from "@/lib/ton";
+import { formatNumber, formatTon } from "@/i18n/formatters";
+import { getAllowEditsLabel, getAllowLinkTrackingLabel, getPinnedDurationLabel, getVisibilityDurationLabel } from "@/i18n/labels";
+import { useLanguage } from "@/i18n/LanguageProvider";
 import type { ChannelItem } from "@/types/channels";
 import type { ListingListItem, ListingsByChannelResponse } from "@/types/listings";
 import type { ChannelCardModel } from "@/components/channels/ChannelCard";
 
-const formatDuration = (hours: number) => {
-  if (hours >= 168 && hours % 24 === 0) {
-    return `${hours / 24}d`;
-  }
-  return `${hours}h`;
-};
-
 export default function ChannelDetailsView() {
+  const { t, language } = useLanguage();
   const { channelId } = useParams<{ channelId: string }>();
   const location = useLocation();
   const state = location.state as
@@ -68,7 +64,7 @@ export default function ChannelDetailsView() {
     }
     return {
       id: channelId,
-      name: "Channel",
+      name: t("common.channel"),
       username: null,
       about: null,
       description: null,
@@ -116,9 +112,7 @@ export default function ChannelDetailsView() {
   );
   const resolvedMinPriceNano =
     resolvedChannel?.minPriceNano ?? (minPriceFromListings ? minPriceFromListings.toString() : null);
-  const minPriceTon = resolvedMinPriceNano
-    ? formatTonString(nanoToTonString(resolvedMinPriceNano))
-    : null;
+  const minPriceTon = resolvedMinPriceNano ? formatTon(resolvedMinPriceNano, language) : null;
   const primaryListing = activeListings[0];
   const isSubmitting = createDealMutation.isPending;
   const description = resolvedChannel?.about ?? resolvedChannel?.description;
@@ -140,16 +134,16 @@ export default function ChannelDetailsView() {
     () =>
       activeListings.map((listing) => ({
         ...listing,
-        priceTon: `${formatTonString(nanoToTonString(listing.priceNano))} TON`,
+        priceTon: `${formatTon(listing.priceNano, language)} ${t("common.ton")}`,
         tags: listing.tags.map((tag) => tag.trim()).filter(Boolean),
       })),
-    [activeListings]
+    [activeListings, language, t]
   );
 
   const formattedSubscribers =
     typeof resolvedChannel?.subscribers === "number"
-      ? resolvedChannel.subscribers.toLocaleString()
-      : "—";
+      ? formatNumber(resolvedChannel.subscribers, language)
+      : t("common.emptyValue");
 
   const buildTagList = (tags: string[]) => {
     const cleaned = tags.map((tag) => tag.trim()).filter(Boolean);
@@ -194,7 +188,10 @@ export default function ChannelDetailsView() {
     <div className="w-full max-w-2xl mx-auto">
       <PageContainer className="py-6 space-y-4">
         {!resolvedChannel || (channelId && resolvedChannel.id !== channelId) ? (
-          <ErrorState message="Channel not found" description="We couldn't load this channel." />
+          <ErrorState
+            message={t("marketplace.channelNotFound.title")}
+            description={t("marketplace.channelNotFound.subtitle")}
+          />
         ) : (
           <>
             <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
@@ -219,13 +216,14 @@ export default function ChannelDetailsView() {
                   </div>
                   {username ? <p className="text-xs text-muted-foreground">{username}</p> : null}
                   <p className="text-xs text-muted-foreground">
-                    {resolvedChannel.placementsCount ?? activeListings.length ?? "—"} placements •{" "}
-                    {formattedSubscribers} subscribers
+                    {resolvedChannel.placementsCount ?? activeListings.length ?? t("common.emptyValue")}{" "}
+                    {t("marketplace.placements")} • {formattedSubscribers}{" "}
+                    {t("marketplace.subscribers")}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    From{" "}
+                    {t("common.from")}{" "}
                     <span className="font-semibold text-primary">
-                      {minPriceTon ?? "--"} TON
+                      {minPriceTon ?? t("common.emptyValue")} {t("common.ton")}
                     </span>
                   </p>
                   {channelTags.visible.length > 0 ? (
@@ -258,15 +256,18 @@ export default function ChannelDetailsView() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Available placements</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {t("marketplace.availablePlacements")}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {resolvedChannel.placementsCount ?? activeListings.length} placements available
+                    {resolvedChannel.placementsCount ?? activeListings.length}{" "}
+                    {t("marketplace.placementsAvailable")}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">From</p>
+                  <p className="text-xs text-muted-foreground">{t("common.from")}</p>
                   <p className="text-lg font-semibold text-primary">
-                    {minPriceTon ?? "--"} TON
+                    {minPriceTon ?? t("common.emptyValue")} {t("common.ton")}
                   </p>
                 </div>
               </div>
@@ -289,7 +290,7 @@ export default function ChannelDetailsView() {
                 </div>
               ) : listingsQuery.isError ? (
                 <div className="rounded-xl border border-border/60 bg-red-500/5 p-4 text-sm text-red-200">
-                  Failed to load placements.
+                  {t("marketplace.listingsLoadFailed")}
                 </div>
               ) : formattedListings.length > 0 ? (
                 <div className="space-y-3">
@@ -299,10 +300,10 @@ export default function ChannelDetailsView() {
                     const tagList = buildListingTagList(listing.tags);
                     const metaParts = [
                       listing.pinDurationHours
-                        ? `Pinned ${formatDuration(listing.pinDurationHours)}`
+                        ? getPinnedDurationLabel(t, listing.pinDurationHours)
                         : null,
                       listing.visibilityDurationHours
-                        ? `Visible ${formatDuration(listing.visibilityDurationHours)}`
+                        ? getVisibilityDurationLabel(t, listing.visibilityDurationHours)
                         : null,
                     ].filter(Boolean);
                     const metaLabel = metaParts.join(" • ");
@@ -330,7 +331,7 @@ export default function ChannelDetailsView() {
                               {isListingSubmitting ? (
                                 <Loader2 size={14} className="animate-spin" />
                               ) : null}
-                              Select
+                              {t("common.select")}
                             </button>
                             <button
                               type="button"
@@ -366,10 +367,12 @@ export default function ChannelDetailsView() {
                           <div className="space-y-2 text-[11px] text-muted-foreground">
                             <div className="flex flex-wrap gap-2">
                               <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
-                                Edits: {listing.allowEdits ? "Allowed" : "Not allowed"}
+                                {t("listings.allowEdits.label")}:{" "}
+                                {getAllowEditsLabel(t, listing.allowEdits)}
                               </span>
                               <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
-                                Link tracking: {listing.allowLinkTracking ? "Allowed" : "Not allowed"}
+                                {t("listings.allowLinkTracking.label")}:{" "}
+                                {getAllowLinkTrackingLabel(t, listing.allowLinkTracking)}
                               </span>
                             </div>
                             {listing.tags.length > 0 ? (
@@ -387,7 +390,7 @@ export default function ChannelDetailsView() {
                             {listing.contentRulesText ? (
                               <div>
                                 <p className="text-[11px] font-semibold text-muted-foreground">
-                                  Rules
+                                  {t("listings.rules")}
                                 </p>
                                 <p className="line-clamp-3">{listing.contentRulesText}</p>
                               </div>
@@ -400,9 +403,11 @@ export default function ChannelDetailsView() {
                 </div>
               ) : (
                 <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center">
-                  <p className="text-sm font-semibold text-foreground">No listings yet</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {t("marketplace.emptyListingsTitle")}
+                  </p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    This channel has no active placements available right now.
+                    {t("marketplace.emptyListingsSubtitle")}
                   </p>
                 </div>
               )}

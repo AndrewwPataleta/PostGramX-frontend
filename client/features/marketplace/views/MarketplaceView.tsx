@@ -6,11 +6,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useMarketplaceViewModel } from "@/features/marketplace/viewmodels/useMarketplaceViewModel";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export default function MarketplaceView() {
+  const { t } = useLanguage();
   const { state, computed, actions } = useMarketplaceViewModel();
   const errorMessage =
-    state.error instanceof Error ? state.error.message : "Unable to load channels";
+    state.error instanceof Error ? state.error.message : t("marketplace.loadError");
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -23,7 +25,7 @@ export default function MarketplaceView() {
               className="inline-flex items-center gap-2 rounded-lg bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
             >
               <SlidersHorizontal size={14} />
-              Filters
+              {t("marketplace.filters.title")}
             </button>
           </div>
           <div className="flex items-center gap-2 rounded-2xl border border-border/60 bg-card px-3 py-2">
@@ -31,7 +33,7 @@ export default function MarketplaceView() {
             <input
               value={state.searchQuery}
               onChange={(event) => actions.setSearchQuery(event.target.value)}
-              placeholder="Search channels or @username"
+              placeholder={t("marketplace.filters.searchPlaceholder")}
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
           </div>
@@ -63,7 +65,7 @@ export default function MarketplaceView() {
           {!state.isLoading && state.error && computed.channels.length === 0 ? (
             <ErrorState
               message={errorMessage}
-              description="Please try again when you have a stable connection."
+              description={t("marketplace.loadErrorHint")}
               onRetry={actions.refetch}
             />
           ) : null}
@@ -76,14 +78,14 @@ export default function MarketplaceView() {
                 onClick={actions.refetch}
                 className="mt-3 inline-flex items-center rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-100"
               >
-                Retry
+                {t("common.retry")}
               </button>
             </div>
           ) : null}
 
           {!state.isLoading && !state.error && computed.channels.length === 0 ? (
             <div className="rounded-2xl border border-border/60 bg-card/80 p-6 text-center text-sm text-muted-foreground">
-              No channels found. Try a new search.
+              {t("marketplace.empty.subtitle")}
             </div>
           ) : null}
 
@@ -96,10 +98,12 @@ export default function MarketplaceView() {
                   disabled={state.isLoadingMore}
                   className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-secondary/50 px-4 py-2 text-xs font-semibold text-foreground disabled:opacity-60"
                 >
-                  {state.isLoadingMore ? "Loading more..." : "Load more"}
+                  {state.isLoadingMore ? t("common.loadingMore") : t("common.loadMore")}
                 </button>
               ) : (
-                <span className="text-xs text-muted-foreground">No more channels</span>
+                <span className="text-xs text-muted-foreground">
+                  {t("marketplace.noMoreChannels")}
+                </span>
               )}
             </div>
           ) : null}

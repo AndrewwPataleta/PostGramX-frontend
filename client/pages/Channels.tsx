@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { unlinkChannel } from "@/api/features/channelsApi";
 import { getErrorMessage } from "@/lib/api/errors";
+import { useLanguage } from "@/i18n/LanguageProvider";
 import type {
   ChannelStatus,
   ChannelsListOrder,
@@ -76,6 +77,7 @@ const getAggregatedTags = (listings?: ListingListItem[]) => {
 };
 
 export default function Channels() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"pending" | "verified">("verified");
   const [unlinkTarget, setUnlinkTarget] = useState<ChannelListItem | null>(null);
   const [isUnlinking, setIsUnlinking] = useState(false);
@@ -118,9 +120,9 @@ export default function Channels() {
 
   useEffect(() => {
     if (error) {
-      toast.error(getErrorMessage(error, "Unable to load channels."));
+      toast.error(getErrorMessage(error, t("channels.loadError")));
     }
-  }, [error]);
+  }, [error, t]);
 
   const verifiedChannels = useMemo(
     () => visibleItems.filter((channel) => channel.status === "VERIFIED"),
@@ -134,8 +136,8 @@ export default function Channels() {
   const tabbedChannels = activeTab === "verified" ? verifiedChannels : pendingChannels;
   const emptyCopy =
     activeTab === "pending"
-      ? "No pending channels right now."
-      : "No verified channels yet.";
+      ? t("channels.emptyPending")
+      : t("channels.emptyVerified");
 
   const handleChannelClick = (channel: (typeof items)[number]) => {
     if (channel.status === "PENDING_VERIFY") {
@@ -177,13 +179,13 @@ export default function Channels() {
           next.add(response.channelId);
           return next;
         });
-        toast.success("Channel unlinked.");
+        toast.success(t("channels.unlinkSuccess"));
       } else {
-        toast.error("Unable to unlink channel.");
+        toast.error(t("channels.unlinkError"));
       }
       setUnlinkTarget(null);
     } catch (unlinkError) {
-      toast.error(getErrorMessage(unlinkError, "Unable to unlink channel."));
+      toast.error(getErrorMessage(unlinkError, t("channels.unlinkError")));
     } finally {
       setIsUnlinking(false);
     }
@@ -200,24 +202,26 @@ export default function Channels() {
           </div>
         ) : error ? (
           <ErrorState
-            message={getErrorMessage(error, "Unable to load channels")}
-            description="Please try again in a moment."
+            message={getErrorMessage(error, t("channels.loadError"))}
+            description={t("errors.genericSubtitle")}
             onRetry={() => refetch()}
           />
         ) : visibleItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border/60 bg-card/70 p-8 text-center">
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
-              📡
+              {t("channels.emptyIcon")}
             </div>
-            <p className="text-sm font-semibold text-foreground">No channels yet</p>
+            <p className="text-sm font-semibold text-foreground">
+              {t("channels.emptyTitle")}
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Connect your first Telegram channel to get started.
+              {t("channels.emptySubtitle")}
             </p>
             <Link
               to="/add-channel/step-1"
               className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
             >
-              Add Channel
+              {t("channels.addAction")}
             </Link>
           </div>
         ) : (
@@ -234,7 +238,7 @@ export default function Channels() {
                         : "text-muted-foreground border-b-transparent"
                     }`}
                   >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}{" "}
+                    {tab === "verified" ? t("channels.tabs.verified") : t("channels.tabs.pending")}
                   </button>
                 ))}
               </div>
@@ -301,7 +305,7 @@ export default function Channels() {
         {visibleItems.length > 0 ? (
           <div className="flex flex-col items-center gap-3">
             <p className="text-xs text-muted-foreground">
-              Showing {visibleItems.length} of {total}
+              {t("channels.showingCount", { visible: visibleItems.length, total })}
             </p>
             {hasNextPage ? (
               <button
@@ -313,7 +317,7 @@ export default function Channels() {
                 {isFetchingNextPage ? (
                   <Loader2 size={14} className="animate-spin" />
                 ) : null}
-                {isFetchingNextPage ? "Loading" : "Load more"}
+                {isFetchingNextPage ? t("common.loading") : t("common.loadMore")}
               </button>
             ) : null}
           </div>
@@ -324,7 +328,7 @@ export default function Channels() {
         type="button"
         onClick={() => navigate("/add-channel/step-1")}
         className="fixed bottom-[calc(var(--tg-content-safe-area-inset-bottom)+120px)] right-4 z-40 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
-        aria-label="Add channel"
+        aria-label={t("channels.addAction")}
       >
         <Plus size={18} />
       </button>
@@ -336,10 +340,10 @@ export default function Channels() {
             setUnlinkTarget(null);
           }
         }}
-        title="Открепить канал?"
+        title={t("channels.unlinkTitle")}
       >
         <p className="text-sm text-muted-foreground">
-          Вы хотите открепить канал{" "}
+          {t("channels.unlinkPrompt")}{" "}
           <span className="font-semibold text-foreground">
             @{unlinkTarget?.username}
           </span>
@@ -352,7 +356,7 @@ export default function Channels() {
             className="flex-1 rounded-lg border border-border/60 bg-background px-4 py-2 text-sm font-semibold text-foreground"
             disabled={isUnlinking}
           >
-            Отмена
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -360,7 +364,7 @@ export default function Channels() {
             className="flex-1 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isUnlinking}
           >
-            {isUnlinking ? "Открепляем..." : "Открепить"}
+            {isUnlinking ? t("channels.unlinking") : t("channels.unlinkAction")}
           </button>
         </div>
       </BottomSheet>

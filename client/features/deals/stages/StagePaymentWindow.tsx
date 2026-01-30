@@ -6,6 +6,7 @@ import type { DealListItem } from "@/types/deals";
 import { post } from "@/api/core/apiClient";
 import { getErrorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface StagePaymentWindowProps {
   deal: DealListItem;
@@ -17,7 +18,7 @@ interface StagePaymentWindowProps {
 
 const WINDOW_OPTIONS = [1, 2, 24];
 
-const formatCountdown = (expiresAt?: string | null) => {
+const formatCountdown = (expiresAt: string | null | undefined, t: (key: string) => string) => {
   if (!expiresAt) {
     return null;
   }
@@ -28,11 +29,12 @@ const formatCountdown = (expiresAt?: string | null) => {
   const diff = Math.max(0, expiry - Date.now());
   const hours = Math.floor(diff / 3_600_000);
   const minutes = Math.floor((diff % 3_600_000) / 60_000);
-  return `${hours}h ${minutes}m`;
+  return `${hours}${t("common.hoursShort")} ${minutes}${t("common.minutesShort")}`;
 };
 
 export default function StagePaymentWindow({ deal, readonly, onAction }: StagePaymentWindowProps) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [hours, setHours] = useState<number>(WINDOW_OPTIONS[0]);
 
   const mutation = useMutation({
@@ -47,15 +49,18 @@ export default function StagePaymentWindow({ deal, readonly, onAction }: StagePa
       });
     },
     onSuccess: () => {
-      toast.success("Payment window updated");
+      toast.success(t("deals.stage.paymentWindow.updatedToast"));
       queryClient.invalidateQueries({ queryKey: ["deal", deal.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Unable to set payment window"));
+      toast.error(getErrorMessage(error, t("deals.stage.paymentWindow.saveError")));
     },
   });
 
-  const countdown = useMemo(() => formatCountdown(deal.escrowExpiresAt), [deal.escrowExpiresAt]);
+  const countdown = useMemo(
+    () => formatCountdown(deal.escrowExpiresAt, t),
+    [deal.escrowExpiresAt, t]
+  );
 
   const handleSetWindow = () => {
     if (onAction?.onSetWindow) {
@@ -66,9 +71,9 @@ export default function StagePaymentWindow({ deal, readonly, onAction }: StagePa
   };
 
   return (
-    <InfoCard title="Payment window">
+    <InfoCard title={t("deals.stage.paymentWindow.title")}>
       <p className="text-xs text-muted-foreground">
-        Choose how long the advertiser has to complete payment once approved.
+        {t("deals.stage.paymentWindow.description")}
       </p>
       <div className="flex flex-wrap gap-2">
         {WINDOW_OPTIONS.map((option) => (
@@ -85,7 +90,7 @@ export default function StagePaymentWindow({ deal, readonly, onAction }: StagePa
               readonly && "cursor-not-allowed opacity-60"
             )}
           >
-            {option}h
+            {t("deals.stage.paymentWindow.option", { hours: option })}
           </button>
         ))}
       </div>
@@ -99,10 +104,12 @@ export default function StagePaymentWindow({ deal, readonly, onAction }: StagePa
             readonly || mutation.isPending ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
           )}
         >
-          Set window
+          {t("deals.stage.paymentWindow.confirm")}
         </button>
         {countdown ? (
-          <span className="text-xs text-muted-foreground">Expires in {countdown}</span>
+          <span className="text-xs text-muted-foreground">
+            {t("deals.stage.paymentWindow.expiresIn", { time: countdown })}
+          </span>
         ) : null}
       </div>
     </InfoCard>

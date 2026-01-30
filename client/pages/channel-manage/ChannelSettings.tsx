@@ -3,9 +3,11 @@ import { useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 import { updateChannelDisabledStatus } from "@/api/features/channelsApi";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const ChannelSettings = () => {
   const { channel } = useOutletContext<ChannelManageContext>();
+  const { t } = useLanguage();
   const [isDisabled, setIsDisabled] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -15,9 +17,9 @@ const ChannelSettings = () => {
     try {
       await updateChannelDisabledStatus({ id: channel.id, disabled: nextValue });
       setIsDisabled(nextValue);
-      toast.success(nextValue ? "Канал приостановлен." : "Канал снова активен.");
+      toast.success(nextValue ? t("channels.settings.disabledToast") : t("channels.settings.enabledToast"));
     } catch (error) {
-      toast.error("Не удалось обновить статус канала.");
+      toast.error(t("channels.settings.updateError"));
     } finally {
       setIsUpdating(false);
     }
@@ -26,8 +28,8 @@ const ChannelSettings = () => {
   return (
     <div className="space-y-2">
       <button className="w-full glass p-4 rounded-lg flex items-center justify-between hover:bg-card/60 transition-colors text-left">
-        <span className="text-foreground font-medium">Manage channel managers</span>
-        <span className="text-muted-foreground">→</span>
+        <span className="text-foreground font-medium">{t("channels.settings.manageManagers")}</span>
+        <span className="text-muted-foreground">{t("common.arrowSymbol")}</span>
       </button>
       <div className="glass rounded-lg p-4 space-y-2">
         <button
@@ -37,18 +39,18 @@ const ChannelSettings = () => {
           className="w-full flex items-center justify-between text-left hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-70"
         >
           <span className="text-foreground font-medium">
-            {isDisabled ? "Возобновить канал" : "Приостановить канал"}
+            {isDisabled ? t("channels.settings.resumeChannel") : t("channels.settings.pauseChannel")}
           </span>
-          <span className="text-muted-foreground">→</span>
+          <span className="text-muted-foreground">{t("common.arrowSymbol")}</span>
         </button>
         <p className="text-xs text-muted-foreground">
-          С помощью неё рекламодатели вас не найдут.
+          {t("channels.settings.pauseHint")}
         </p>
       </div>
 
       <button className="w-full glass p-4 rounded-lg flex items-center justify-between hover:bg-destructive/20 transition-colors text-left mt-4">
-        <span className="text-destructive font-medium">Remove channel</span>
-        <span className="text-destructive">→</span>
+        <span className="text-destructive font-medium">{t("channels.settings.removeChannel")}</span>
+        <span className="text-destructive">{t("common.arrowSymbol")}</span>
       </button>
     </div>
   );

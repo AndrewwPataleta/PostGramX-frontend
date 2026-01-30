@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { canNavigateTo, stageToLabel, type DealStageId } from "@/features/deals/dealStageMachine";
 import type { EscrowStatus } from "@/types/deals";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface StageTimelineProps {
   stages: DealStageId[];
@@ -16,6 +17,7 @@ export default function StageTimeline({
   escrowStatus,
   onSelect,
 }: StageTimelineProps) {
+  const { t } = useLanguage();
   const currentIndex = stages.indexOf(selectedStage);
   const previousStage = currentIndex > 0 ? stages[currentIndex - 1] : null;
   const nextStage = currentIndex >= 0 && currentIndex < stages.length - 1 ? stages[currentIndex + 1] : null;
@@ -24,8 +26,10 @@ export default function StageTimeline({
   return (
     <div className="rounded-2xl border border-border/50 bg-card/80 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-foreground">Timeline</p>
-        <span className="text-xs text-muted-foreground">{stages.length} steps</span>
+        <p className="text-sm font-semibold text-foreground">{t("deals.timeline.title")}</p>
+        <span className="text-xs text-muted-foreground">
+          {t("deals.timeline.steps", { count: stages.length })}
+        </span>
       </div>
       <div className="mt-3 flex items-center gap-2">
         <button
@@ -36,7 +40,7 @@ export default function StageTimeline({
             "flex h-9 w-9 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition",
             previousStage && isInteractive ? "hover:text-foreground" : "cursor-not-allowed opacity-40"
           )}
-          aria-label="Previous stage"
+          aria-label={t("deals.timeline.previousStage")}
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -60,7 +64,7 @@ export default function StageTimeline({
                     : "hover:border-primary/40 hover:text-foreground"
                 )}
               >
-                {stageToLabel(stage)}
+                {stageToLabel(stage, t)}
               </button>
             );
           })}
@@ -73,7 +77,7 @@ export default function StageTimeline({
             "flex h-9 w-9 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition",
             nextStage && isInteractive ? "hover:text-foreground" : "cursor-not-allowed opacity-40"
           )}
-          aria-label="Next stage"
+          aria-label={t("deals.timeline.nextStage")}
         >
           <ChevronRight className="h-4 w-4" />
         </button>

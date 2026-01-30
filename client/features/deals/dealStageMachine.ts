@@ -1,4 +1,5 @@
 import type { EscrowStatus } from "@/types/deals";
+import type { TranslationKey } from "@/i18n/translations";
 
 export type DealStageId =
   | "SCHEDULE"
@@ -42,36 +43,6 @@ const escrowToStage: Record<EscrowStatus, DealStageId> = {
   DISPUTED: "DONE",
 };
 
-const stageLabels: Record<DealStageId, string> = {
-  SCHEDULE: "Schedule time",
-  SEND_POST: "Send post",
-  CONFIRM_POST: "Confirm post",
-  ADMIN_APPROVAL: "Admin approval",
-  PAYMENT_WINDOW: "Payment window",
-  PAYMENT: "Payment",
-  PAYMENT_PENDING: "Payment pending",
-  SCHEDULED: "Scheduled",
-  VERIFYING: "Verifying",
-  DONE: "Done",
-};
-
-const escrowLabels: Record<EscrowStatus, string> = {
-  SCHEDULING_PENDING: "Scheduling pending",
-  CREATIVE_AWAITING_SUBMIT: "Creative awaiting submit",
-  CREATIVE_AWAITING_CONFIRM: "Creative awaiting confirm",
-  ADMIN_REVIEW: "Admin review",
-  PAYMENT_WINDOW_PENDING: "Payment window pending",
-  PAYMENT_AWAITING: "Payment awaiting",
-  FUNDS_PENDING: "Funds pending",
-  FUNDS_CONFIRMED: "Funds confirmed",
-  APPROVED_SCHEDULED: "Approved & scheduled",
-  POSTED_VERIFYING: "Posted verifying",
-  COMPLETED: "Completed",
-  CANCELED: "Canceled",
-  REFUNDED: "Refunded",
-  DISPUTED: "Disputed",
-};
-
 export const getCurrentStage = (escrowStatus: EscrowStatus): DealStageId =>
   escrowToStage[escrowStatus] ?? "SCHEDULE";
 
@@ -84,10 +55,13 @@ export const getAvailableStages = (escrowStatus: EscrowStatus): DealStageId[] =>
   return stageOrder.slice(0, currentIndex + 1);
 };
 
-export const stageToLabel = (stage: DealStageId) => stageLabels[stage] ?? stage;
+export const stageToLabel = (stage: DealStageId, t: (key: TranslationKey) => string) =>
+  t(`deals.timeline.stage.${stage}` as TranslationKey);
 
-export const escrowStatusToLabel = (escrowStatus: EscrowStatus) =>
-  escrowLabels[escrowStatus] ?? escrowStatus.replace(/_/g, " ");
+export const escrowStatusToLabel = (
+  escrowStatus: EscrowStatus,
+  t: (key: TranslationKey) => string
+) => t(`deals.escrowStatus.${escrowStatus}` as TranslationKey);
 
 export const canNavigateTo = (stage: DealStageId, escrowStatus: EscrowStatus) => {
   const currentStage = getCurrentStage(escrowStatus);

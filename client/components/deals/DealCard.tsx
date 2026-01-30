@@ -1,4 +1,5 @@
 import DealStatusPill, { DealStatusTone } from "./DealStatusPill";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface DealCardProps {
   name: string;
@@ -25,6 +26,7 @@ export default function DealCard({
   onSelect,
   onAction,
 }: DealCardProps) {
+  const { t } = useLanguage();
   return (
     <div
       className={`glass p-4 transition-colors ${
@@ -64,7 +66,7 @@ export default function DealCard({
 
       <div className="mt-4 flex items-center justify-between">
         <div>
-          <p className="text-xs text-muted-foreground">Price</p>
+          <p className="text-xs text-muted-foreground">{t("common.price")}</p>
           <p className="text-sm font-semibold text-foreground">{price}</p>
         </div>
         <p className="text-xs text-muted-foreground">{updatedLabel}</p>

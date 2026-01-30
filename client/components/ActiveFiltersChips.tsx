@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { FilterState } from "./FilterModal";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface ActiveFiltersChipsProps {
   filters: FilterState;
@@ -10,6 +11,7 @@ export const ActiveFiltersChips = ({
   filters,
   onRemoveFilter,
 }: ActiveFiltersChipsProps) => {
+  const { t } = useLanguage();
   const hasActiveFilters =
     filters.priceRange[0] > 0 ||
     filters.priceRange[1] < 10 ||
@@ -30,7 +32,8 @@ export const ActiveFiltersChips = ({
             onClick={() => onRemoveFilter("priceRange")}
             className="inline-flex items-center gap-1.5 bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
           >
-            Price: {filters.priceRange[0].toFixed(1)}-{filters.priceRange[1].toFixed(1)} TON
+            {t("marketplace.filters.active.price")}: {filters.priceRange[0].toFixed(1)}-
+            {filters.priceRange[1].toFixed(1)} {t("common.ton")}
             <X size={14} />
           </button>
         ) : null}
@@ -41,7 +44,8 @@ export const ActiveFiltersChips = ({
             onClick={() => onRemoveFilter("subscribersRange")}
             className="inline-flex items-center gap-1.5 bg-accent/20 hover:bg-accent/30 text-accent px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
           >
-            Subs: {(filters.subscribersRange[0] / 1000).toFixed(0)}K-
+            {t("marketplace.filters.active.subscribers")}:{" "}
+            {(filters.subscribersRange[0] / 1000).toFixed(0)}K-
             {(filters.subscribersRange[1] / 1000).toFixed(0)}K
             <X size={14} />
           </button>
@@ -52,7 +56,7 @@ export const ActiveFiltersChips = ({
             onClick={() => onRemoveFilter("verifiedOnly")}
             className="inline-flex items-center gap-1.5 bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
           >
-            Verified Only
+            {t("marketplace.filters.verifiedOnly")}
             <X size={14} />
           </button>
         ) : null}

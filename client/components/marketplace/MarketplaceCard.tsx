@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/i18n/LanguageProvider";
+import { formatNumber } from "@/i18n/formatters";
 import type { ChannelCard } from "@/types/marketplace";
 
 interface MarketplaceCardProps {
@@ -6,10 +8,11 @@ interface MarketplaceCardProps {
 }
 
 export function MarketplaceCard({ channel }: MarketplaceCardProps) {
+  const { t, language } = useLanguage();
   const username = channel.username ? `@${channel.username}` : null;
   const subscribers =
     typeof channel.subscribers === "number"
-      ? channel.subscribers.toLocaleString()
+      ? formatNumber(channel.subscribers, language)
       : null;
 
   return (
@@ -42,16 +45,22 @@ export function MarketplaceCard({ channel }: MarketplaceCardProps) {
         </div>
         <div className="text-right flex-shrink-0">
           <p className="font-semibold text-primary text-sm">
-            From {channel.priceFromTon ?? "--"} TON
+            {t("common.from")} {channel.priceFromTon ?? t("common.emptyValue")} {t("common.ton")}
           </p>
-          <p className="text-xs text-muted-foreground">per post</p>
+          <p className="text-xs text-muted-foreground">{t("listings.perPost")}</p>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-muted-foreground">
-        {subscribers ? <span>{subscribers} subscribers</span> : null}
+        {subscribers ? (
+          <span>
+            {subscribers} {t("marketplace.subscribers")}
+          </span>
+        ) : null}
         {subscribers ? <span>·</span> : null}
-        <span>{channel.placementsCount ?? 0} placements</span>
+        <span>
+          {channel.placementsCount ?? 0} {t("marketplace.placements")}
+        </span>
       </div>
 
       {channel.description ? (
@@ -62,7 +71,7 @@ export function MarketplaceCard({ channel }: MarketplaceCardProps) {
 
       {/* View Button */}
       <button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition-colors text-sm">
-        View Details
+        {t("common.viewDetails")}
       </button>
     </Link>
   );

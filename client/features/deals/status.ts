@@ -1,4 +1,5 @@
 import type { Deal, DealStatus } from "./types";
+import type { TranslationKey } from "@/i18n/translations";
 
 export type DealStage =
   | "REQUESTED"
@@ -16,100 +17,100 @@ export type DealStage =
 export type DealCategory = "active" | "pending" | "completed";
 
 export interface DealStagePresentation {
-  label: string;
-  description: string;
-  ctaLabel: string;
-  listAction: string;
+  label: TranslationKey;
+  description: TranslationKey;
+  ctaLabel: TranslationKey;
+  listAction: TranslationKey;
   category: DealCategory;
   tone: "primary" | "warning" | "info" | "success" | "neutral" | "danger";
 }
 
 const stagePresentation: Record<DealStage, DealStagePresentation> = {
   REQUESTED: {
-    label: "Request sent",
-    description: "Your request is with the channel owner. We'll notify you via bot once accepted.",
-    ctaLabel: "View request",
-    listAction: "View",
+    label: "deals.stage.requested.label",
+    description: "deals.stage.requested.description",
+    ctaLabel: "deals.stage.requested.cta",
+    listAction: "common.view",
     category: "pending",
     tone: "neutral",
   },
   PAYMENT_REQUIRED: {
-    label: "Payment required",
-    description: "Escrow keeps funds safe until the post is verified.",
-    ctaLabel: "Pay escrow",
-    listAction: "Pay Now",
+    label: "deals.stage.paymentRequired.label",
+    description: "deals.stage.paymentRequired.description",
+    ctaLabel: "deals.stage.paymentRequired.cta",
+    listAction: "deals.stage.paymentRequired.listAction",
     category: "pending",
     tone: "warning",
   },
   PAYMENT_CONFIRMING: {
-    label: "Payment confirming",
-    description: "We're confirming your TON transfer. This usually takes a minute.",
-    ctaLabel: "View payment",
-    listAction: "View",
+    label: "deals.stage.paymentConfirming.label",
+    description: "deals.stage.paymentConfirming.description",
+    ctaLabel: "deals.stage.paymentConfirming.cta",
+    listAction: "common.view",
     category: "pending",
     tone: "info",
   },
   FUNDS_LOCKED: {
-    label: "Funds locked",
-    description: "Funds are secured in escrow while the channel drafts your creative.",
-    ctaLabel: "Message via bot",
-    listAction: "View",
+    label: "deals.stage.fundsLocked.label",
+    description: "deals.stage.fundsLocked.description",
+    ctaLabel: "deals.stage.fundsLocked.cta",
+    listAction: "common.view",
     category: "active",
     tone: "info",
   },
   CREATIVE_DRAFTING: {
-    label: "Creative drafting",
-    description: "The channel owner is preparing the creative draft for your review.",
-    ctaLabel: "Message via bot",
-    listAction: "View",
+    label: "deals.stage.creativeDrafting.label",
+    description: "deals.stage.creativeDrafting.description",
+    ctaLabel: "deals.stage.creativeDrafting.cta",
+    listAction: "common.view",
     category: "active",
     tone: "info",
   },
   CREATIVE_REVIEW: {
-    label: "Creative review",
-    description: "Review the draft and approve to schedule delivery.",
-    ctaLabel: "Review creative",
-    listAction: "Review",
+    label: "deals.stage.creativeReview.label",
+    description: "deals.stage.creativeReview.description",
+    ctaLabel: "deals.stage.creativeReview.cta",
+    listAction: "deals.stage.creativeReview.listAction",
     category: "active",
     tone: "primary",
   },
   CREATIVE_APPROVED: {
-    label: "Creative approved",
-    description: "Creative approved. Waiting for channel to schedule the post.",
-    ctaLabel: "View status",
-    listAction: "View",
+    label: "deals.stage.creativeApproved.label",
+    description: "deals.stage.creativeApproved.description",
+    ctaLabel: "deals.stage.creativeApproved.cta",
+    listAction: "common.view",
     category: "active",
     tone: "info",
   },
   SCHEDULED: {
-    label: "Scheduled",
-    description: "The post is scheduled and queued for delivery.",
-    ctaLabel: "View schedule",
-    listAction: "View",
+    label: "deals.stage.scheduled.label",
+    description: "deals.stage.scheduled.description",
+    ctaLabel: "deals.stage.scheduled.cta",
+    listAction: "common.view",
     category: "active",
     tone: "info",
   },
   VERIFYING: {
-    label: "Posted · verifying",
-    description: "Post is live. Verification checks will release escrow automatically.",
-    ctaLabel: "View post",
-    listAction: "View Post",
+    label: "deals.stage.verifying.label",
+    description: "deals.stage.verifying.description",
+    ctaLabel: "deals.stage.verifying.cta",
+    listAction: "deals.stage.verifying.listAction",
     category: "active",
     tone: "primary",
   },
   RELEASED: {
-    label: "Released",
-    description: "Post verified. Escrow released to the channel owner.",
-    ctaLabel: "View receipt",
-    listAction: "Receipt",
+    label: "deals.stage.released.label",
+    description: "deals.stage.released.description",
+    ctaLabel: "deals.stage.released.cta",
+    listAction: "deals.stage.released.listAction",
     category: "completed",
     tone: "success",
   },
   REFUNDED: {
-    label: "Refunded",
-    description: "Verification failed or the deal was cancelled. Funds returned.",
-    ctaLabel: "View receipt",
-    listAction: "Receipt",
+    label: "deals.stage.refunded.label",
+    description: "deals.stage.refunded.description",
+    ctaLabel: "deals.stage.refunded.cta",
+    listAction: "deals.stage.refunded.listAction",
     category: "completed",
     tone: "danger",
   },
@@ -163,7 +164,14 @@ export const getDealPresentation = (deal: Deal): DealStagePresentation => {
   return stagePresentation[stage];
 };
 
-export const timelineSteps = ["Accepted", "Payment", "Creative", "Scheduled", "Posted", "Released"] as const;
+export const timelineSteps: TranslationKey[] = [
+  "deals.timeline.step.accepted",
+  "deals.timeline.step.payment",
+  "deals.timeline.step.creative",
+  "deals.timeline.step.scheduled",
+  "deals.timeline.step.posted",
+  "deals.timeline.step.released",
+] as const;
 
 const stageToTimelineIndex: Record<DealStage, number> = {
   REQUESTED: 0,
@@ -179,18 +187,19 @@ const stageToTimelineIndex: Record<DealStage, number> = {
   REFUNDED: 5,
 };
 
-export const getTimelineItems = (deal: Deal) => {
+export const getTimelineItems = (deal: Deal, t: (key: TranslationKey) => string) => {
   const stage = getDealStage(deal);
   const currentIndex = stageToTimelineIndex[stage];
 
   return timelineSteps.map((label, index) => {
+    const resolvedLabel = t(label);
     if (index < currentIndex) {
-      return { label, state: "completed" as const };
+      return { label: resolvedLabel, state: "completed" as const };
     }
     if (index === currentIndex) {
-      return { label, state: "current" as const };
+      return { label: resolvedLabel, state: "current" as const };
     }
-    return { label, state: "upcoming" as const };
+    return { label: resolvedLabel, state: "upcoming" as const };
   });
 };
 

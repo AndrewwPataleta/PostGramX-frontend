@@ -2,32 +2,33 @@ import { useCallback, useEffect, useMemo } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
 import { getTelegramWebApp } from "@/lib/telegram";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const mainNavPaths = ["/marketplace", "/deals", "/channels", "/profile"];
 
 const titleMatchers = [
-  { path: "/marketplace/channels/:channelId/request", title: "Request placement" },
-  { path: "/marketplace/channels/:channelId", title: "Channel" },
-  { path: "/channels/:channelId", title: "Channel" },
-  { path: "/marketplace", title: "Marketplace" },
-  { path: "/deals/create/:listingId", title: "Schedule ad post" },
-  { path: "/deals/predeal/:id", title: "Pre-deal status" },
-  { path: "/deals/:dealId", title: "Deal" },
-  { path: "/deals", title: "Deals" },
-  { path: "/channel-manage/:id/listings/create", title: "Create listing" },
-  { path: "/channel-manage/:id/listings/preview", title: "Listing preview" },
-  { path: "/channel-manage/:id/listings/:listingId/edit", title: "Edit listing" },
-  { path: "/channel-manage/:id/listings/success", title: "Listing published" },
-  { path: "/channel-manage/:id/listings", title: "Listings" },
-  { path: "/channel-manage/:id/settings", title: "Settings" },
-  { path: "/add-channel", title: "Add channel" },
-  { path: "/add-channel/step-1", title: "Add channel" },
-  { path: "/add-channel/step-2", title: "Add channel" },
-  { path: "/add-channel/step-3", title: "Add channel" },
-  { path: "/channels", title: "My Channels" },
-  { path: "/escrow/:dealId", title: "Secure payment" },
-  { path: "/funds-locked", title: "Funds locked" },
-  { path: "/profile", title: "Profile" },
+  { path: "/marketplace/channels/:channelId/request", key: "marketplace.requestPlacement" },
+  { path: "/marketplace/channels/:channelId", key: "marketplace.channelTitle" },
+  { path: "/channels/:channelId", key: "marketplace.channelTitle" },
+  { path: "/marketplace", key: "marketplace.title" },
+  { path: "/deals/create/:listingId", key: "deals.scheduleTitle" },
+  { path: "/deals/predeal/:id", key: "deals.preDealTitle" },
+  { path: "/deals/:dealId", key: "deals.detailTitle" },
+  { path: "/deals", key: "deals.title" },
+  { path: "/channel-manage/:id/listings/create", key: "listings.createTitle" },
+  { path: "/channel-manage/:id/listings/preview", key: "listings.previewTitle" },
+  { path: "/channel-manage/:id/listings/:listingId/edit", key: "listings.editTitle" },
+  { path: "/channel-manage/:id/listings/success", key: "listings.publishedTitle" },
+  { path: "/channel-manage/:id/listings", key: "listings.title" },
+  { path: "/channel-manage/:id/settings", key: "channels.settingsTitle" },
+  { path: "/add-channel", key: "channels.add.title" },
+  { path: "/add-channel/step-1", key: "channels.add.title" },
+  { path: "/add-channel/step-2", key: "channels.add.title" },
+  { path: "/add-channel/step-3", key: "channels.add.title" },
+  { path: "/channels", key: "channels.title" },
+  { path: "/escrow/:dealId", key: "deals.securePaymentTitle" },
+  { path: "/funds-locked", key: "deals.fundsLockedTitle" },
+  { path: "/profile", key: "profile.title" },
 ];
 
 const actionCloseMatchers = [
@@ -60,17 +61,18 @@ const getFallbackPath = (pathname: string) => {
 const TopToolbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const pathname = location.pathname;
   const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
 
   const title = useMemo(() => {
     for (const matcher of titleMatchers) {
       if (matchPath({ path: matcher.path, end: true }, pathname)) {
-        return matcher.title;
+        return t(matcher.key);
       }
     }
-    return "PostgramX";
-  }, [pathname]);
+    return t("common.appName");
+  }, [pathname, t]);
 
   const isMainNavRoute = mainNavPaths.includes(pathname);
   const showBack = !isMainNavRoute;
@@ -129,7 +131,7 @@ const TopToolbar = () => {
               type="button"
               onClick={handleBack}
               className="inline-flex items-center justify-center rounded-full p-1 text-foreground transition-colors hover:bg-secondary/50"
-              aria-label="Go back"
+              aria-label={t("common.back")}
             >
               <ArrowLeft size={20} />
             </button>
@@ -141,7 +143,7 @@ const TopToolbar = () => {
             type="button"
             onClick={handleClose}
             className="inline-flex items-center justify-center rounded-full p-1 text-foreground transition-colors hover:bg-secondary/50"
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             <X size={18} />
           </button>

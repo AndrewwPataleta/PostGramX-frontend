@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import ChannelCard, { type ChannelCardModel } from "@/components/channels/ChannelCard";
 import type { ChannelListItem } from "@/types/channels";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface MyChannelsChannelCardProps {
   channel: ChannelListItem;
@@ -30,10 +31,11 @@ export default function MyChannelsChannelCard({
   createListingTo,
   createListingState,
 }: MyChannelsChannelCardProps) {
+  const { t } = useLanguage();
   const cardModel = useMemo<ChannelCardModel>(
     () => ({
       id: channel.id,
-      name: channel.title || "Untitled channel",
+      name: channel.title || t("channels.untitled"),
       username: channel.username,
       avatarUrl: channel.avatarUrl ?? null,
       subscribers: channel.memberCount ?? null,
@@ -42,7 +44,7 @@ export default function MyChannelsChannelCard({
       tags: tags ?? [],
       isMine: true,
     }),
-    [channel, placementsCount, minPriceNano, tags]
+    [channel, placementsCount, minPriceNano, tags, t]
   );
 
   return (
@@ -62,9 +64,9 @@ export default function MyChannelsChannelCard({
                 onUnlink();
               }}
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-background/70 text-muted-foreground transition hover:text-foreground"
-              aria-label="Unlink channel"
+              aria-label={t("channels.unlinkAction")}
             >
-              ×
+              {t("common.closeSymbol")}
             </button>
           ) : null}
           <Link
@@ -73,7 +75,7 @@ export default function MyChannelsChannelCard({
             onClick={(event) => event.stopPropagation()}
             className="rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground"
           >
-            Create listing
+            {t("listings.createAction")}
           </Link>
         </div>
       }

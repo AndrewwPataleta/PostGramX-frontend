@@ -6,29 +6,14 @@ import { listingsByChannel } from "@/api/features/listingsApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getErrorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
+import { formatTon } from "@/i18n/formatters";
+import { getPinnedDurationLabel, getVisibilityDurationLabel } from "@/i18n/labels";
+import { useLanguage } from "@/i18n/LanguageProvider";
+import { getListingTagLabel } from "@/features/listings/tagOptions";
 import type { ListingListItem, ListingsByChannelResponse } from "@/types/listings";
 
 const PREVIEW_LIMIT = 5;
 const PREVIEW_COUNT = 3;
-const TON_NANO = 1_000_000_000n;
-
-const formatTon = (priceNano: string) => {
-  try {
-    const nano = BigInt(priceNano);
-    const whole = nano / TON_NANO;
-    const fraction = nano % TON_NANO;
-    if (fraction === 0n) {
-      return `${whole.toString()} TON`;
-    }
-    const fractionString = fraction.toString().padStart(9, "0");
-    const trimmed = fractionString.slice(0, 2).replace(/0+$/, "");
-    const display = trimmed ? `${whole.toString()}.${trimmed}` : whole.toString();
-    return `${display} TON`;
-  } catch {
-    return `${priceNano} TON`;
-  }
-};
-
 const buildTags = (tags: string[]) => {
   const shown = tags.slice(0, 2);
   const remaining = tags.length - shown.length;
@@ -49,10 +34,11 @@ interface ListingPreviewRowProps {
 
 const ListingPreviewRow = memo(
   ({ channelId, listing, rootBackTo, mode }: ListingPreviewRowProps) => {
+  const { t, language } = useLanguage();
   const pinLabel = listing.pinDurationHours
-    ? `Pinned ${listing.pinDurationHours}h`
-    : "No pin";
-  const visibilityLabel = `Visible ${listing.visibilityDurationHours}h`;
+    ? getPinnedDurationLabel(t, listing.pinDurationHours)
+    : t("listings.meta.notPinned");
+  const visibilityLabel = getVisibilityDurationLabel(t, listing.visibilityDurationHours);
   const tags = buildTags(listing.tags ?? []);
   const isInactive = listing.isActive === false;
 
@@ -65,7 +51,7 @@ const ListingPreviewRow = memo(
     >
       <div className="flex-1 space-y-1">
         <div className="text-sm font-semibold text-foreground">
-          {formatTon(listing.priceNano)}
+          {formatTon(listing.priceNano, language)} {t("common.ton")}
         </div>
         <div className="text-[11px] text-muted-foreground">
           {pinLabel} • {visibilityLabel}
@@ -77,7 +63,7 @@ const ListingPreviewRow = memo(
                 key={tag}
                 className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground"
               >
-                {tag}
+                {getListingTagLabel(tag, t)}
               </span>
             ))}
             {tags.remaining > 0 ? (
@@ -94,7 +80,7 @@ const ListingPreviewRow = memo(
           to={`/channel-manage/${channelId}/listings/${listing.id}/edit`}
           state={rootBackTo ? { rootBackTo } : undefined}
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground transition hover:text-foreground"
-          aria-label="Edit listing"
+          aria-label={t("listings.editAction")}
         >
           <PencilLine size={14} />
         </Link>
@@ -115,6 +101,7 @@ interface ChannelListingsPreviewProps {
 const ChannelListingsPreview = memo(
   ({ channelId, isExpanded, onSummaryChange, mode = "owner" }: ChannelListingsPreviewProps) => {
   const location = useLocation();
+  const { t } = useLanguage();
   const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
   const query = useQuery<ListingsByChannelResponse>({
     queryKey: ["channelListingsPreview", channelId],
@@ -178,14 +165,14 @@ const ChannelListingsPreview = memo(
         </div>
       ) : query.isError ? (
         <div className="rounded-xl border border-border/60 bg-red-500/5 px-4 py-3 text-xs text-red-200">
-          <p>{getErrorMessage(query.error, "Unable to load placements.")}</p>
+          <p>{getErrorMessage(query.error, t("marketplace.listingsLoadFailed"))}</p>
           <button
             type="button"
             onClick={() => query.refetch()}
             className="mt-2 inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1 text-[11px] font-semibold text-red-200"
           >
             <RefreshCcw size={12} />
-            Retry
+            {t("common.retry")}
           </button>
         </div>
       ) : previewItems.length > 0 ? (
@@ -202,9 +189,11 @@ const ChannelListingsPreview = memo(
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-border/60 bg-background/50 px-4 py-4 text-center">
-          <p className="text-xs font-semibold text-foreground">No placements yet</p>
+          <p className="text-xs font-semibold text-foreground">
+            {t("channels.emptyListingsTitle")}
+          </p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Create your first listing to start earning.
+            {t("channels.emptyListingsSubtitle")}
           </p>
         </div>
       )}
