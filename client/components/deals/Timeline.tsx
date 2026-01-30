@@ -1,3 +1,5 @@
+import { useLanguage } from "@/i18n/LanguageProvider";
+
 export interface TimelineItem {
   label: string;
   state: "completed" | "current" | "upcoming";
@@ -8,11 +10,14 @@ interface TimelineProps {
 }
 
 export default function Timeline({ items }: TimelineProps) {
+  const { t } = useLanguage();
   return (
     <div className="rounded-2xl border border-border/50 bg-card/80 p-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-foreground">Timeline</p>
-        <span className="text-xs text-muted-foreground">{items.length} steps</span>
+        <p className="text-sm font-semibold text-foreground">{t("deals.timeline.title")}</p>
+        <span className="text-xs text-muted-foreground">
+          {t("deals.timeline.steps", { count: items.length })}
+        </span>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1">
         {items.map((item) => (
@@ -35,7 +40,11 @@ export default function Timeline({ items }: TimelineProps) {
                   : "border border-border/70 text-muted-foreground"
               }`}
             >
-              {item.state === "completed" ? "✓" : item.state === "current" ? "•" : ""}
+              {item.state === "completed"
+                ? t("common.checkSymbol")
+                : item.state === "current"
+                ? t("common.dotSymbol")
+                : ""}
             </div>
             <p className="text-xs font-medium">{item.label}</p>
           </div>

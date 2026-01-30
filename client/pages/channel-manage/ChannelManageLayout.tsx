@@ -10,14 +10,16 @@ import {
 import { managedChannelData, type ManagedChannel } from "@/features/channels/managedChannels";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { ChannelListItem } from "@/types/channels";
+import { formatNumber } from "@/i18n/formatters";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export type ChannelManageContext = {
   channel: ManagedChannel;
 };
 
-const mapChannelFromListItem = (channel: ChannelListItem): ManagedChannel => ({
+const mapChannelFromListItem = (channel: ChannelListItem, untitledLabel: string): ManagedChannel => ({
   id: channel.id,
-  name: channel.title || "Untitled channel",
+  name: channel.title || untitledLabel,
   username: channel.username.startsWith("@") ? channel.username : `@${channel.username}`,
   avatar: "📣",
   status: channel.status,
@@ -31,6 +33,7 @@ const ChannelManageLayout = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const { mutateAsync, isPending } = useVerifyChannel();
   const [inlineError, setInlineError] = useState<string | null>(null);
   const fallbackListItem = useMemo(() => {
@@ -39,8 +42,8 @@ const ChannelManageLayout = () => {
   }, [location.state]);
   const rootBackTo = (location.state as { rootBackTo?: string } | null)?.rootBackTo;
   const fallbackChannel = useMemo(
-    () => (fallbackListItem ? mapChannelFromListItem(fallbackListItem) : null),
-    [fallbackListItem],
+    () => (fallbackListItem ? mapChannelFromListItem(fallbackListItem, t("channels.untitled")) : null),
+    [fallbackListItem, t],
   );
   const [channel, setChannel] = useState<ManagedChannel | null>(() => {
     if (!id) {
@@ -71,7 +74,7 @@ const ChannelManageLayout = () => {
     return (
       <div className="w-full max-w-2xl mx-auto">
         <PageContainer className="py-6">
-          <p className="text-muted-foreground">Channel not found</p>
+          <p className="text-muted-foreground">{t("channels.notFound")}</p>
         </PageContainer>
       </div>
     );
@@ -102,13 +105,13 @@ const ChannelManageLayout = () => {
 
       const message = getVerifyResponseErrorMessage(
         response,
-        "Verification failed. Please check your bot permissions and retry.",
+        t("channels.verifyFailed")
       );
       setInlineError(message);
     } catch (error) {
       const message = getVerifyErrorMessage(
         error,
-        "Unable to verify the channel right now.",
+        t("channels.verifyUnavailable")
       );
       setInlineError(message);
       toast.error(message);
@@ -127,7 +130,7 @@ const ChannelManageLayout = () => {
         <div className="py-6 bg-gradient-to-b from-card/50 to-transparent">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center text-4xl flex-shrink-0">
-            {channel.avatar}
+            {channel.avatar || t("channels.avatarFallback")}
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -135,7 +138,7 @@ const ChannelManageLayout = () => {
             </div>
             <p className="text-sm text-muted-foreground mb-2">{channel.username}</p>
             <p className="text-xs text-muted-foreground">
-              {channel.subscribers.toLocaleString()} subscribers
+              {formatNumber(channel.subscribers, language)} {t("marketplace.subscribers")}
             </p>
           </div>
         </div>
@@ -143,9 +146,9 @@ const ChannelManageLayout = () => {
           <div className="rounded-2xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-xs text-yellow-100">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="font-semibold text-yellow-100">Channel not verified yet.</p>
+                <p className="font-semibold text-yellow-100">{t("channels.pendingVerificationTitle")}</p>
                 <p className="text-yellow-100/80">
-                  Add the bot as admin and enable “Post messages”, then retry verification.
+                  {t("channels.pendingVerificationSubtitle")}
                 </p>
               </div>
               <button
@@ -159,7 +162,7 @@ const ChannelManageLayout = () => {
                 ) : (
                   <RefreshCw size={14} />
                 )}
-                Retry verification
+                {t("channels.retryVerification")}
               </button>
             </div>
             {inlineError ? (
@@ -171,28 +174,29 @@ const ChannelManageLayout = () => {
 
       <div className="border-b border-border/50 bg-card/80 backdrop-blur-glass">
         <div className="flex gap-6">
-          {[{ id: "listings", label: "Listings" }, { id: "settings", label: "Settings" }].map(
-            (tab) => (
-              <NavLink
-                key={tab.id}
-                to={`${basePath}/${tab.id}`}
-                state={
-                  fallbackListItem || rootBackTo
-                    ? { channel: fallbackListItem ?? undefined, rootBackTo }
-                    : undefined
-                }
-                className={({ isActive }) =>
-                  `py-3 font-medium text-sm border-b-2 transition-colors ${
-                    isActive
-                      ? "text-primary border-b-primary"
-                      : "text-muted-foreground border-b-transparent hover:text-foreground"
-                  }`
-                }
-              >
-                {tab.label}
-              </NavLink>
-            ),
-          )}
+          {[
+            { id: "listings", label: t("listings.title") },
+            { id: "settings", label: t("channels.settingsTitle") },
+          ].map((tab) => (
+            <NavLink
+              key={tab.id}
+              to={`${basePath}/${tab.id}`}
+              state={
+                fallbackListItem || rootBackTo
+                  ? { channel: fallbackListItem ?? undefined, rootBackTo }
+                  : undefined
+              }
+              className={({ isActive }) =>
+                `py-3 font-medium text-sm border-b-2 transition-colors ${
+                  isActive
+                    ? "text-primary border-b-primary"
+                    : "text-muted-foreground border-b-transparent hover:text-foreground"
+                }`
+              }
+            >
+              {tab.label}
+            </NavLink>
+          ))}
         </div>
       </div>
 

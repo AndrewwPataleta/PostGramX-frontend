@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
-import { formatTonString, nanoToTonString } from "@/lib/ton";
 import type { Listing } from "@/features/listings/types";
 import type { ListingListItem } from "@/types/listings";
+import { formatTon, formatTonValue } from "@/i18n/formatters";
+import { formatDuration, getAllowEditsLabel, getAllowLinkTrackingLabel } from "@/i18n/labels";
+import { useLanguage } from "@/i18n/LanguageProvider";
+import { getListingTagLabel } from "@/features/listings/tagOptions";
 
 type ListingCardVariant = "compact" | "full";
 
@@ -11,14 +14,8 @@ interface ListingCardProps {
   actionSlot?: ReactNode;
 }
 
-const formatDuration = (hours: number) => {
-  if (hours >= 168 && hours % 24 === 0) {
-    return `${hours / 24}d`;
-  }
-  return `${hours}h`;
-};
-
 export function ListingCard({ listing, variant = "full", actionSlot }: ListingCardProps) {
+  const { t, language } = useLanguage();
   const tags = listing.tags ?? [];
   const normalizedTags = [
     ...new Set([
@@ -31,18 +28,14 @@ export function ListingCard({ listing, variant = "full", actionSlot }: ListingCa
   const remainingTags = Math.max(0, normalizedTags.length - visibleTags.length);
   const visibilityDuration = listing.visibilityDurationHours ?? 24;
   const pinnedDurationLabel = listing.pinDurationHours
-    ? formatDuration(listing.pinDurationHours)
+    ? formatDuration(listing.pinDurationHours, t)
     : null;
-  const visibleDurationLabel = formatDuration(visibilityDuration);
+  const visibleDurationLabel = formatDuration(visibilityDuration, t);
   const priceTonLabel = (() => {
     if ("priceNano" in listing) {
-      try {
-        return formatTonString(nanoToTonString(listing.priceNano));
-      } catch {
-        return listing.priceNano;
-      }
+      return formatTon(listing.priceNano, language);
     }
-    return String(listing.priceTon);
+    return formatTonValue(listing.priceTon, language);
   })();
 
   return (
@@ -54,10 +47,10 @@ export function ListingCard({ listing, variant = "full", actionSlot }: ListingCa
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-foreground">
-            Post • {priceTonLabel} TON
+            {t("listings.format.POST")} • {priceTonLabel} {t("common.ton")}
           </p>
           <p className="text-xs text-muted-foreground">
-            {variant === "compact" ? "Per post" : "Per post offer"}
+            {variant === "compact" ? t("listings.perPost") : t("listings.perPostOffer")}
           </p>
         </div>
         <span
@@ -67,29 +60,31 @@ export function ListingCard({ listing, variant = "full", actionSlot }: ListingCa
               : "bg-rose-500/15 text-rose-400"
           }`}
         >
-          {listing.isActive ? "Active" : "Inactive"}
+          {listing.isActive ? t("listings.status.active") : t("listings.status.inactive")}
         </span>
       </div>
 
       <div className="flex flex-wrap gap-2 text-[11px]">
         <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-foreground">
-          {listing.allowEdits ? "Edits allowed" : "No edits"}
+          {getAllowEditsLabel(t, listing.allowEdits)}
         </span>
         <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-foreground">
-          {listing.allowLinkTracking ? "Tracking allowed" : "No tracking"}
+          {getAllowLinkTrackingLabel(t, listing.allowLinkTracking)}
         </span>
       </div>
 
       <div className="flex flex-wrap gap-2 text-[11px] text-foreground">
         {pinnedDurationLabel ? (
           <span className="rounded-full bg-secondary/60 px-2.5 py-1">
-            Pinned: {pinnedDurationLabel}
+            {t("listings.pinnedLabel")}: {pinnedDurationLabel}
           </span>
         ) : (
-          <span className="rounded-full bg-secondary/60 px-2.5 py-1">Pinned: none</span>
+          <span className="rounded-full bg-secondary/60 px-2.5 py-1">
+            {t("listings.pinnedLabel")}: {t("common.none")}
+          </span>
         )}
         <span className="rounded-full bg-secondary/60 px-2.5 py-1">
-          Visible: {visibleDurationLabel}
+          {t("listings.visibleLabel")}: {visibleDurationLabel}
         </span>
       </div>
 
@@ -106,7 +101,7 @@ export function ListingCard({ listing, variant = "full", actionSlot }: ListingCa
                     : "border-border/60 bg-card text-foreground"
                 }`}
               >
-                {tag}
+                {getListingTagLabel(tag, t)}
               </span>
             );
           })}

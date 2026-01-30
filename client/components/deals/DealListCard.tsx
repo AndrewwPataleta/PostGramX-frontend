@@ -1,58 +1,9 @@
 import { memo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { DealListItem } from "@/types/deals";
-
-const formatTon = (priceNano: string) => {
-  try {
-    const value = BigInt(priceNano);
-    const ton = value / 1_000_000_000n;
-    const remainder = value % 1_000_000_000n;
-    if (remainder === 0n) {
-      return ton.toString();
-    }
-    const decimals = remainder.toString().padStart(9, "0").slice(0, 2);
-    return `${ton.toString()}.${decimals}`;
-  } catch {
-    return priceNano;
-  }
-};
-
-const formatDate = (value?: string) => {
-  if (!value) {
-    return "-";
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
-
-const formatDateTime = (value?: string) => {
-  if (!value) {
-    return "-";
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const roleLabelMap: Record<DealListItem["userRoleInDeal"], string> = {
-  advertiser: "You are advertiser",
-  publisher: "You are publisher",
-  publisher_manager: "You manage this channel",
-};
+import { formatDate, formatDateTime, formatTon } from "@/i18n/formatters";
+import { getDealRoleLabel, getEscrowStatusLabel, getListingFormatLabel, getPinnedDurationLabel, getVisibilityDurationLabel } from "@/i18n/labels";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const roleToneMap: Record<DealListItem["userRoleInDeal"], string> = {
   advertiser: "bg-emerald-500/10 text-emerald-400",
@@ -60,23 +11,22 @@ const roleToneMap: Record<DealListItem["userRoleInDeal"], string> = {
   publisher_manager: "bg-emerald-500/10 text-emerald-400",
 };
 
-const statusLabel = (value: string) => value.replace(/_/g, " ");
-
 interface DealListCardProps {
   deal: DealListItem;
   onSelect: (deal: DealListItem) => void;
 }
 
 const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
+  const { t, language } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const visibilityLabel = deal.listing.lifetimeHours
-    ? `Visible ${deal.listing.lifetimeHours}h`
+    ? getVisibilityDurationLabel(t, deal.listing.lifetimeHours)
     : null;
   const pinnedLabel = deal.listing.placementHours
-    ? `Pinned ${deal.listing.placementHours}h`
+    ? getPinnedDurationLabel(t, deal.listing.placementHours)
     : null;
   const detailLine = [visibilityLabel, pinnedLabel].filter(Boolean).join(" • ");
-  const escrowText = statusLabel(deal.escrowStatus);
+  const escrowText = getEscrowStatusLabel(t, deal.escrowStatus);
 
   return (
     <div
@@ -120,7 +70,7 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
           className={`max-w-[160px] truncate whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${roleToneMap[deal.userRoleInDeal]}`}
           style={{ textOverflow: "ellipsis" }}
         >
-          {roleLabelMap[deal.userRoleInDeal]}
+          {t("deals.badge.youAreRole", { role: getDealRoleLabel(t, deal.userRoleInDeal) })}
         </span>
       </div>
 
@@ -132,7 +82,7 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
           {escrowText}
         </span>
         <span className="text-xs text-muted-foreground">
-          {formatTon(deal.listing.priceNano)} TON
+          {formatTon(deal.listing.priceNano, language)} {t("common.ton")}
         </span>
       </div>
 
@@ -142,7 +92,7 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
         ) : null}
         {deal.scheduledAt ? (
           <p className="text-xs text-muted-foreground">
-            Scheduled: {formatDateTime(deal.scheduledAt)}
+            {t("deals.scheduledAt")}: {formatDateTime(deal.scheduledAt, language)}
           </p>
         ) : null}
       </div>
@@ -155,7 +105,7 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
         }}
         className="mt-3 flex w-full items-center justify-between rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
       >
-        <span>{expanded ? "Hide details" : "Show details"}</span>
+        <span>{expanded ? t("common.hideDetails") : t("common.showDetails")}</span>
         <ChevronDown
           size={14}
           className={`transition-transform ${expanded ? "rotate-180" : ""}`}
@@ -166,12 +116,12 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
         <div className="mt-3 space-y-3 text-xs text-muted-foreground">
           <div className="grid gap-2 sm:grid-cols-2">
             <div>
-              <span className="font-medium text-foreground">Created:</span>{" "}
-              {formatDate(deal.createdAt)}
+              <span className="font-medium text-foreground">{t("common.createdAt")}:</span>{" "}
+              {formatDate(deal.createdAt, language) || t("common.emptyValue")}
             </div>
             <div>
-              <span className="font-medium text-foreground">Scheduled:</span>{" "}
-              {formatDate(deal.scheduledAt)}
+              <span className="font-medium text-foreground">{t("deals.scheduledAt")}:</span>{" "}
+              {formatDate(deal.scheduledAt, language) || t("common.emptyValue")}
             </div>
           </div>
           {deal.listing.tags.length > 0 ? (
@@ -188,13 +138,13 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
           ) : null}
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground">
-              Format: {deal.listing.format}
+              {t("listings.formatLabel")}: {getListingFormatLabel(t, deal.listing.format)}
             </span>
             <span className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground">
-              {pinnedLabel ?? "No pin"}
+              {pinnedLabel ?? t("listings.meta.notPinned")}
             </span>
             <span className="rounded-full bg-secondary/60 px-3 py-1 text-xs font-medium text-foreground">
-              {visibilityLabel ?? "No visibility info"}
+              {visibilityLabel ?? t("listings.meta.noVisibility")}
             </span>
           </div>
         </div>

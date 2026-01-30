@@ -5,6 +5,7 @@ import type { DealListItem } from "@/types/deals";
 import { post } from "@/api/core/apiClient";
 import { getErrorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface StageAdminApprovalProps {
   deal: DealListItem;
@@ -22,6 +23,7 @@ export default function StageAdminApproval({
   onAction,
 }: StageAdminApprovalProps) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const approveMutation = useMutation({
     mutationFn: async () => {
@@ -32,11 +34,11 @@ export default function StageAdminApproval({
       return post<unknown, { dealId: string }>("/deals/creative/approve", { dealId: deal.id });
     },
     onSuccess: () => {
-      toast.success("Approved");
+      toast.success(t("deals.stage.adminApproval.approvedToast"));
       queryClient.invalidateQueries({ queryKey: ["deal", deal.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Unable to approve"));
+      toast.error(getErrorMessage(error, t("deals.stage.adminApproval.approveError")));
     },
   });
 
@@ -49,11 +51,11 @@ export default function StageAdminApproval({
       return post<unknown, { dealId: string }>("/deals/creative/edits", { dealId: deal.id });
     },
     onSuccess: () => {
-      toast.success("Requested changes");
+      toast.success(t("deals.stage.adminApproval.requestedToast"));
       queryClient.invalidateQueries({ queryKey: ["deal", deal.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Unable to request changes"));
+      toast.error(getErrorMessage(error, t("deals.stage.adminApproval.requestError")));
     },
   });
 
@@ -66,18 +68,20 @@ export default function StageAdminApproval({
       return post<unknown, { dealId: string }>("/deals/creative/reject", { dealId: deal.id });
     },
     onSuccess: () => {
-      toast.success("Rejected");
+      toast.success(t("deals.stage.adminApproval.rejectedToast"));
       queryClient.invalidateQueries({ queryKey: ["deal", deal.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Unable to reject"));
+      toast.error(getErrorMessage(error, t("deals.stage.adminApproval.rejectError")));
     },
   });
 
   if (readonly) {
     return (
-      <InfoCard title="Admin review">
-        <p className="text-xs text-muted-foreground">Waiting for admin review.</p>
+      <InfoCard title={t("deals.stage.adminApproval.title")}>
+        <p className="text-xs text-muted-foreground">
+          {t("deals.stage.adminApproval.readonly")}
+        </p>
       </InfoCard>
     );
   }
@@ -107,9 +111,9 @@ export default function StageAdminApproval({
   };
 
   return (
-    <InfoCard title="Admin review">
+    <InfoCard title={t("deals.stage.adminApproval.title")}>
       <p className="text-xs text-muted-foreground">
-        Review the submitted creative and decide whether to approve, request changes, or reject.
+        {t("deals.stage.adminApproval.description")}
       </p>
       <div className="flex flex-wrap gap-2">
         <button
@@ -121,7 +125,7 @@ export default function StageAdminApproval({
             approveMutation.isPending && "cursor-not-allowed opacity-60"
           )}
         >
-          Approve
+          {t("common.approve")}
         </button>
         <button
           type="button"
@@ -132,7 +136,7 @@ export default function StageAdminApproval({
             requestChangesMutation.isPending && "cursor-not-allowed opacity-60"
           )}
         >
-          Request changes
+          {t("common.requestChanges")}
         </button>
         <button
           type="button"
@@ -143,7 +147,7 @@ export default function StageAdminApproval({
             rejectMutation.isPending && "cursor-not-allowed opacity-60"
           )}
         >
-          Reject
+          {t("common.reject")}
         </button>
       </div>
     </InfoCard>

@@ -1,4 +1,5 @@
 import DealCard, { type DealCardData } from "./DealCard";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface DealsFrameProps {
   title: string;
@@ -7,15 +8,17 @@ interface DealsFrameProps {
 }
 
 export default function DealsFrame({ title, deals, quickFilters }: DealsFrameProps) {
+  const { t } = useLanguage();
   return (
     <div className="rounded-[32px] border border-white/10 bg-slate-950/80 p-6 shadow-[0_20px_60px_rgba(8,15,30,0.6)]">
       <div className="space-y-1">
-        <p className="text-sm font-semibold text-slate-200">Deals</p>
-        <p className="text-xs text-slate-400">Track escrow, approvals, and posting</p>
+        <p className="text-sm font-semibold text-slate-200">{t("deals.title")}</p>
+        <p className="text-xs text-slate-400">{t("deals.subtitle")}</p>
       </div>
 
       <div className="mt-5 flex items-center gap-2 rounded-full bg-slate-900/70 p-1 text-xs text-slate-400">
-        {["Active", "Pending", "Completed"].map((tab) => (
+        {[t("deals.tabs.active"), t("deals.tabs.pending"), t("deals.tabs.completed")].map(
+          (tab) => (
           <span
             key={tab}
             className={`flex-1 rounded-full px-3 py-1 text-center text-xs font-semibold ${
@@ -24,15 +27,16 @@ export default function DealsFrame({ title, deals, quickFilters }: DealsFramePro
           >
             {tab}
           </span>
-        ))}
+          )
+        )}
       </div>
 
       <div className="mt-4 flex items-center gap-3">
         <div className="flex-1 rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-2 text-xs text-slate-400">
-          Search deals
+          {t("deals.searchPlaceholder")}
         </div>
         <button className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/70 text-slate-400">
-          ☰
+          {t("common.filterIcon")}
         </button>
       </div>
 

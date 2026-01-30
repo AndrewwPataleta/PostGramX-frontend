@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { TonConnectButton, useTonWallet } from "@tonconnect/ui-react";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const WalletConnectBanner = () => {
   const wallet = useTonWallet();
+  const { t } = useLanguage();
   const bannerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -45,9 +47,11 @@ const WalletConnectBanner = () => {
     >
       <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card/80 px-4 py-3 shadow-sm backdrop-blur-glass">
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-foreground">Подключите кошелек</p>
+          <p className="text-sm font-semibold text-foreground">
+            {t("profile.wallet.connectTitle")}
+          </p>
           <p className="text-xs text-muted-foreground">
-            Чтобы продолжить, подключите TON кошелек.
+            {t("profile.wallet.connectDescription")}
           </p>
         </div>
         <TonConnectButton className="shrink-0" />

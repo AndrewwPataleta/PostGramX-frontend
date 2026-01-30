@@ -9,9 +9,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { previewChannel } from "@/api/features/channelsApi";
 import { getChannelErrorMessage } from "@/pages/add-channel/errorMapping";
 import { useAddChannelFlow } from "@/pages/add-channel/useAddChannelFlow";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const AddChannelStep1 = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { state, setUsernameOrLink, setPreview, setLinkedChannelId, setLinkStatus, setVerifyStatus, setLastError } =
     useAddChannelFlow();
   const [usernameInput, setUsernameInput] = useState(state.usernameOrLink);
@@ -44,7 +46,7 @@ const AddChannelStep1 = () => {
   const handleContinue = () => {
     const trimmed = usernameInput.trim();
     if (!trimmed) {
-      const message = "Please enter a channel username or link.";
+      const message = t("errors.validation.channelUsernameRequired");
       setInlineError(message);
       return;
     }
@@ -55,17 +57,17 @@ const AddChannelStep1 = () => {
     <div className="flex flex-1 flex-col gap-4">
       <div>
         <h2 className="text-base font-semibold text-foreground">
-          Add a Telegram channel
+          {t("channels.add.step1.title")}
         </h2>
       </div>
 
       <Card className="border-border/60 bg-card/80 shadow-sm">
         <CardContent className="space-y-3 p-4">
           <label className="text-xs font-medium text-muted-foreground">
-            Channel username or link
+            {t("channels.add.step1.label")}
           </label>
           <Input
-            placeholder="@mychannel or https://t.me/mychannel"
+            placeholder={t("channels.add.step1.placeholder")}
             value={usernameInput}
             onChange={(event) => {
               const value = event.target.value;
@@ -77,7 +79,7 @@ const AddChannelStep1 = () => {
             }}
           />
           <p className="text-xs text-muted-foreground">
-            Public channels only. You must be an admin of the channel.
+            {t("channels.add.step1.hint")}
           </p>
           {inlineError ? (
             <p className="text-xs font-medium text-destructive">{inlineError}</p>
@@ -94,10 +96,10 @@ const AddChannelStep1 = () => {
           {previewMutation.isPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Checking channel
+              {t("channels.add.step1.checking")}
             </>
           ) : (
-            "Continue"
+            t("common.continue")
           )}
         </Button>
       </div>

@@ -2,6 +2,7 @@ import InfoCard from "@/components/deals/InfoCard";
 import { cn } from "@/lib/utils";
 
 import type { DealListItem } from "@/types/deals";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface StagePaymentPendingProps {
   deal: DealListItem;
@@ -13,10 +14,11 @@ interface StagePaymentPendingProps {
 }
 
 export default function StagePaymentPending({ onAction, isRefreshing }: StagePaymentPendingProps) {
+  const { t } = useLanguage();
   return (
-    <InfoCard title="Payment pending">
+    <InfoCard title={t("deals.stage.paymentPending.title")}>
       <p className="text-xs text-muted-foreground">
-        Payment is being confirmed on-chain. We will update this screen automatically.
+        {t("deals.stage.paymentPending.description")}
       </p>
       <div className="flex flex-wrap gap-2">
         <button
@@ -30,7 +32,7 @@ export default function StagePaymentPending({ onAction, isRefreshing }: StagePay
               : "hover:border-primary/40"
           )}
         >
-          {isRefreshing ? "Refreshing..." : "Refresh"}
+          {isRefreshing ? t("common.refreshing") : t("common.refresh")}
         </button>
       </div>
     </InfoCard>

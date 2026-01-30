@@ -17,7 +17,10 @@
     "build:production": "vite build --mode prod",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "i18n:check": "tsx scripts/check-i18n-parity.ts",
+    "i18n:lint": "tsx scripts/check-jsx-literals.ts",
+    "lint": "pnpm i18n:lint"
   },
   "dependencies": {
     "@tonconnect/ui-react": "^2.1.0",
@@ -63,6 +66,7 @@
     "@types/three": "^0.176.0",
     "@vitejs/plugin-react-swc": "^4.0.0",
     "autoprefixer": "^10.4.21",
+    "glob": "^10.4.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

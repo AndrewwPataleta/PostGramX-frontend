@@ -1,40 +1,19 @@
 import { useMemo, useState } from "react";
 import type { DealListItem } from "@/types/deals";
 import { cn } from "@/lib/utils";
+import { formatTon } from "@/i18n/formatters";
+import { formatDuration, getAllowEditsLabel, getAllowLinkTrackingLabel, getListingFormatLabel } from "@/i18n/labels";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface DealHeaderCardProps {
   deal: DealListItem;
 }
 
-const formatTonPrice = (priceNano: string) => {
-  try {
-    const value = BigInt(priceNano);
-    const ton = value / 1_000_000_000n;
-    const remainder = value % 1_000_000_000n;
-    if (remainder === 0n) {
-      return ton.toString();
-    }
-    const decimals = remainder.toString().padStart(9, "0").slice(0, 2);
-    return `${ton.toString()}.${decimals}`;
-  } catch {
-    return priceNano;
-  }
-};
-
-const formatListingFormat = (format?: string) => {
-  if (!format) {
-    return "Post";
-  }
-  return format
-    .toLowerCase()
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
 export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
+  const { t, language } = useLanguage();
   const [expanded, setExpanded] = useState(false);
-  const priceLabel = `${formatTonPrice(deal.listing.priceNano)} TON`;
-  const listingFormat = formatListingFormat(deal.listing.format);
+  const priceLabel = `${formatTon(deal.listing.priceNano, language)} ${t("common.ton")}`;
+  const listingFormat = getListingFormatLabel(t, deal.listing.format);
   const tags = deal.listing.tags ?? [];
   const pinDurationHours = deal.listing.pinDurationHours ?? deal.listing.placementHours;
   const lifetimeHours = deal.listing.visibilityDurationHours ?? deal.listing.lifetimeHours;
@@ -42,33 +21,29 @@ export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
   const detailItems = useMemo(
     () => [
       {
-        label: "Pin hours",
-        value: pinDurationHours ? `${pinDurationHours}h` : "None",
+        label: t("listings.pinDuration"),
+        value: pinDurationHours ? formatDuration(pinDurationHours, t) : t("common.none"),
       },
       {
-        label: "Lifetime hours",
-        value: lifetimeHours ? `${lifetimeHours}h` : "—",
+        label: t("listings.lifetimeDuration"),
+        value: lifetimeHours ? formatDuration(lifetimeHours, t) : t("common.emptyValue"),
       },
       {
-        label: "Edits",
+        label: t("listings.allowEdits.label"),
         value:
           deal.listing.allowEdits === undefined
-            ? "—"
-            : deal.listing.allowEdits
-            ? "Allowed"
-            : "No edits",
+            ? t("common.emptyValue")
+            : getAllowEditsLabel(t, deal.listing.allowEdits),
       },
       {
-        label: "Link tracking",
+        label: t("listings.allowLinkTracking.label"),
         value:
           deal.listing.allowLinkTracking === undefined
-            ? "—"
-            : deal.listing.allowLinkTracking
-            ? "Enabled"
-            : "Disabled",
+            ? t("common.emptyValue")
+            : getAllowLinkTrackingLabel(t, deal.listing.allowLinkTracking),
       },
     ],
-    [deal.listing.allowEdits, deal.listing.allowLinkTracking, pinDurationHours, lifetimeHours]
+    [deal.listing.allowEdits, deal.listing.allowLinkTracking, pinDurationHours, lifetimeHours, t]
   );
 
   return (
@@ -90,7 +65,7 @@ export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
             <span className="truncate">{deal.channel.name}</span>
             {deal.channel.verified ? (
               <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                Verified
+                {t("channels.verifiedBadge")}
               </span>
             ) : null}
           </div>
@@ -108,9 +83,9 @@ export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
           onClick={() => setExpanded((prev) => !prev)}
           className="flex w-full items-center justify-between rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
         >
-          <span>{expanded ? "Hide details" : "More"}</span>
+          <span>{expanded ? t("common.hideDetails") : t("common.more")}</span>
           <span className={cn("text-xs", expanded ? "text-foreground" : "text-muted-foreground")}>
-            {expanded ? "▴" : "▾"}
+            {expanded ? t("common.collapseSymbol") : t("common.expandSymbol")}
           </span>
         </button>
       </div>
@@ -144,7 +119,7 @@ export default function DealHeaderCard({ deal }: DealHeaderCardProps) {
           {deal.listing.contentRulesText ? (
             <div className="rounded-lg border border-border/60 bg-background/50 p-3 text-xs text-muted-foreground">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/80">
-                Content rules
+                {t("listings.rulesTitle")}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">{deal.listing.contentRulesText}</p>
             </div>

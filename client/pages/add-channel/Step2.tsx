@@ -11,12 +11,15 @@ import { linkChannel, verifyChannel } from "@/api/features/channelsApi";
 import { getChannelErrorMessage } from "@/pages/add-channel/errorMapping";
 import { useAddChannelFlow } from "@/pages/add-channel/useAddChannelFlow";
 import type { VerifyChannelResponse } from "@/types/channels";
+import { formatNumber } from "@/i18n/formatters";
+import { useLanguage } from "@/i18n/LanguageProvider";
+import type { Language } from "@/i18n/translations";
 
-const formatMetric = (value?: number | null) => {
+const formatMetric = (value: number | null | undefined, language: Language) => {
   if (value == null) {
     return null;
   }
-  return new Intl.NumberFormat("en", { notation: "compact" }).format(value);
+  return formatNumber(value, language as never, { notation: "compact" });
 };
 
 const isVerifiedResponse = (response: VerifyChannelResponse) => {
@@ -26,6 +29,7 @@ const isVerifiedResponse = (response: VerifyChannelResponse) => {
 
 const AddChannelStep2 = () => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const {
     state,
     setLinkedChannelId,
@@ -44,10 +48,10 @@ const AddChannelStep2 = () => {
 
   const displayUsername = useMemo(() => {
     if (!preview?.username) {
-      return "—";
+      return t("common.emptyValue");
     }
     return preview.username.startsWith("@") ? preview.username : `@${preview.username}`;
-  }, [preview?.username]);
+  }, [preview?.username, t]);
 
   const linkMutation = useMutation({
     mutationFn: (username: string) => linkChannel({ username }),
@@ -58,7 +62,7 @@ const AddChannelStep2 = () => {
     onSuccess: (response) => {
       const linkedChannelId = response.channelId ?? response.id;
       if (!linkedChannelId) {
-        const message = "Channel link response is missing an id.";
+        const message = t("channels.add.step2.missingLinkId");
         setLinkStatus("error");
         setLastError(message);
         toast.error(message);
@@ -67,7 +71,7 @@ const AddChannelStep2 = () => {
       setLinkStatus("success");
       setLinkedChannelId(linkedChannelId);
       setVerifyStatus("idle");
-      toast.success("Channel linked");
+      toast.success(t("channels.add.step2.linkedToast"));
       verifyMutation.mutate(linkedChannelId);
     },
     onError: (error) => {
@@ -94,7 +98,7 @@ const AddChannelStep2 = () => {
       const message =
         typeof response.error === "string"
           ? response.error
-          : response.error?.message || "Verification failed. Please try again.";
+          : response.error?.message || t("channels.add.step2.verifyError");
       setVerifyStatus("error");
       setLastError(message);
       toast.error(message);
@@ -114,7 +118,7 @@ const AddChannelStep2 = () => {
     const username = (preview.normalizedUsername || preview.username || "").replace(/^@/, "");
     if (!state.linkedChannelId) {
       if (!username) {
-        toast.error("Missing channel username.");
+        toast.error(t("channels.add.step2.missingUsername"));
         return;
       }
       linkMutation.mutate(username);
@@ -125,9 +129,11 @@ const AddChannelStep2 = () => {
 
   const isLoading = linkMutation.isPending || verifyMutation.isPending;
   const isLinked = Boolean(state.linkedChannelId);
-  const primaryLabel = isLinked ? "Verify channel" : "Connect channel";
+  const primaryLabel = isLinked
+    ? t("channels.add.step2.verifyAction")
+    : t("channels.add.step2.connectAction");
 
-  const memberCount = formatMetric(preview?.memberCount);
+  const memberCount = formatMetric(preview?.memberCount, language);
 
   if (!preview) {
     return null;
@@ -143,7 +149,7 @@ const AddChannelStep2 = () => {
                 <AvatarImage src={preview.photoUrl ?? preview.avatarUrl ?? ""} />
               ) : null}
               <AvatarFallback className="bg-secondary text-sm font-semibold text-foreground">
-                {(preview.title || "C").charAt(0)}
+                {(preview.title || t("common.avatarFallback")).charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
@@ -153,12 +159,14 @@ const AddChannelStep2 = () => {
               <p className="text-xs text-muted-foreground">{displayUsername}</p>
             </div>
             <Badge variant="secondary" className="text-[10px] uppercase">
-              {isLinked ? "Linked" : "Not connected yet"}
+              {isLinked ? t("channels.add.step2.linkedStatus") : t("channels.add.step2.notLinked")}
             </Badge>
           </div>
           {memberCount ? (
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span>{memberCount} subscribers</span>
+              <span>
+                {memberCount} {t("marketplace.subscribers")}
+              </span>
             </div>
           ) : null}
         </CardContent>
@@ -167,23 +175,25 @@ const AddChannelStep2 = () => {
       <Card className="border-border/60 bg-card/80 shadow-sm">
         <CardContent className="space-y-3 p-4">
           <div>
-            <p className="text-sm font-semibold text-foreground">Grant bot access</p>
+            <p className="text-sm font-semibold text-foreground">
+              {t("channels.add.step2.title")}
+            </p>
             <p className="text-xs text-muted-foreground">
-              We will verify admin rights before money operations.
+              {t("channels.add.step2.subtitle")}
             </p>
           </div>
           <ol className="space-y-2 text-xs text-muted-foreground">
             <li className="flex gap-2">
               <span className="text-foreground">1.</span>
-              Open channel settings
+              {t("channels.add.step2.instructions.1")}
             </li>
             <li className="flex gap-2">
               <span className="text-foreground">2.</span>
-              Add @PostGramXBot as admin
+              {t("channels.add.step2.instructions.2")}
             </li>
             <li className="flex gap-2">
               <span className="text-foreground">3.</span>
-              Enable "Post messages" permission
+              {t("channels.add.step2.instructions.3")}
             </li>
           </ol>
         </CardContent>
@@ -198,7 +208,7 @@ const AddChannelStep2 = () => {
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              {isLinked ? "Verifying" : "Connecting"}
+              {isLinked ? t("channels.add.step2.verifying") : t("channels.add.step2.connecting")}
             </>
           ) : (
             primaryLabel
@@ -210,7 +220,7 @@ const AddChannelStep2 = () => {
           disabled={isLoading}
           className="w-full text-sm font-semibold"
         >
-          Back
+          {t("common.back")}
         </Button>
       </div>
     </div>

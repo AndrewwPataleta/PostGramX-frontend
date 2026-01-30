@@ -1,7 +1,10 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
-import { formatTonString, nanoToTonString } from "@/lib/ton";
 import { cn } from "@/lib/utils";
+import { formatNumber, formatTon } from "@/i18n/formatters";
+import { formatDuration, getAllowEditsLabel, getAllowLinkTrackingLabel, getListingFormatLabel } from "@/i18n/labels";
+import { useLanguage } from "@/i18n/LanguageProvider";
+import { getListingTagLabel } from "@/features/listings/tagOptions";
 import type { ListingListItem } from "@/types/listings";
 
 export type ChannelCardModel = {
@@ -30,17 +33,6 @@ type ChannelCardProps = {
 
 const MAX_TAGS = 3;
 
-const formatTon = (value?: string | null) => {
-  if (!value) {
-    return null;
-  }
-  try {
-    return formatTonString(nanoToTonString(value));
-  } catch {
-    return value;
-  }
-};
-
 const buildTags = (tags: string[]) => {
   const cleaned = tags.map((tag) => tag.trim()).filter(Boolean);
   const unique = Array.from(new Set(cleaned));
@@ -50,18 +42,12 @@ const buildTags = (tags: string[]) => {
   };
 };
 
-const formatDuration = (hours: number) => {
-  if (hours >= 168 && hours % 24 === 0) {
-    return `${hours / 24}d`;
-  }
-  return `${hours}h`;
-};
-
 const ListingPreview = ({ listings }: { listings: ListingListItem[] }) => {
+  const { t, language } = useLanguage();
   if (listings.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border/60 bg-background/50 px-4 py-4 text-center text-xs text-muted-foreground">
-        No placements available yet.
+        {t("marketplace.emptyPlacements")}
       </div>
     );
   }
@@ -71,24 +57,27 @@ const ListingPreview = ({ listings }: { listings: ListingListItem[] }) => {
       {listings.map((listing) => {
         const tags = buildTags(listing.tags ?? []);
         const rules = [
-          listing.allowEdits ? "Edits allowed" : null,
-          listing.allowLinkTracking ? "Tracking allowed" : null,
+          listing.allowEdits ? getAllowEditsLabel(t, true) : null,
+          listing.allowLinkTracking ? getAllowLinkTrackingLabel(t, true) : null,
         ].filter(Boolean);
-        const listingPrice = formatTon(listing.priceNano) ?? listing.priceNano;
+        const listingPrice = formatTon(listing.priceNano, language) ?? listing.priceNano;
         const pinLabel = listing.pinDurationHours
-          ? `Pinned ${formatDuration(listing.pinDurationHours)}`
-          : "Not pinned";
-        const visibilityLabel = `Visible ${formatDuration(listing.visibilityDurationHours)}`;
+          ? `${t("listings.meta.pinned")} ${formatDuration(listing.pinDurationHours, t)}`
+          : t("listings.meta.notPinned");
+        const visibilityLabel = `${t("listings.meta.visible")} ${formatDuration(
+          listing.visibilityDurationHours,
+          t
+        )}`;
         const requirements = listing.contentRulesText?.trim();
 
         return (
           <div key={listing.id} className="rounded-xl border border-border/60 bg-card/80 p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-semibold text-foreground">
-                {listingPrice} TON
+                {listingPrice} {t("common.ton")}
               </div>
               <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                {listing.format}
+                {getListingFormatLabel(t, listing.format)}
               </span>
             </div>
             <div className="mt-2 text-[11px] text-muted-foreground">
@@ -113,7 +102,7 @@ const ListingPreview = ({ listings }: { listings: ListingListItem[] }) => {
                     key={`${listing.id}-${tag}`}
                     className="rounded-full border border-border/60 bg-card px-2 py-0.5 text-foreground"
                   >
-                    {tag}
+                    {getListingTagLabel(tag, t)}
                   </span>
                 ))}
                 {tags.hiddenCount > 0 ? (
@@ -143,24 +132,25 @@ export default function ChannelCard({
   onToggleExpand,
   expandedContent,
 }: ChannelCardProps) {
+  const { t, language } = useLanguage();
   const [internalExpanded, setInternalExpanded] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const resolvedExpanded = isExpanded ?? internalExpanded;
   const canExpand = Boolean(onToggleExpand || expandedContent || channel.listingsPreview);
   const formattedPrice = useMemo(
-    () => formatTon(channel.minPriceNano),
-    [channel.minPriceNano]
+    () => (channel.minPriceNano ? formatTon(channel.minPriceNano, language) : null),
+    [channel.minPriceNano, language]
   );
   const tags = buildTags(channel.tags ?? []);
   const username = channel.username ? `@${channel.username.replace(/^@/, "")}` : null;
-  const avatarFallback = channel.name?.[0]?.toUpperCase() ?? "?";
+  const avatarFallback = channel.name?.[0]?.toUpperCase() ?? t("common.avatarFallback");
   const avatarSrc = !avatarError && channel.avatarUrl ? channel.avatarUrl : null;
   const placementsLabel =
-    channel.placementsCount != null ? channel.placementsCount.toString() : "—";
+    channel.placementsCount != null ? channel.placementsCount.toString() : t("common.emptyValue");
   const subscribersLabel =
     typeof channel.subscribers === "number"
-      ? channel.subscribers.toLocaleString()
-      : "—";
+      ? formatNumber(channel.subscribers, language)
+      : t("common.emptyValue");
 
   const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -230,15 +220,19 @@ export default function ChannelCard({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span>{placementsLabel} placements</span>
+            <span>
+              {placementsLabel} {t("marketplace.placements")}
+            </span>
             <span>·</span>
-            <span>{subscribersLabel} subscribers</span>
+            <span>
+              {subscribersLabel} {t("marketplace.subscribers")}
+            </span>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
-              From{" "}
+              {t("common.from")}{" "}
               <span className="font-semibold text-primary">
-                {formattedPrice ?? "—"} TON
+                {formattedPrice ?? t("common.emptyValue")} {t("common.ton")}
               </span>
             </span>
           </div>
@@ -249,7 +243,7 @@ export default function ChannelCard({
                   key={`${channel.id}-${tag}`}
                   className="rounded-full border border-border/60 bg-card px-2.5 py-1 text-foreground"
                 >
-                  {tag}
+                  {getListingTagLabel(tag, t)}
                 </span>
               ))}
               {tags.hiddenCount > 0 ? (

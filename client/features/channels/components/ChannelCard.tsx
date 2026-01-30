@@ -1,53 +1,47 @@
 import { memo, useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Users2, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { formatTonString, nanoToTonString } from "@/lib/ton";
 import { cn } from "@/lib/utils";
+import { formatNumber, formatTon } from "@/i18n/formatters";
+import { getChannelStatusLabel } from "@/i18n/labels";
+import { useLanguage } from "@/i18n/LanguageProvider";
+import type { Language } from "@/i18n/translations";
 import type { ChannelListItem, ChannelStatus } from "@/types/channels";
 
 const statusStyles: Record<
   ChannelStatus,
-  { label: string; className: string; icon?: ReactNode }
+  { className: string; icon?: ReactNode }
 > = {
   DRAFT: {
-    label: "Draft",
     className: "bg-muted/40 text-muted-foreground border-border/60",
   },
   PENDING_VERIFY: {
-    label: "Pending verification",
     className: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40",
   },
   VERIFIED: {
-    label: "Verified",
     className: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
   },
   FAILED: {
-    label: "Verification failed",
     className: "bg-red-500/20 text-red-300 border-red-500/40",
   },
   REVOKED: {
-    label: "Revoked",
     className: "bg-orange-500/20 text-orange-300 border-orange-500/40",
   },
 };
 
-const formatMetric = (value?: number | null) => {
+const formatMetric = (
+  value: number | null | undefined,
+  language: Language,
+  fallback: string
+) => {
   if (value == null) {
-    return "–";
+    return fallback;
   }
-
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
-  }
-
-  if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(1)}K`;
-  }
-
-  return value.toString();
+  return formatNumber(value, language as never, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  });
 };
-
-const formatTitle = (text: string) => text || "Untitled channel";
 
 interface ChannelCardProps {
   channel: ChannelListItem;
@@ -80,6 +74,7 @@ const ChannelCard = ({
   createListingTo,
   createListingState,
 }: ChannelCardProps) => {
+  const { t, language } = useLanguage();
   const status = statusStyles[channel.status];
   const showVerifyAction = channel.status === "PENDING_VERIFY" && onVerify;
   const showUnlinkAction = Boolean(onUnlink);
@@ -88,17 +83,13 @@ const ChannelCard = ({
   const [avatarError, setAvatarError] = useState(false);
   const avatarFallback = channel.title?.[0]?.toUpperCase() ?? channel.username?.[0]?.toUpperCase();
   const avatarSrc = !avatarError && channel.avatarUrl ? channel.avatarUrl : null;
-  const formattedSubscribers = formatMetric(channel.memberCount);
+  const formattedSubscribers = formatMetric(channel.memberCount, language, t("common.emptyValue"));
   const formattedMinPrice = useMemo(() => {
     if (!minPriceNano) {
-      return "—";
+      return t("common.emptyValue");
     }
-    try {
-      return formatTonString(nanoToTonString(minPriceNano));
-    } catch {
-      return minPriceNano;
-    }
-  }, [minPriceNano]);
+    return formatTon(minPriceNano, language);
+  }, [language, minPriceNano, t]);
 
   return (
     <div
@@ -129,14 +120,14 @@ const ChannelCard = ({
               onError={() => setAvatarError(true)}
             />
           ) : (
-            <span>{avatarFallback ?? "?"}</span>
+            <span>{avatarFallback ?? t("common.avatarFallback")}</span>
           )}
         </div>
         <div className="flex-1 space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-foreground">
-                {formatTitle(channel.title)}
+                {channel.title || t("channels.untitled")}
               </h3>
               <p className="text-xs text-muted-foreground">@{channel.username}</p>
             </div>
@@ -149,7 +140,7 @@ const ChannelCard = ({
                     onUnlink?.();
                   }}
                   className="rounded-full border border-border/60 bg-background/70 p-1.5 text-muted-foreground transition hover:text-foreground"
-                  aria-label="Unlink channel"
+                  aria-label={t("channels.unlinkAction")}
                 >
                   <X size={14} />
                 </button>
@@ -162,7 +153,7 @@ const ChannelCard = ({
                   )}
                 >
                   {status.icon}
-                  {status.label}
+                  {getChannelStatusLabel(t, channel.status)}
                 </span>
               ) : null}
               {showExpandAction ? (
@@ -174,7 +165,9 @@ const ChannelCard = ({
                   }}
                   disabled={expandDisabled}
                   title={expandTooltip}
-                  aria-label={isExpanded ? "Collapse placements" : "Expand placements"}
+                  aria-label={
+                    isExpanded ? t("channels.collapsePlacements") : t("channels.expandPlacements")
+                  }
                   aria-expanded={isExpanded}
                   className={cn(
                     "flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition",
@@ -201,13 +194,18 @@ const ChannelCard = ({
             </span>
             <span>·</span>
             <span>
-              {typeof placementsCount === "number" ? `${placementsCount} placements` : "— placements"}
+              {typeof placementsCount === "number"
+                ? `${placementsCount} ${t("marketplace.placements")}`
+                : `${t("common.emptyValue")} ${t("marketplace.placements")}`}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
-              From <span className="font-semibold text-primary">{formattedMinPrice} TON</span>
+              {t("common.from")}{" "}
+              <span className="font-semibold text-primary">
+                {formattedMinPrice} {t("common.ton")}
+              </span>
             </span>
           </div>
         </div>
@@ -224,7 +222,7 @@ const ChannelCard = ({
               }}
               className="rounded-full border border-yellow-500/40 bg-yellow-500/15 px-2 py-0.5 text-[11px] font-semibold text-yellow-200 transition hover:bg-yellow-500/25"
             >
-              Verify
+              {t("channels.verifyAction")}
             </button>
           ) : null}
         </div>
@@ -235,7 +233,7 @@ const ChannelCard = ({
             onClick={(event) => event.stopPropagation()}
             className="rounded-full bg-primary px-4 py-1.5 text-[11px] font-semibold text-primary-foreground"
           >
-            Create listing
+            {t("listings.createAction")}
           </Link>
         ) : null}
       </div>

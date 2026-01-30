@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Info } from "lucide-react";
 import { useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom";
@@ -10,23 +10,9 @@ import { managedChannelData } from "@/features/channels/managedChannels";
 import { listingTagCategories } from "@/features/listings/tagOptions";
 import { createListing } from "@/api/features/listingsApi";
 import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageLayout";
-
-const pinDurationOptions = [
-  { label: "Not pinned", value: "none" },
-  { label: "6 hours", value: "6" },
-  { label: "12 hours", value: "12" },
-  { label: "24 hours", value: "24" },
-  { label: "48 hours", value: "48" },
-  { label: "Custom", value: "custom" },
-];
-
-const visibilityDurationOptions = [
-  { label: "24 hours", value: "24" },
-  { label: "48 hours", value: "48" },
-  { label: "72 hours", value: "72" },
-  { label: "7 days", value: "168" },
-  { label: "Custom", value: "custom" },
-];
+import { useLanguage } from "@/i18n/LanguageProvider";
+import { getListingTagLabel } from "@/features/listings/tagOptions";
+import { formatNumber } from "@/i18n/formatters";
 
 const resolveHours = (choice: string, customValue: string, fallback: number) => {
   if (choice === "custom") {
@@ -38,6 +24,7 @@ const resolveHours = (choice: string, customValue: string, fallback: number) => 
 };
 
 export default function CreateListing() {
+  const { t, language } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const outletContext = useOutletContext<ChannelManageContext | null>();
@@ -61,6 +48,27 @@ export default function CreateListing() {
   const [availabilityTo] = useState(
     () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   );
+  const pinDurationOptions = useMemo(
+    () => [
+      { label: t("listings.pinDuration.none"), value: "none" },
+      { label: t("listings.pinDuration.optionHours", { hours: 6 }), value: "6" },
+      { label: t("listings.pinDuration.optionHours", { hours: 12 }), value: "12" },
+      { label: t("listings.pinDuration.optionHours", { hours: 24 }), value: "24" },
+      { label: t("listings.pinDuration.optionHours", { hours: 48 }), value: "48" },
+      { label: t("common.custom"), value: "custom" },
+    ],
+    [t]
+  );
+  const visibilityDurationOptions = useMemo(
+    () => [
+      { label: t("listings.visibilityDuration.optionHours", { hours: 24 }), value: "24" },
+      { label: t("listings.visibilityDuration.optionHours", { hours: 48 }), value: "48" },
+      { label: t("listings.visibilityDuration.optionHours", { hours: 72 }), value: "72" },
+      { label: t("listings.visibilityDuration.optionDays", { days: 7 }), value: "168" },
+      { label: t("common.custom"), value: "custom" },
+    ],
+    [t]
+  );
 
   const pinDurationHours =
     pinDurationChoice === "none" ? null : resolveHours(pinDurationChoice, pinCustomHours, 24);
@@ -74,7 +82,7 @@ export default function CreateListing() {
     return (
       <div className="w-full max-w-2xl mx-auto">
         <PageContainer className="py-6">
-          <p className="text-muted-foreground">Channel not found</p>
+          <p className="text-muted-foreground">{t("channels.notFound")}</p>
         </PageContainer>
       </div>
     );
@@ -121,7 +129,7 @@ export default function CreateListing() {
         state: rootBackTo ? { rootBackTo } : undefined,
       });
     } catch (error) {
-      toast.error(getErrorMessage(error, "Unable to publish listing"));
+      toast.error(getErrorMessage(error, t("listings.publishError")));
     } finally {
       setIsSubmitting(false);
     }
@@ -132,33 +140,33 @@ export default function CreateListing() {
       <PageContainer className="py-6 space-y-6">
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Ad format</h2>
-            <p className="text-xs text-muted-foreground">Only post format is supported in MVP.</p>
+            <h2 className="text-sm font-semibold text-foreground">{t("listings.adFormatTitle")}</h2>
+            <p className="text-xs text-muted-foreground">{t("listings.adFormatSubtitle")}</p>
           </div>
           <select
             className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
           >
-            <option value="POST">Post</option>
+            <option value="POST">{t("listings.format.POST")}</option>
             <option value="FORWARD" disabled>
-              Forward / Repost (coming soon)
+              {t("listings.format.forwardComingSoon")}
             </option>
             <option value="STORY" disabled>
-              Story (coming soon)
+              {t("listings.format.storyComingSoon")}
             </option>
           </select>
         </section>
 
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Price per post</h2>
-            <p className="text-xs text-muted-foreground">Price shown publicly in Marketplace.</p>
+            <h2 className="text-sm font-semibold text-foreground">{t("listings.pricePerPostTitle")}</h2>
+            <p className="text-xs text-muted-foreground">{t("listings.pricePerPostSubtitle")}</p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <input
               type="number"
               value={priceTon}
               onChange={(event) => setPriceTon(event.target.value)}
-              placeholder="Example: 25 TON"
+              placeholder={t("listings.pricePlaceholder")}
               className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground sm:flex-1"
             />
             <div className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card/60 px-2 py-2 text-xs text-muted-foreground sm:w-auto">
@@ -166,12 +174,12 @@ export default function CreateListing() {
                 type="button"
                 className="rounded-lg bg-primary/20 px-3 py-1 text-xs font-semibold text-primary"
               >
-                TON
+                {t("common.ton")}
               </button>
               <div className="rounded-lg border border-border/60 bg-muted/60 px-3 py-1 text-center text-[11px] font-semibold text-muted-foreground">
-                USD
+                {t("common.usd")}
                 <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
-                  Coming soon
+                  {t("common.comingSoon")}
                 </div>
               </div>
             </div>
@@ -184,7 +192,7 @@ export default function CreateListing() {
                 onClick={() => setPriceTon(String(value))}
                 className="rounded-lg border border-border/60 bg-secondary/60 px-3 py-1 text-xs text-foreground"
               >
-                +{value} TON
+                +{formatNumber(value, language)} {t("common.ton")}
               </button>
             ))}
           </div>
@@ -192,14 +200,18 @@ export default function CreateListing() {
 
         <section className="space-y-4">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Post visibility requirements</h2>
+            <h2 className="text-sm font-semibold text-foreground">
+              {t("listings.visibilityRequirementsTitle")}
+            </h2>
             <p className="text-xs text-muted-foreground">
-              Define how long the ad post must remain published to receive payment.
+              {t("listings.visibilityRequirementsSubtitle")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-foreground">Pinned post duration</label>
+            <label className="text-xs font-semibold text-foreground">
+              {t("listings.pinnedDurationLabel")}
+            </label>
             <select
               value={pinDurationChoice}
               onChange={(event) => setPinDurationChoice(event.target.value)}
@@ -223,7 +235,7 @@ export default function CreateListing() {
                       : "border-border/60 bg-secondary/60 text-foreground"
                   }`}
                 >
-                  {hours}h
+                  {t("common.hoursShort", { count: hours })}
                 </button>
               ))}
               <button
@@ -235,7 +247,7 @@ export default function CreateListing() {
                     : "border-border/60 bg-secondary/60 text-foreground"
                 }`}
               >
-                Off
+                {t("common.off")}
               </button>
             </div>
             {pinDurationChoice === "custom" ? (
@@ -243,18 +255,18 @@ export default function CreateListing() {
                 type="number"
                 value={pinCustomHours}
                 onChange={(event) => setPinCustomHours(event.target.value)}
-                placeholder="Custom hours"
+                placeholder={t("listings.customHours")}
                 className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
               />
             ) : null}
             <p className="text-xs text-muted-foreground">
-              If enabled, the ad will stay pinned at the top of your channel.
+              {t("listings.pinnedDurationHint")}
             </p>
           </div>
 
           <div className="space-y-2">
             <label className="text-xs font-semibold text-foreground">
-              Post visibility duration
+              {t("listings.visibilityDurationLabel")}
             </label>
             <select
               value={visibilityDurationChoice}
@@ -279,7 +291,9 @@ export default function CreateListing() {
                       : "border-border/60 bg-secondary/60 text-foreground"
                   }`}
                 >
-                  {hours === 168 ? "7d" : `${hours}h`}
+                  {hours === 168
+                    ? t("common.daysShort", { count: 7 })
+                    : t("common.hoursShort", { count: hours })}
                 </button>
               ))}
             </div>
@@ -288,34 +302,33 @@ export default function CreateListing() {
                 type="number"
                 value={visibilityCustomHours}
                 onChange={(event) => setVisibilityCustomHours(event.target.value)}
-                placeholder="Custom hours"
+                placeholder={t("listings.customHours")}
                 className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-sm text-foreground"
               />
             ) : null}
             <p className="text-xs text-muted-foreground">
-              The post must stay visible in the channel feed without deletion or major edits.
+              {t("listings.visibilityDurationHint")}
             </p>
           </div>
 
           <div className="rounded-xl border border-primary/30 bg-primary/10 px-3 py-3 text-xs text-primary">
-            <p className="font-semibold text-foreground">Escrow verification rule</p>
+            <p className="font-semibold text-foreground">{t("listings.escrowRuleTitle")}</p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              Funds will be released only after the post remains published and pinned (if
-              enabled) for the selected duration.
+              {t("listings.escrowRuleSubtitle")}
             </p>
           </div>
         </section>
 
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Posting conditions</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t("listings.conditionsTitle")}</h2>
             <p className="text-xs text-muted-foreground">
-              Control what advertisers can change in the post.
+              {t("listings.conditionsSubtitle")}
             </p>
           </div>
           <div className="space-y-2">
             <label className="flex items-center justify-between rounded-xl border border-border/60 bg-card px-3 py-3 text-sm">
-              <span className="text-foreground">Allow minor post edits by advertiser</span>
+              <span className="text-foreground">{t("listings.allowEditsPrompt")}</span>
               <input
                 type="checkbox"
                 checked={allowEdits}
@@ -324,7 +337,7 @@ export default function CreateListing() {
               />
             </label>
             <label className="flex items-center justify-between rounded-xl border border-border/60 bg-card px-3 py-3 text-sm">
-              <span className="text-foreground">Allow link tracking (UTM / referral links)</span>
+              <span className="text-foreground">{t("listings.allowLinkTrackingPrompt")}</span>
               <input
                 type="checkbox"
                 checked={allowLinkTracking}
@@ -334,8 +347,10 @@ export default function CreateListing() {
             </label>
             <label className="flex items-center justify-between rounded-xl border border-border/40 bg-card/60 px-3 py-3 text-sm opacity-80">
               <span className="text-foreground">
-                Require pre-approval before publishing
-                <span className="ml-2 text-[10px] uppercase tracking-wide text-primary">Locked</span>
+                {t("listings.preApprovalLocked")}
+                <span className="ml-2 text-[10px] uppercase tracking-wide text-primary">
+                  {t("common.locked")}
+                </span>
               </span>
               <input type="checkbox" checked disabled className="h-4 w-4" />
             </label>
@@ -344,12 +359,12 @@ export default function CreateListing() {
 
         <section className="space-y-4">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Content Tags</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t("listings.tagsTitle")}</h2>
             <p className="text-xs text-muted-foreground">
-              Help advertisers understand what content is allowed in your channel.
+              {t("listings.tagsSubtitle")}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              Tags are used for discovery and matching.
+              {t("listings.tagsHint")}
             </p>
           </div>
 
@@ -358,7 +373,7 @@ export default function CreateListing() {
               type="text"
               value={tagQuery}
               onChange={(event) => setTagQuery(event.target.value)}
-              placeholder="Search tags"
+              placeholder={t("common.search")}
               className="w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
             />
             <div className="flex gap-2">
@@ -366,7 +381,7 @@ export default function CreateListing() {
                 type="text"
                 value={customTag}
                 onChange={(event) => setCustomTag(event.target.value)}
-                placeholder="Add custom tag"
+                placeholder={t("listings.addCustomTag")}
                 className="flex-1 rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
               />
               <button
@@ -383,7 +398,7 @@ export default function CreateListing() {
                 }}
                 className="rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-xs font-semibold text-primary"
               >
-                Add
+                {t("common.add")}
               </button>
             </div>
           </div>
@@ -408,8 +423,8 @@ export default function CreateListing() {
                         : "bg-secondary/60 text-foreground hover:bg-secondary"
                     }`}
                   >
-                    {tag}
-                    {isLocked ? " • Locked" : " ×"}
+                    {getListingTagLabel(tag, t)}
+                    {isLocked ? ` • ${t("common.locked")}` : ` ${t("common.removeTagSuffix")}`}
                   </button>
                 );
               })}
@@ -419,7 +434,9 @@ export default function CreateListing() {
           <div className="space-y-4">
             {listingTagCategories.map((category) => {
               const filteredTags = category.tags.filter((tag) =>
-                tag.toLowerCase().includes(tagQuery.trim().toLowerCase()),
+                getListingTagLabel(tag.value, t)
+                  .toLowerCase()
+                  .includes(tagQuery.trim().toLowerCase()),
               );
               if (!tagQuery && filteredTags.length === 0) {
                 return null;
@@ -429,24 +446,24 @@ export default function CreateListing() {
                 return null;
               }
               return (
-                <div key={category.title} className="space-y-2">
-                  <p className="text-xs font-semibold text-foreground">{category.title}</p>
+                <div key={category.titleKey} className="space-y-2">
+                  <p className="text-xs font-semibold text-foreground">{t(category.titleKey)}</p>
                   <div className="flex flex-wrap gap-2">
                     {displayTags.map((tag) => {
-                      const isLocked = tag === "Must be pre-approved";
-                      const isSelected = selectedTags.includes(tag);
+                      const isLocked = tag.value === "Must be pre-approved";
+                      const isSelected = selectedTags.includes(tag.value);
                       return (
                         <button
-                          key={tag}
+                          key={tag.value}
                           type="button"
                           onClick={() => {
                             if (isLocked) {
                               return;
                             }
                             setSelectedTags((prev) =>
-                              prev.includes(tag)
-                                ? prev.filter((item) => item !== tag)
-                                : [...prev, tag],
+                              prev.includes(tag.value)
+                                ? prev.filter((item) => item !== tag.value)
+                                : [...prev, tag.value],
                             );
                           }}
                           className={`rounded-lg border px-3 py-1 text-xs transition-colors ${
@@ -455,8 +472,8 @@ export default function CreateListing() {
                               : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
                           } ${isLocked ? "cursor-not-allowed opacity-70" : ""}`}
                         >
-                          {tag}
-                          {isLocked ? " • Locked" : ""}
+                          {t(tag.labelKey)}
+                          {isLocked ? ` • ${t("common.locked")}` : ""}
                         </button>
                       );
                     })}
@@ -470,24 +487,24 @@ export default function CreateListing() {
         <section className="space-y-3">
           <div>
             <h2 className="text-sm font-semibold text-foreground">
-              Additional requirements (optional)
+              {t("listings.additionalRequirementsTitle")}
             </h2>
             <p className="text-xs text-muted-foreground">
-              Add any restrictions or notes for advertisers.
+              {t("listings.additionalRequirementsSubtitle")}
             </p>
           </div>
           <textarea
             value={contentRulesText}
             onChange={(event) => setContentRulesText(event.target.value)}
-            placeholder="Example: No gambling links, English language only, max 2 emojis."
+            placeholder={t("listings.additionalRequirementsPlaceholder")}
             className="min-h-[120px] w-full rounded-xl border border-border/60 bg-card px-3 py-3 text-sm text-foreground"
           />
         </section>
 
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Listing preview</h2>
-            <p className="text-xs text-muted-foreground">Live preview of your Marketplace card.</p>
+            <h2 className="text-sm font-semibold text-foreground">{t("listings.previewTitle")}</h2>
+            <p className="text-xs text-muted-foreground">{t("listings.previewSubtitle")}</p>
           </div>
           <ListingPreviewDetails
             priceTon={Number(priceTon || 0)}
@@ -512,13 +529,12 @@ export default function CreateListing() {
             disabled={isSubmitting}
             className="w-full button-primary py-3 text-base font-semibold disabled:opacity-70"
           >
-            {isSubmitting ? "Publishing..." : "Publish Listing"}
+            {isSubmitting ? t("listings.publishing") : t("listings.publishAction")}
           </button>
           <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-card px-3 py-3 text-xs text-muted-foreground">
             <Info size={16} className="text-primary" />
             <span>
-              Funds are locked in escrow before posting. Payment is released only after
-              delivery verification.
+              {t("listings.escrowNote")}
             </span>
           </div>
         </div>
