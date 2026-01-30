@@ -70,6 +70,7 @@ const buildMockDeal = (overrides: Partial<DealListItem>): DealListItem => {
     escrowCurrency: "TON",
     paymentAddress: "EQB7qQH2rXq4d9NfkY3H3aXk7kqfYjQ7ZVt2m9xkT8m0fLr",
     paymentExpiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    paymentDeadlineAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
     ...overrides,
     listing,
   };

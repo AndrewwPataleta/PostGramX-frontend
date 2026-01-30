@@ -45,6 +45,7 @@ export default function StagePayment({
   const { isConnected, walletAppName, network } = useWalletContext();
   const [isWaiting, setIsWaiting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
+  const paymentDeadlineAt = deal.paymentDeadlineAt ?? deal.paymentExpiresAt;
 
   const escrowAmountNano = deal.escrowAmountNano ?? deal.listing.priceNano;
   const paymentAddress = deal.escrowPaymentAddress ?? "";
@@ -61,12 +62,12 @@ export default function StagePayment({
   }, [isConnected, network, t, walletAppName]);
 
   useEffect(() => {
-    if (!deal.paymentExpiresAt) {
+    if (!paymentDeadlineAt) {
       setTimeRemaining(null);
       return;
     }
 
-    const expiresAt = new Date(deal.paymentExpiresAt).getTime();
+    const expiresAt = new Date(paymentDeadlineAt).getTime();
     if (Number.isNaN(expiresAt)) {
       setTimeRemaining(null);
       return;
@@ -80,7 +81,7 @@ export default function StagePayment({
     updateRemaining();
     const interval = window.setInterval(updateRemaining, 1000);
     return () => window.clearInterval(interval);
-  }, [deal.paymentExpiresAt]);
+  }, [paymentDeadlineAt]);
 
   useEffect(() => {
     setIsWaiting(false);

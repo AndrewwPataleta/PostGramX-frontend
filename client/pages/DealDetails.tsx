@@ -51,6 +51,9 @@ export default function DealDetails() {
       if (!data) {
         return false;
       }
+      if (data.escrowStatus === "CREATIVE_AWAITING_ADMIN_REVIEW") {
+        return 10000;
+      }
       if (data.escrowStatus === "AWAITING_PAYMENT") {
         return 12000;
       }
@@ -106,6 +109,9 @@ export default function DealDetails() {
     const stageComponents: Record<EscrowStatus, JSX.Element> = {
       SCHEDULING_PENDING: <StageScheduleTime deal={resolvedDeal} readonly={!isAdvertiser} />,
       CREATIVE_AWAITING_SUBMIT: <StageSendPost deal={resolvedDeal} readonly={!isAdvertiser} />,
+      CREATIVE_AWAITING_ADMIN_REVIEW: (
+        <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />
+      ),
       CREATIVE_AWAITING_CONFIRM: (
         <StageConfirmPost deal={resolvedDeal} readonly={!isAdvertiser} />
       ),
