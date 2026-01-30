@@ -27,7 +27,7 @@ export default function Timeline({ items }: TimelineProps) {
               item.state === "completed"
                 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
                 : item.state === "current"
-                ? "border-primary/50 bg-primary/10 text-primary-foreground"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                 : "border-border/60 bg-background/40 text-muted-foreground"
             }`}
           >
@@ -36,7 +36,7 @@ export default function Timeline({ items }: TimelineProps) {
                 item.state === "completed"
                   ? "bg-emerald-500/80 text-emerald-950"
                   : item.state === "current"
-                  ? "bg-primary/80 text-primary-foreground"
+                  ? "bg-emerald-500/10 text-emerald-400"
                   : "border border-border/70 text-muted-foreground"
               }`}
             >
