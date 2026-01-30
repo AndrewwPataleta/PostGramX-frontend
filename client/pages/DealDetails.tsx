@@ -10,7 +10,7 @@ import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getErrorMessage } from "@/lib/api/errors";
 import type { DealListItem } from "@/types/deals";
-import { getAvailableStages, getCurrentStage } from "@/features/deals/dealStageMachine";
+import { allStages, getCurrentStage } from "@/features/deals/dealStageMachine";
 import type { EscrowStatus } from "@/types/deals";
 import StageScheduleTime from "@/features/deals/stages/StageScheduleTime";
 import StageSendPost from "@/features/deals/stages/StageSendPost";
@@ -91,7 +91,7 @@ export default function DealDetails() {
   }, [error, fallbackListQuery.error]);
 
   const currentStage = resolvedDeal ? getCurrentStage(resolvedDeal.escrowStatus) : "SCHEDULE";
-  const availableStages = resolvedDeal ? getAvailableStages(resolvedDeal.escrowStatus) : [];
+  const availableStages = resolvedDeal ? allStages : [];
 
   const stagePanel = useMemo(() => {
     if (!resolvedDeal) {
