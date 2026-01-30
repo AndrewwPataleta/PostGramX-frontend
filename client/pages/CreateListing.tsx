@@ -180,7 +180,7 @@ export default function CreateListing() {
               </button>
               <div className="rounded-lg border border-border/60 bg-muted/60 px-3 py-1 text-center text-[11px] font-semibold text-muted-foreground">
                 {t("common.usd")}
-                <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                <div className="text-[9px] text-muted-foreground">
                   {t("common.comingSoon")}
                 </div>
               </div>
@@ -348,7 +348,7 @@ export default function CreateListing() {
             <label className="flex items-center justify-between rounded-xl border border-border/40 bg-card/60 px-3 py-3 text-sm opacity-80">
               <span className="text-foreground">
                 {t("listings.preApprovalLocked")}
-                <span className="ml-2 text-[10px] uppercase tracking-wide text-primary">
+                <span className="ml-2 text-[10px] font-semibold text-primary">
                   {t("common.locked")}
                 </span>
               </span>

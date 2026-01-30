@@ -76,7 +76,7 @@ export function ListingPreviewDetails({
         </div>
         <div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-2">
           <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            <p className="text-[11px] font-semibold text-muted-foreground">
               {t("common.price")}
             </p>
             <p className="text-sm font-semibold text-foreground">
@@ -84,7 +84,7 @@ export function ListingPreviewDetails({
             </p>
           </div>
           <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            <p className="text-[11px] font-semibold text-muted-foreground">
               {t("listings.formatLabel")}
             </p>
             <p className="text-sm font-semibold text-foreground">
@@ -92,13 +92,13 @@ export function ListingPreviewDetails({
             </p>
           </div>
           <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            <p className="text-[11px] font-semibold text-muted-foreground">
               {t("listings.pinnedLabel")}
             </p>
             <p className="text-sm font-semibold text-foreground">{pinnedLabel}</p>
           </div>
           <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            <p className="text-[11px] font-semibold text-muted-foreground">
               {t("listings.visibleInFeed")}
             </p>
             <p className="text-sm font-semibold text-foreground">{visibilityLabel}</p>
@@ -164,7 +164,7 @@ export function ListingPreviewDetails({
           )}
         </div>
         <div className="rounded-xl border border-border/60 bg-card px-3 py-2 text-xs">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          <p className="text-[11px] font-semibold text-muted-foreground">
             {t("listings.rules")}
           </p>
           <p className="mt-1 text-sm text-foreground">

@@ -69,7 +69,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           <p className="text-sm text-white/70">{step.subtitle}</p>
         </div>
 
-        <div className="text-xs uppercase tracking-[0.3em] text-white/50">
+        <div className="text-xs tracking-[0.3em] text-white/50">
           {t("splash.entering")}
         </div>
       </div>

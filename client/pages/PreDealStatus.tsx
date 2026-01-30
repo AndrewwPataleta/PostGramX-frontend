@@ -11,18 +11,9 @@ import ErrorState from "@/components/feedback/ErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getErrorMessage } from "@/lib/api/errors";
+import { formatStatusLabel } from "@/lib/formatting";
 import { openTelegramLink } from "@/lib/telegramLinks";
 import { cn } from "@/lib/utils";
-
-const STATUS_LABELS: Record<string, string> = {
-  AWAITING_CREATIVE: "Awaiting creative",
-  AWAITING_CONFIRMATION: "Awaiting confirmation",
-  AWAITING_ADMIN_APPROVAL: "Awaiting admin approval",
-  READY_FOR_PAYMENT: "Ready for payment",
-  REJECTED: "Rejected",
-  EXPIRED: "Expired",
-  CANCELED: "Canceled",
-};
 
 const STATUS_STYLES: Record<string, string> = {
   AWAITING_CREATIVE: "border-border/60 bg-secondary/40 text-muted-foreground",
@@ -51,12 +42,8 @@ const formatDuration = (totalSeconds: number) => {
   return `${seconds}s`;
 };
 
-const formatStatusLabel = (status?: string) => {
-  if (!status) {
-    return "Awaiting update";
-  }
-  return STATUS_LABELS[status] ?? status.replace(/_/g, " ").toLowerCase();
-};
+const formatPredealStatusLabel = (status?: string) =>
+  formatStatusLabel(status) || "Awaiting update";
 
 const StepCard = ({
   title,
@@ -164,7 +151,7 @@ export default function PreDealStatus() {
   }
 
   const predeal = predealQuery.data;
-  const statusLabel = formatStatusLabel(predeal.status);
+  const statusLabel = formatPredealStatusLabel(predeal.status);
   const statusClass = STATUS_STYLES[predeal.status] ?? "border-border/60 bg-secondary/40 text-muted-foreground";
   const isReadyForPayment = predeal.status === "READY_FOR_PAYMENT";
   const expiresAt = predeal.paymentExpiresAt ? new Date(predeal.paymentExpiresAt) : null;

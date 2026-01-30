@@ -158,7 +158,7 @@ const AddChannelStep2 = () => {
               </p>
               <p className="text-xs text-muted-foreground">{displayUsername}</p>
             </div>
-            <Badge variant="secondary" className="text-[10px] uppercase">
+            <Badge variant="secondary" className="text-[10px]">
               {isLinked ? t("channels.add.step2.linkedStatus") : t("channels.add.step2.notLinked")}
             </Badge>
           </div>

@@ -225,7 +225,7 @@ export default function Deals() {
 
             {sellerDeals.length > 0 ? (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                   <Megaphone size={14} />
                   Selling ads
                   <span className="text-[11px] font-normal">·</span>
