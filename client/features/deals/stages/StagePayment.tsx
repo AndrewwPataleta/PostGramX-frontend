@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTonConnectModal, useTonConnectUI } from "@tonconnect/ui-react";
-import { beginCell } from "@ton/core";
 
 import InfoCard from "@/components/deals/InfoCard";
 import type { DealListItem } from "@/types/deals";
@@ -37,9 +36,37 @@ const formatShortAddress = (address: string) => {
 const toNanoString = (value: string | bigint) =>
   typeof value === "bigint" ? value.toString() : value;
 
-// TON "text comment" payload: op(32)=0 + string tail
-const commentPayloadBase64 = (comment: string) =>
-  beginCell().storeUint(0, 32).storeStringTail(comment).endCell().toBoc().toString("base64");
+function uint8ToBase64(bytes: Uint8Array) {
+  let binary = "";
+  const chunkSize = 0x8000;
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+
+  return btoa(binary);
+}
+
+async function buildCommentPayloadBase64(comment: string): Promise<string> {
+  // 1) Полифилл Buffer в рантайме (чтобы @ton/core не упал в браузере)
+  const w = window as any;
+  if (!w.Buffer) {
+    const mod = await import("buffer");
+    w.Buffer = mod.Buffer;
+  }
+
+  // 2) Ленивая загрузка @ton/core (теперь он не убьет приложение при старте)
+  const ton = await import("@ton/core");
+  const cell = ton
+    .beginCell()
+    .storeUint(0, 32) // op=0 для text comment
+    .storeStringTail(comment)
+    .endCell();
+
+  // Uint8Array BOC -> base64 (без Buffer)
+  const boc: Uint8Array = cell.toBoc({ idx: false });
+  return uint8ToBase64(boc);
+}
 
 export default function StagePayment({
                                        deal,
@@ -48,10 +75,8 @@ export default function StagePayment({
                                        isRefreshing,
                                      }: StagePaymentProps) {
   const { t, language } = useLanguage();
-
   const { open: openWalletModal } = useTonConnectModal();
   const [tonConnectUI] = useTonConnectUI();
-
   const { isConnected, walletAppName, network } = useWalletContext();
 
   const [isWaiting, setIsWaiting] = useState(false);
@@ -67,9 +92,13 @@ export default function StagePayment({
     : t("common.emptyValue");
 
   const walletStatusLabel = useMemo(() => {
-    if (!isConnected) return t("deals.stage.payment.walletDisconnected");
+    if (!isConnected) {
+      return t("deals.stage.payment.walletDisconnected");
+    }
     const networkLabel = network ? ` • ${network}` : "";
-    return `${t("deals.stage.payment.walletConnected")}${walletAppName ? ` • ${walletAppName}` : ""}${networkLabel}`;
+    return `${t("deals.stage.payment.walletConnected")}${
+      walletAppName ? ` • ${walletAppName}` : ""
+    }${networkLabel}`;
   }, [isConnected, network, t, walletAppName]);
 
   useEffect(() => {
@@ -111,7 +140,6 @@ export default function StagePayment({
     if (readonly || !paymentAddress || !escrowAmountNano) return;
 
     try {
-      // Если по какой-то причине UI думает что не подключено — открываем модалку
       if (!tonConnectUI.connected) {
         openWalletModal();
         return;
@@ -120,22 +148,27 @@ export default function StagePayment({
       setIsWaiting(true);
 
       const validUntil = Math.floor(Date.now() / 1000) + 5 * 60; // 5 минут
+      const memo = `Deal:${deal.id}`;
+
+      // payload делаем безопасно (не падаем на старте приложения)
+      const payload = await buildCommentPayloadBase64(memo);
 
       await tonConnectUI.sendTransaction({
         validUntil,
         messages: [
           {
             address: paymentAddress,
-            amount: toNanoString(escrowAmountNano), // nanoTON строкой
-            payload: commentPayloadBase64(`Deal:${deal.id}`),
+            amount: toNanoString(escrowAmountNano),
+            payload,
           },
         ],
       });
 
-      toast.success(t("deals.stage.payment.paymentSent") ?? "Transaction sent. Waiting for confirmation...");
-      // дальше у тебя watcher/бек подтвердит поступление, либо пользователь нажмёт "Check status"
+      toast.success(
+        t("deals.stage.payment.paymentSent") ??
+        "Transaction sent. Waiting for confirmation..."
+      );
     } catch (error: any) {
-      // Пользователь может отменить в кошельке — это норм
       const message =
         typeof error?.message === "string"
           ? error.message
@@ -151,7 +184,9 @@ export default function StagePayment({
       await navigator.clipboard.writeText(paymentAddress);
       toast.success(t("deals.stage.payment.addressCopied"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("deals.stage.payment.copyFailed"));
+      toast.error(
+        error instanceof Error ? error.message : t("deals.stage.payment.copyFailed")
+      );
     }
   };
 
@@ -181,7 +216,10 @@ export default function StagePayment({
               <span className="font-semibold text-foreground">
                 {t("deals.stage.payment.receiver")}
               </span>
-              : {paymentAddress ? formatShortAddress(paymentAddress) : t("common.emptyValue")}
+              :{" "}
+              {paymentAddress
+                ? formatShortAddress(paymentAddress)
+                : t("common.emptyValue")}
             </p>
 
             {timeRemaining ? (
@@ -199,7 +237,9 @@ export default function StagePayment({
             <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border/60">
               <span className="h-2 w-2 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
             </span>
-            <span className="text-xs text-muted-foreground">{t("deals.stage.payment.waiting")}</span>
+            <span className="text-xs text-muted-foreground">
+              {t("deals.stage.payment.waiting")}
+            </span>
           </div>
         ) : null}
 
@@ -224,7 +264,9 @@ export default function StagePayment({
                 disabled={readonly || isWaiting}
                 className={cn(
                   "rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition",
-                  readonly || isWaiting ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
+                  readonly || isWaiting
+                    ? "cursor-not-allowed opacity-60"
+                    : "hover:bg-primary/90"
                 )}
               >
                 {t("deals.stage.payment.payWithWallet")}
@@ -252,7 +294,9 @@ export default function StagePayment({
             disabled={isRefreshing || !onAction?.onRefresh}
             className={cn(
               "rounded-lg border border-border/60 px-4 py-2 text-xs font-semibold text-foreground",
-              isRefreshing || !onAction?.onRefresh ? "cursor-not-allowed opacity-60" : "hover:border-primary/40"
+              isRefreshing || !onAction?.onRefresh
+                ? "cursor-not-allowed opacity-60"
+                : "hover:border-primary/40"
             )}
           >
             {isRefreshing ? t("common.refreshing") : t("deals.stage.payment.checkStatus")}
