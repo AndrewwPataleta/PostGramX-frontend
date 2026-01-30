@@ -54,7 +54,7 @@ export default function DealDetails() {
       if (data.escrowStatus === "CREATIVE_AWAITING_ADMIN_REVIEW") {
         return 10000;
       }
-      if (data.escrowStatus === "AWAITING_PAYMENT") {
+      if (data.escrowStatus === "PAYMENT_AWAITING") {
         return 12000;
       }
       return ["FUNDS_PENDING", "POSTED_VERIFYING"].includes(data.escrowStatus) ? 5000 : false;
