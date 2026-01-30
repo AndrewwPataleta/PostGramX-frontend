@@ -6,8 +6,9 @@ import type { DealListItem } from "@/types/deals";
 import { cn } from "@/lib/utils";
 import { formatTon } from "@/i18n/formatters";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { buildTonTransferLinkFromNano } from "@/features/deals/payment";
+import { buildTelegramWalletTransferLinkFromNano } from "@/features/deals/payment";
 import { useWalletContext } from "@/contexts/WalletContext";
+import { openTelegramLink } from "@/lib/telegramLinks";
 
 interface StagePaymentProps {
   deal: DealListItem;
@@ -103,16 +104,12 @@ export default function StagePayment({
       return;
     }
     try {
-      const link = buildTonTransferLinkFromNano({
+      const link = buildTelegramWalletTransferLinkFromNano({
         address: paymentAddress,
         amountNano: escrowAmountNano,
         memo: `Deal:${deal.id}`,
       });
-      const opened = window.open(link, "_blank");
-      if (!opened) {
-        toast.error(t("deals.stage.payment.paymentCanceled"));
-        return;
-      }
+      openTelegramLink(link);
       setIsWaiting(true);
     } catch (error) {
       toast.error(

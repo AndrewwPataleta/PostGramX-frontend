@@ -16,6 +16,15 @@ export const buildTonTransferLink = (params: {
   return `ton://transfer/${address}${query ? `?${query}` : ""}`;
 };
 
+export const buildTelegramWalletTransferLink = (params: {
+  address: string;
+  amountTon: number;
+  memo?: string;
+}) => {
+  const tonLink = buildTonTransferLink(params);
+  return `https://t.me/wallet?start=${encodeURIComponent(tonLink)}`;
+};
+
 export const buildTonTransferLinkFromNano = (params: {
   address: string;
   amountNano: string | bigint;
@@ -32,6 +41,15 @@ export const buildTonTransferLinkFromNano = (params: {
   }
   const query = search.toString();
   return `ton://transfer/${address}${query ? `?${query}` : ""}`;
+};
+
+export const buildTelegramWalletTransferLinkFromNano = (params: {
+  address: string;
+  amountNano: string | bigint;
+  memo?: string;
+}) => {
+  const tonLink = buildTonTransferLinkFromNano(params);
+  return `https://t.me/wallet?start=${encodeURIComponent(tonLink)}`;
 };
 
 export const buildTonConnectTransaction = (params: {
