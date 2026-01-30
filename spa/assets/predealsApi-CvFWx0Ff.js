@@ -1,1 +1,0 @@
-import{p as e}from"./index-B45srucX.js";const t=async a=>e("/predeals/create",{data:a}),r=async a=>e("/predeals/get",{data:a}),p=async a=>{await e("/predeals/cancel",{data:a})};export{p as a,r as b,t as p};
