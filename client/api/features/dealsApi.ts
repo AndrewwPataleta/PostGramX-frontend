@@ -31,20 +31,8 @@ const normalizeDealsGroup = (
   total: typeof group?.total === "number" ? group.total : 0,
 });
 
-const buildMockDeal = (overrides: Partial<DealListItem>): DealListItem => ({
-  id: `deal_${Math.random().toString(36).slice(2, 8)}`,
-  status: "PENDING",
-  escrowStatus: "SCHEDULING_PENDING",
-  initiatorSide: "ADVERTISER",
-  userRoleInDeal: "advertiser",
-  channel: {
-    id: "channel_1",
-    name: "PostgramX Updates",
-    username: "postgramx",
-    avatarUrl: null,
-    verified: true,
-  },
-  listing: {
+const buildMockDeal = (overrides: Partial<DealListItem>): DealListItem => {
+  const baseListing: DealListItem["listing"] = {
     id: "listing_1",
     priceNano: "25000000000",
     currency: "TON",
@@ -58,11 +46,34 @@ const buildMockDeal = (overrides: Partial<DealListItem>): DealListItem => ({
     allowLinkTracking: true,
     contentRulesText: "Avoid misleading claims or urgent calls to action.",
     requiresApproval: true,
-  },
-  createdAt: new Date().toISOString(),
-  lastActivityAt: new Date().toISOString(),
-  ...overrides,
-});
+  };
+  const listing = { ...baseListing, ...(overrides.listing ?? {}) };
+
+  return {
+    id: `deal_${Math.random().toString(36).slice(2, 8)}`,
+    status: "PENDING",
+    escrowStatus: "SCHEDULING_PENDING",
+    initiatorSide: "ADVERTISER",
+    userRoleInDeal: "advertiser",
+    channel: {
+      id: "channel_1",
+      name: "PostgramX Updates",
+      username: "postgramx",
+      avatarUrl: null,
+      verified: true,
+    },
+    listing,
+    createdAt: new Date().toISOString(),
+    lastActivityAt: new Date().toISOString(),
+    escrowWalletId: "escrow_wallet_1",
+    escrowAmountNano: listing.priceNano,
+    escrowCurrency: "TON",
+    paymentAddress: "EQB7qQH2rXq4d9NfkY3H3aXk7kqfYjQ7ZVt2m9xkT8m0fLr",
+    paymentExpiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    ...overrides,
+    listing,
+  };
+};
 
 const paginate = (items: DealListItem[], page: number, limit: number) => {
   const start = (page - 1) * limit;
@@ -121,6 +132,33 @@ const mockDealsList = (params: DealsListParams): DealsListResponse => {
         allowLinkTracking: false,
         requiresApproval: false,
       },
+    }),
+    buildMockDeal({
+      status: "PENDING",
+      escrowStatus: "AWAITING_PAYMENT",
+      channel: {
+        id: "channel_3",
+        name: "TON Launchpad",
+        username: "tonlaunchpad",
+        avatarUrl: null,
+        verified: true,
+      },
+      listing: {
+        id: "listing_3",
+        priceNano: "2500000000",
+        currency: "TON",
+        format: "post",
+        tags: ["launch", "nft"],
+        placementHours: 24,
+        lifetimeHours: 48,
+        pinDurationHours: 24,
+        visibilityDurationHours: 48,
+        allowEdits: true,
+        allowLinkTracking: false,
+        contentRulesText: "Share clear launch details. Avoid fake scarcity.",
+        requiresApproval: true,
+      },
+      paymentExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
     }),
     buildMockDeal({
       status: "PENDING",

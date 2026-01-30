@@ -11,6 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TelegramProvider, useTelegramContext } from "@/components/telegram/TelegramProvider";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { WalletProvider } from "@/contexts/WalletContext";
 import { getTelegramWebApp } from "@/lib/telegram";
 import { createQueryClient } from "@/lib/reactQuery/queryClient";
 import { AppRoutes } from "@/routes";
@@ -44,20 +45,22 @@ const AppRoot = () => {
   return (
     <BrowserRouter>
       <TonConnectUIProvider manifestUrl={manifestUrl}>
-        <TelegramProvider>
-          <AuthProvider>
-            <QueryClientProvider client={queryClient}>
-              <LanguageProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <NavigationHaptics />
-                  <AppRoutes />
-                </TooltipProvider>
-              </LanguageProvider>
-            </QueryClientProvider>
-          </AuthProvider>
-        </TelegramProvider>
+        <WalletProvider>
+          <TelegramProvider>
+            <AuthProvider>
+              <QueryClientProvider client={queryClient}>
+                <LanguageProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    <NavigationHaptics />
+                    <AppRoutes />
+                  </TooltipProvider>
+                </LanguageProvider>
+              </QueryClientProvider>
+            </AuthProvider>
+          </TelegramProvider>
+        </WalletProvider>
       </TonConnectUIProvider>
     </BrowserRouter>
   );

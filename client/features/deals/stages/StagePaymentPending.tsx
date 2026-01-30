@@ -17,6 +17,11 @@ export default function StagePaymentPending({ onAction, isRefreshing }: StagePay
   const { t } = useLanguage();
   return (
     <InfoCard title={t("deals.stage.paymentPending.title")}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+          {t("deals.stage.payment.paymentDetected")}
+        </span>
+      </div>
       <p className="text-xs text-muted-foreground">
         {t("deals.stage.paymentPending.description")}
       </p>

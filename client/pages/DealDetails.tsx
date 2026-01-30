@@ -51,9 +51,10 @@ export default function DealDetails() {
       if (!data) {
         return false;
       }
-      return ["PAYMENT_AWAITING", "FUNDS_PENDING", "POSTED_VERIFYING"].includes(data.escrowStatus)
-        ? 5000
-        : false;
+      if (data.escrowStatus === "AWAITING_PAYMENT") {
+        return 12000;
+      }
+      return ["FUNDS_PENDING", "POSTED_VERIFYING"].includes(data.escrowStatus) ? 5000 : false;
     },
   });
 
@@ -110,7 +111,14 @@ export default function DealDetails() {
       ),
       ADMIN_REVIEW: <StageAdminApproval deal={resolvedDeal} readonly={!isPublisher} />,
       PAYMENT_WINDOW_PENDING: <StagePaymentWindow deal={resolvedDeal} readonly={readonlyForPublisher} />,
-      PAYMENT_AWAITING: <StagePayment deal={resolvedDeal} readonly={readonlyForPublisher} />,
+      AWAITING_PAYMENT: (
+        <StagePayment
+          deal={resolvedDeal}
+          readonly={readonlyForPublisher}
+          onAction={readonlyForPublisher ? undefined : { onRefresh: () => refetch() }}
+          isRefreshing={isFetching}
+        />
+      ),
       FUNDS_PENDING: (
         <StagePaymentPending
           deal={resolvedDeal}
