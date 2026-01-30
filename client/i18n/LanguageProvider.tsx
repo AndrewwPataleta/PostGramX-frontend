@@ -38,6 +38,31 @@ const getStoredLanguage = (): Language | null => {
   return isLanguage(stored) ? stored : null;
 };
 
+const humanizeKey = (key: string) => {
+  const parts = key.split(".");
+  const tail = parts.length >= 3 ? parts.slice(-2).join(" ") : parts[parts.length - 1] ?? key;
+  const spaced = tail
+    .replace(/_/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!spaced) {
+    return key;
+  }
+  const words = spaced.split(" ").map((word) => {
+    if (!word) {
+      return "";
+    }
+    const lettersOnly = word.replace(/[^a-zA-Z]/g, "");
+    if (lettersOnly && lettersOnly === lettersOnly.toUpperCase()) {
+      return word;
+    }
+    return word.toLowerCase();
+  });
+  const sentence = words.join(" ");
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+};
+
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useTelegram();
   const [language, setLanguageState] = useState<Language>(
@@ -67,7 +92,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
 
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>) => {
-      const template = translations[language][key] ?? translations.en[key] ?? key;
+      const resolved = translations[language][key] ?? translations.en[key] ?? key;
+      const template = resolved === key ? humanizeKey(key) : resolved;
       if (!params) {
         return template;
       }

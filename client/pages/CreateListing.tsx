@@ -13,6 +13,7 @@ import type { ChannelManageContext } from "@/pages/channel-manage/ChannelManageL
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { getListingTagLabel } from "@/features/listings/tagOptions";
 import { formatNumber } from "@/i18n/formatters";
+import { formatDuration } from "@/i18n/labels";
 
 const resolveHours = (choice: string, customValue: string, fallback: number) => {
   if (choice === "custom") {
@@ -235,7 +236,7 @@ export default function CreateListing() {
                       : "border-border/60 bg-secondary/60 text-foreground"
                   }`}
                 >
-                  {t("common.hoursShort", { count: hours })}
+                  {formatDuration(hours, t)}
                 </button>
               ))}
               <button
@@ -291,9 +292,7 @@ export default function CreateListing() {
                       : "border-border/60 bg-secondary/60 text-foreground"
                   }`}
                 >
-                  {hours === 168
-                    ? t("common.daysShort", { count: 7 })
-                    : t("common.hoursShort", { count: hours })}
+                  {formatDuration(hours, t)}
                 </button>
               ))}
             </div>
