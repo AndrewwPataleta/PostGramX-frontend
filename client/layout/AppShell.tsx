@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Store, TrendingUp, User, Zap } from "lucide-react";
-import WalletConnectBanner from "@/components/wallet/WalletConnectBanner";
 import TopToolbar from "@/components/TopToolbar";
 import { useLanguage } from "@/i18n/LanguageProvider";
 
@@ -20,10 +19,6 @@ const AppShell = () => {
     !isMainNavRoute || (location.pathname === "/marketplace" && isKeyboardOpen);
   const bottomNavOffset = 8;
   const bottomNavHeight = shouldHideBottomNav ? 0 : 104 + bottomNavOffset;
-  const showWalletBanner = useMemo(
-    () => ["/", "/deals", "/channels"].includes(location.pathname),
-    [location.pathname],
-  );
   const isAddChannelRoute = location.pathname.startsWith("/add-channel");
 
   const isActive = (path: string) =>
@@ -121,7 +116,6 @@ const AppShell = () => {
     <div className="flex h-full flex-col bg-background" style={shellStyle}>
       {isAddChannelRoute ? null : <TopToolbar />}
       <main className="flex-1 overflow-y-auto touch-pan-y" ref={mainRef} style={contentStyle}>
-        {showWalletBanner ? <WalletConnectBanner /> : null}
         <Outlet />
       </main>
 

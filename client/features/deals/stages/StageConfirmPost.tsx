@@ -8,10 +8,18 @@ import { cn } from "@/lib/utils";
 
 interface StageConfirmPostProps {
   deal: DealListItem;
-  isCurrent: boolean;
+  readonly: boolean;
+  onAction?: {
+    onConfirm?: () => Promise<void> | void;
+    onRequestChanges?: () => Promise<void> | void;
+  };
 }
 
-export default function StageConfirmPost({ deal, isCurrent }: StageConfirmPostProps) {
+export default function StageConfirmPost({
+  deal,
+  readonly,
+  onAction,
+}: StageConfirmPostProps) {
   const queryClient = useQueryClient();
   const creativeText = deal.creativeText;
 
@@ -49,6 +57,39 @@ export default function StageConfirmPost({ deal, isCurrent }: StageConfirmPostPr
     },
   });
 
+  if (readonly) {
+    return (
+      <InfoCard title="Confirm post">
+        <p className="text-xs text-muted-foreground">Waiting for advertiser to complete this step.</p>
+        {creativeText ? (
+          <div className="rounded-lg border border-border/60 bg-background/50 p-3 text-xs text-foreground">
+            {creativeText}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border/60 bg-background/40 p-3 text-xs text-muted-foreground">
+            Waiting for creative submission.
+          </div>
+        )}
+      </InfoCard>
+    );
+  }
+
+  const handleConfirm = () => {
+    if (onAction?.onConfirm) {
+      onAction.onConfirm();
+      return;
+    }
+    confirmMutation.mutate();
+  };
+
+  const handleRequestChanges = () => {
+    if (onAction?.onRequestChanges) {
+      onAction.onRequestChanges();
+      return;
+    }
+    rejectMutation.mutate();
+  };
+
   return (
     <InfoCard title="Confirm post">
       {creativeText ? (
@@ -63,11 +104,11 @@ export default function StageConfirmPost({ deal, isCurrent }: StageConfirmPostPr
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => confirmMutation.mutate()}
-          disabled={!isCurrent || !creativeText || confirmMutation.isPending}
+          onClick={handleConfirm}
+          disabled={!creativeText || confirmMutation.isPending}
           className={cn(
             "rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition",
-            !isCurrent || !creativeText || confirmMutation.isPending
+            !creativeText || confirmMutation.isPending
               ? "cursor-not-allowed opacity-60"
               : "hover:bg-primary/90"
           )}
@@ -76,11 +117,11 @@ export default function StageConfirmPost({ deal, isCurrent }: StageConfirmPostPr
         </button>
         <button
           type="button"
-          onClick={() => rejectMutation.mutate()}
-          disabled={!isCurrent || !creativeText || rejectMutation.isPending}
+          onClick={handleRequestChanges}
+          disabled={!creativeText || rejectMutation.isPending}
           className={cn(
             "rounded-lg border border-border/60 px-4 py-2 text-xs font-semibold text-foreground",
-            !isCurrent || !creativeText || rejectMutation.isPending
+            !creativeText || rejectMutation.isPending
               ? "cursor-not-allowed opacity-60"
               : "hover:border-primary/40"
           )}
@@ -88,9 +129,6 @@ export default function StageConfirmPost({ deal, isCurrent }: StageConfirmPostPr
           Request changes
         </button>
       </div>
-      {!isCurrent ? (
-        <p className="text-xs text-muted-foreground">This step has been completed.</p>
-      ) : null}
     </InfoCard>
   );
 }

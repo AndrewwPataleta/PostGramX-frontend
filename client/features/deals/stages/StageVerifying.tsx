@@ -5,10 +5,11 @@ import { cn } from "@/lib/utils";
 
 interface StageVerifyingProps {
   deal: DealListItem;
-  isCurrent: boolean;
+  readonly: boolean;
+  onAction?: Record<string, never>;
 }
 
-export default function StageVerifying({ deal, isCurrent }: StageVerifyingProps) {
+export default function StageVerifying({ deal }: StageVerifyingProps) {
   const handleOpenPost = () => {
     if (deal.postUrl) {
       openTelegramLink(deal.postUrl);
@@ -34,9 +35,6 @@ export default function StageVerifying({ deal, isCurrent }: StageVerifyingProps)
       ) : (
         <p className="text-xs text-muted-foreground">Post link will appear once available.</p>
       )}
-      {!isCurrent ? (
-        <p className="text-xs text-muted-foreground">Verification has finished.</p>
-      ) : null}
     </InfoCard>
   );
 }

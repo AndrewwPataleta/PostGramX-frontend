@@ -9,7 +9,10 @@ import { cn } from "@/lib/utils";
 
 interface StagePaymentWindowProps {
   deal: DealListItem;
-  isCurrent: boolean;
+  readonly: boolean;
+  onAction?: {
+    onSetWindow?: (hours: number) => Promise<void> | void;
+  };
 }
 
 const WINDOW_OPTIONS = [1, 2, 24];
@@ -28,7 +31,7 @@ const formatCountdown = (expiresAt?: string | null) => {
   return `${hours}h ${minutes}m`;
 };
 
-export default function StagePaymentWindow({ deal, isCurrent }: StagePaymentWindowProps) {
+export default function StagePaymentWindow({ deal, readonly, onAction }: StagePaymentWindowProps) {
   const queryClient = useQueryClient();
   const [hours, setHours] = useState<number>(WINDOW_OPTIONS[0]);
 
@@ -54,6 +57,14 @@ export default function StagePaymentWindow({ deal, isCurrent }: StagePaymentWind
 
   const countdown = useMemo(() => formatCountdown(deal.escrowExpiresAt), [deal.escrowExpiresAt]);
 
+  const handleSetWindow = () => {
+    if (onAction?.onSetWindow) {
+      onAction.onSetWindow(hours);
+      return;
+    }
+    mutation.mutate();
+  };
+
   return (
     <InfoCard title="Payment window">
       <p className="text-xs text-muted-foreground">
@@ -65,13 +76,13 @@ export default function StagePaymentWindow({ deal, isCurrent }: StagePaymentWind
             key={option}
             type="button"
             onClick={() => setHours(option)}
-            disabled={!isCurrent}
+            disabled={readonly}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-semibold",
               option === hours
                 ? "border-primary/50 bg-primary/15 text-primary-foreground"
                 : "border-border/60 bg-background/50 text-muted-foreground",
-              !isCurrent && "cursor-not-allowed opacity-60"
+              readonly && "cursor-not-allowed opacity-60"
             )}
           >
             {option}h
@@ -81,11 +92,11 @@ export default function StagePaymentWindow({ deal, isCurrent }: StagePaymentWind
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={() => mutation.mutate()}
-          disabled={!isCurrent || mutation.isPending}
+          onClick={handleSetWindow}
+          disabled={readonly || mutation.isPending}
           className={cn(
             "rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition",
-            !isCurrent || mutation.isPending ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
+            readonly || mutation.isPending ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
           )}
         >
           Set window

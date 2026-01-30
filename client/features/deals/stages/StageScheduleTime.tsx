@@ -9,7 +9,10 @@ import { cn } from "@/lib/utils";
 
 interface StageScheduleTimeProps {
   deal: DealListItem;
-  isCurrent: boolean;
+  readonly: boolean;
+  onAction?: {
+    onConfirmSchedule?: (scheduledAt: string) => Promise<void> | void;
+  };
 }
 
 const formatDateTimeLocal = (value?: string) => {
@@ -29,7 +32,7 @@ const formatDateTimeLocal = (value?: string) => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-export default function StageScheduleTime({ deal, isCurrent }: StageScheduleTimeProps) {
+export default function StageScheduleTime({ deal, readonly, onAction }: StageScheduleTimeProps) {
   const queryClient = useQueryClient();
   const [scheduledAt, setScheduledAt] = useState<string>(formatDateTimeLocal(deal.scheduledAt));
 
@@ -60,6 +63,32 @@ export default function StageScheduleTime({ deal, isCurrent }: StageScheduleTime
     },
   });
 
+  if (readonly) {
+    return (
+      <InfoCard title="Schedule time">
+        <p className="text-xs text-muted-foreground">Waiting for advertiser to complete this step.</p>
+        <p className="text-xs text-muted-foreground">
+          Scheduled:{" "}
+          <span className="font-semibold text-foreground">
+            {deal.scheduledAt ? new Date(deal.scheduledAt).toLocaleString() : "Not scheduled yet"}
+          </span>
+        </p>
+      </InfoCard>
+    );
+  }
+
+  const handleConfirm = () => {
+    if (!scheduledAt) {
+      toast.error("Select a date and time before saving.");
+      return;
+    }
+    if (onAction?.onConfirmSchedule) {
+      onAction.onConfirmSchedule(scheduledAt);
+      return;
+    }
+    mutation.mutate();
+  };
+
   return (
     <InfoCard title="Schedule time">
       <p className="text-xs text-muted-foreground">
@@ -70,27 +99,20 @@ export default function StageScheduleTime({ deal, isCurrent }: StageScheduleTime
           type="datetime-local"
           value={scheduledAt}
           onChange={(event) => setScheduledAt(event.target.value)}
-          disabled={!isCurrent}
-          className={cn(
-            "w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs text-foreground",
-            !isCurrent && "cursor-not-allowed opacity-60"
-          )}
+          className="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs text-foreground"
         />
         <button
           type="button"
-          onClick={() => mutation.mutate()}
-          disabled={!isCurrent || mutation.isPending}
+          onClick={handleConfirm}
+          disabled={mutation.isPending}
           className={cn(
             "rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition",
-            !isCurrent || mutation.isPending ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
+            mutation.isPending ? "cursor-not-allowed opacity-60" : "hover:bg-primary/90"
           )}
         >
-          Save &amp; continue
+          Confirm schedule
         </button>
       </div>
-      {!isCurrent ? (
-        <p className="text-xs text-muted-foreground">This step is complete.</p>
-      ) : null}
     </InfoCard>
   );
 }
