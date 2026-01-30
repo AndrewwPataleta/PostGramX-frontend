@@ -45,39 +45,6 @@ const ListingsList = () => {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-2 rounded-lg bg-secondary/40 p-1">
-          <button
-            type="button"
-            onClick={() => {
-              setOnlyActive(true);
-              setPage(1);
-            }}
-            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-              onlyActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Active only
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setOnlyActive(false);
-              setPage(1);
-            }}
-            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-              !onlyActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            All listings
-          </button>
-        </div>
-      </div>
-
       {listingsQuery.isLoading ? (
         <LoadingSkeleton items={3} />
       ) : hasListings ? (
