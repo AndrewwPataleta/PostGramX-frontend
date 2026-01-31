@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useTonConnectModal, useTonConnectUI } from "@tonconnect/ui-react";
+import { TonConnectButton, useTonConnectUI } from "@tonconnect/ui-react";
 
 import InfoCard from "@/components/deals/InfoCard";
 import type { DealListItem } from "@/types/deals";
@@ -39,31 +39,29 @@ const toNanoString = (value: string | bigint) =>
 function uint8ToBase64(bytes: Uint8Array) {
   let binary = "";
   const chunkSize = 0x8000;
-
   for (let i = 0; i < bytes.length; i += chunkSize) {
     binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
   }
-
   return btoa(binary);
 }
 
 async function buildCommentPayloadBase64(comment: string): Promise<string> {
-  // 1) Полифилл Buffer в рантайме (чтобы @ton/core не упал в браузере)
+  // Buffer polyfill (browser)
   const w = window as any;
   if (!w.Buffer) {
     const mod = await import("buffer");
     w.Buffer = mod.Buffer;
   }
 
-  // 2) Ленивая загрузка @ton/core (теперь он не убьет приложение при старте)
+  // lazy import so app doesn't crash on load
   const ton = await import("@ton/core");
+
   const cell = ton
     .beginCell()
-    .storeUint(0, 32) // op=0 для text comment
+    .storeUint(0, 32) // text comment opcode
     .storeStringTail(comment)
     .endCell();
 
-  // Uint8Array BOC -> base64 (без Buffer)
   const boc: Uint8Array = cell.toBoc({ idx: false });
   return uint8ToBase64(boc);
 }
@@ -75,7 +73,6 @@ export default function StagePayment({
                                        isRefreshing,
                                      }: StagePaymentProps) {
   const { t, language } = useLanguage();
-  const { open: openWalletModal } = useTonConnectModal();
   const [tonConnectUI] = useTonConnectUI();
   const { isConnected, walletAppName, network } = useWalletContext();
 
@@ -92,9 +89,7 @@ export default function StagePayment({
     : t("common.emptyValue");
 
   const walletStatusLabel = useMemo(() => {
-    if (!isConnected) {
-      return t("deals.stage.payment.walletDisconnected");
-    }
+    if (!isConnected) return t("deals.stage.payment.walletDisconnected");
     const networkLabel = network ? ` • ${network}` : "";
     return `${t("deals.stage.payment.walletConnected")}${
       walletAppName ? ` • ${walletAppName}` : ""
@@ -131,26 +126,21 @@ export default function StagePayment({
     return null;
   }
 
-  const handleConnectWallet = () => {
-    if (readonly) return;
-    openWalletModal();
-  };
-
-  const handlePayWithWallet = async () => {
+  const handlePay = async () => {
     if (readonly || !paymentAddress || !escrowAmountNano) return;
 
     try {
+      // if not connected — open official modal (same as TonConnectButton)
       if (!tonConnectUI.connected) {
-        openWalletModal();
+        tonConnectUI.openModal();
         return;
       }
 
       setIsWaiting(true);
 
-      const validUntil = Math.floor(Date.now() / 1000) + 5 * 60; // 5 минут
+      const validUntil = Math.floor(Date.now() / 1000) + 5 * 60;
       const memo = `Deal:${deal.id}`;
 
-      // payload делаем безопасно (не падаем на старте приложения)
       const payload = await buildCommentPayloadBase64(memo);
 
       await tonConnectUI.sendTransaction({
@@ -243,48 +233,35 @@ export default function StagePayment({
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-2">
-          {!isConnected ? (
-            <button
-              type="button"
-              onClick={handleConnectWallet}
-              disabled={readonly}
-              className={cn(
-                "rounded-lg border border-border/60 px-4 py-2 text-xs font-semibold text-foreground transition",
-                readonly ? "cursor-not-allowed opacity-60" : "hover:border-primary/40"
-              )}
-            >
-              {t("deals.stage.payment.connectWallet")}
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handlePayWithWallet}
-                disabled={readonly || isWaiting}
-                className={cn(
-                  "rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition",
-                  readonly || isWaiting
-                    ? "cursor-not-allowed opacity-60"
-                    : "hover:bg-primary/90"
-                )}
-              >
-                {t("deals.stage.payment.payWithWallet")}
-              </button>
+        {/* ✅ Official SDK button + Pay logic */}
+        <div className="flex flex-wrap items-center gap-2">
+          <TonConnectButton className="!w-auto" />
 
-              <button
-                type="button"
-                onClick={handleCopyAddress}
-                disabled={readonly}
-                className={cn(
-                  "rounded-lg border border-border/60 px-4 py-2 text-xs font-semibold text-foreground transition",
-                  readonly ? "cursor-not-allowed opacity-60" : "hover:border-primary/40"
-                )}
-              >
-                {t("deals.stage.payment.copyAddress")}
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={handlePay}
+            disabled={readonly || isWaiting || !paymentAddress || !escrowAmountNano}
+            className={cn(
+              "rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition",
+              readonly || isWaiting
+                ? "cursor-not-allowed opacity-60"
+                : "hover:bg-primary/90"
+            )}
+          >
+            {t("deals.stage.payment.payWithWallet")}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCopyAddress}
+            disabled={readonly}
+            className={cn(
+              "rounded-lg border border-border/60 px-4 py-2 text-xs font-semibold text-foreground transition",
+              readonly ? "cursor-not-allowed opacity-60" : "hover:border-primary/40"
+            )}
+          >
+            {t("deals.stage.payment.copyAddress")}
+          </button>
         </div>
 
         {isWaiting ? (
