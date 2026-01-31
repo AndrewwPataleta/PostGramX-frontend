@@ -138,7 +138,7 @@
   "common.usd": "USD",
   "common.view": "Просмотр",
   "common.viewDetails": "Подробнее",
-  "deals.badge.youAreRole": "Вы {role}",
+  "deals.badge.youAreRole": "{role}",
   "deals.detail.confirmations": "Подтверждения",
   "deals.detail.creativeNote": "После проверки можно запросить правки.",
   "deals.detail.creativeSample": "Пример креатива",
