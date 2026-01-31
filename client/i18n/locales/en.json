@@ -322,7 +322,6 @@
   "deals.timeline.previousStage": "Previous stage",
   "deals.timeline.stage.SCHEDULE": "Schedule time",
   "deals.timeline.stage.SEND_POST": "Submit creative",
-  "deals.timeline.stage.CONFIRM_POST": "Confirm post",
   "deals.timeline.stage.CREATIVE_AWAITING_ADMIN_REVIEW": "Admin review",
   "deals.timeline.stage.CREATIVE_AWAITING_CONFIRM": "Confirm creative",
   "deals.timeline.stage.PAYMENT_WINDOW": "Payment window",

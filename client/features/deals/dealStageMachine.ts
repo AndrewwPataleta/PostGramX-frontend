@@ -5,7 +5,6 @@ import type { TranslationKey } from "@/i18n/translations";
 export type DealStageId =
   | "SCHEDULE"
   | "SEND_POST"
-  | "CONFIRM_POST"
   | "CREATIVE_AWAITING_ADMIN_REVIEW"
   | "PAYMENT_WINDOW"
   | "PAYMENT"
@@ -17,7 +16,6 @@ export type DealStageId =
 const stageOrder: DealStageId[] = [
   "SCHEDULE",
   "SEND_POST",
-  "CONFIRM_POST",
   "CREATIVE_AWAITING_ADMIN_REVIEW",
   "PAYMENT_WINDOW",
   "PAYMENT",
