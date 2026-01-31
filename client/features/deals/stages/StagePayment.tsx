@@ -88,6 +88,11 @@ export default function StagePayment({
     ? `${formatTon(escrowAmountNano, language)} ${t("common.ton")}`
     : t("common.emptyValue");
 
+  console.log("[PAY DEBUG] escrowAmountNano raw =", escrowAmountNano);
+  console.log("[PAY DEBUG] deal.escrowAmountNano raw =", deal.escrowAmountNano);
+  console.log("[PAY DEBUG] deal.listing.priceNano raw =", deal.listing.priceNano);
+
+
   const walletStatusLabel = useMemo(() => {
     if (!isConnected) return t("deals.stage.payment.walletDisconnected");
     const networkLabel = network ? ` • ${network}` : "";
