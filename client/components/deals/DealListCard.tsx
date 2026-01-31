@@ -77,7 +77,7 @@ const DealListCard = ({ deal, onSelect }: DealListCardProps) => {
 
       <div className="mt-2 flex items-center gap-2 overflow-hidden">
         <span
-          className="max-w-[200px] truncate whitespace-nowrap rounded-full border border-border/60 bg-background/50 px-3 py-1 text-xs font-semibold text-muted-foreground"
+          className="max-w-[200px] truncate whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold"
           style={{ textOverflow: "ellipsis" }}
         >
           {escrowText}
